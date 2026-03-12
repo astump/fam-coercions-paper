@@ -100,44 +100,8 @@
 %%   \country{USA}
 %% }
 
-%% \author{Sage Binder}
-%% \email{sage.binder@proton.me}
-%% \affiliation{%
-%%   \institution{The University of Iowa}
-%%   \city{Iowa City}
-%%   \state{Iowa}
-%%   \country{USA}
-%% }
-
-%% \author{Robert Zhang}
-%% \email{robertz@cs.utexas.edu}
-%% \affiliation{%
-%%   \institution{The University of Texas at Austin}
-%%   \city{Austin}
-%%   \state{Texas}
-%%   \country{USA}
-%% }
-
 %% \author{Caden Parajuli}
 %% \email{parajulc@bc.edu}
-%% \affiliation{%
-%%   \institution{Boston College}
-%%   \city{Boston}
-%%   \state{Massachusetts}
-%%   \country{USA}
-%% }
-
-%% \author{Shameer Ahmad}
-%% \email{ahmadsk@bc.edu}
-%% \affiliation{%
-%%   \institution{Boston College}
-%%   \city{Boston}
-%%   \state{Massachusetts}
-%%   \country{USA}
-%% }
-
-%% \author{Bill Vu}
-%% \email{vubi@bc.edu}
 %% \affiliation{%
 %%   \institution{Boston College}
 %%   \city{Boston}
@@ -262,33 +226,31 @@ of the functor would need to be inserted.
   procedure for subtyping.  The mode $\tau$ means a top-level position
   in the types, while $a$ means any position. Figure~\ref{fig:decproc}
   presents that procedure in the form of a proof system for deriving
-  judgments of the form $\subt{T}{\theta}{T'}{k}$, where
-  $k\in\mathbb{N}$.  An example derivation is shown in Figure~\ref{fig:ex}.
-
-  To handle monads, we would replace the \textit{seq} axiom with
-  \[
-  \infer[\textit{bind}]{T_1 \to \tl T_2 <: \tl\ T_1 \to \tl T_2}{\ }
-  \]
-  \noindent Then I am wondering if we could just replace the \textit{fun} rule of Figure~\ref{fig:decproc} with this alternative:
-
-  \[
-      \infer[\textit{fun'}]{\subt{T_1\to T_2}{a}{T_1'\to T_2'}{k}}{\subt{T_1'}{\tau}{T_1}{k} & \subt{T_2}{a}{T_2'}{k'} & k' \ge 1 }
-      \]
+  judgments of the form $\subt{k}{T}{\theta}{T'}$, where
+  $k\in\mathbb{N}$.  The semantics of this judgment is:
+  \begin{itemize}
+  \item $\subt{k}{T}{a}{T'}$ means that $\tl^k\ T <: T'$, and
+  \item $\subt{k}{\tl^k\ T}{\tau}{T'}$ means that $T <: T'$.
+  \end{itemize}
+  \noindent  An example derivation is shown in Figure~\ref{fig:ex}.
 
 \begin{figure}
   \[
   \begin{array}{lll}
-    \infer[\textit{refl}]{\subt{\tn}{a}{\tn}{0}}{\ }
+    \infer[\textit{refl}]{\subt{0}{\tn}{a}{\tn}}{\ }
     &\ &
-    \infer[\textit{fun}]{\subt{T_1\to T_2}{a}{T_1'\to T_2'}{k}}{\subt{T_1'}{\tau}{T_1}{k} & \subt{T_2}{a}{T_2'}{k'} & k' \ge k }
+    \infer[\textit{fun}]{\subt{i}{T_1\to T_2}{a}{T_1'\to T_2'}}{\subt{j}{T_1'}{\tau}{T_1} & \subt{k}{T_2}{a}{T_2'} & i \le j \le k}
     \\ \\
-    \infer[\textit{seq-dom}]{\subt{\tl\ T}{\tau}{T'}{k+1} }{\subt{T}{\tau}{T'}{k} }
+    \infer[\textit{seq-dom}]{\subt{k+1}{\tl\ T}{\tau}{T'} }{\subt{k}{T}{\tau}{T'} }
     &\ &
-    \infer[\textit{reset}]{\subt{T}{\tau}{T'}{0}}{\subt{T}{a}{T'}{k}}
+    \infer[\textit{reset}]{\subt{0}{T}{\tau}{T'}}{\subt{0}{T}{a}{T'}}
     \\ \\
-    \infer[\textit{seq-cod}]{\subt{T}{a}{\tl\ T'}{k+1} }{\subt{T}{a}{T'}{k} }
+    \infer[\textit{seq-cod}]{\subt{k}{\tl\ T}{a}{T_1\to T_2} }{\subt{k+1}{T}{a}{T_1\to T_2} }
     &\ &
-    \infer[\textit{cov}]{\subt{\tl\ T}{\theta}{\tl\ T'}{k}}{\subt{T}{\theta}{T'}{k}}
+    \infer[\textit{cov}]{\subt{k}{\tl\ T}{\theta}{\tl\ T'}}{\subt{k}{T}{\theta}{T'}}
+    \\ \\
+    \infer[\textit{pure}]{\subt{k+1}{T}{a}{\tl\ T'}}{\subt{k}{T}{a}{T'}}
+    &\ &\ 
   \end{array}
   \]
 \caption{Proposed rules for applicatives}
@@ -298,19 +260,20 @@ of the functor would need to be inserted.
 
 \begin{figure}
   \[
-  \infer{\subt{(\tl\ \tn \to \tl\ \tn)\to \tl\ \tn}{a}{\tl\ (\tn\to\tn) \to \tl (\tl \tn)}{1}}
-        {\infer{\subt{\tl\ (\tn\to\tn)}{\tau}{\tl\ \tn\to\tl\ \tn}{1}}
-          {\infer{\subt{\tn\to\tn}{\tau}{\tl\ \tn\to\tl\ \tn}{0}}
-            {\infer{\subt{\tn\to\tn}{a}{\tl\ \tn\to\tl\ \tn}{1}}
-              {\infer{\subt{\tl\ \tn}{\tau}{\tn}{1}}
-                     {\infer{\subt{\tn}{\tau}{\tn}{0}}{\infer{\subt{\tn}{a}{\tn}{0}}{\ }}}
-                     &\infer{\subt{\tn}{a}{\tl\ \tn}{1}}
-                            {\infer{\subt{\tn}{a}{\tn}{0}}{\ }}}}
-          }
-          & \infer{\subt{\tl\ \tn}{a}{\tl\ (\tl\ \tn)}{1}}
-                  {\infer{\subt{\tn}{a}{\tl\ \tn}{1}}
-                            {\infer{\subt{\tn}{a}{\tn}{0}}{\ }}}}
-        \]
+    %% \infer{\subt{0}{(\tl\ \tn \to \tl\ \tn)\to \tn}{a}{\tl\ (\tn\to\tn) \to \tn}}
+    %%     {\infer{\subt{0}{\tl\ (\tn\to\tn)}{\tau}{\tl\ \tn\to\tl\ \tn}{1}}
+    %%       {\infer{\subt{\tn\to\tn}{\tau}{\tl\ \tn\to\tl\ \tn}{0}}
+    %%         {\infer{\subt{\tn\to\tn}{a}{\tl\ \tn\to\tl\ \tn}{1}}
+    %%           {\infer{\subt{\tl\ \tn}{\tau}{\tn}{1}}
+    %%                  {\infer{\subt{\tn}{\tau}{\tn}{0}}{\infer{\subt{\tn}{a}{\tn}{0}}{\ }}}
+    %%                  &\infer{\subt{\tn}{a}{\tl\ \tn}{1}}
+    %%                         {\infer{\subt{\tn}{a}{\tn}{0}}{\ }}}}
+    %%       }
+    %%       & \infer{\subt{\tl\ \tn}{a}{\tl\ (\tl\ \tn)}{1}}
+    %%               {\infer{\subt{\tn}{a}{\tl\ \tn}{1}}
+    %%                         {\infer{\subt{\tn}{a}{\tn}{0}}{\ }}}}
+\]
+
   \caption{Example derivation}
   \label{fig:ex}
 \end{figure}
