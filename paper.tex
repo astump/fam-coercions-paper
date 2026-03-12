@@ -173,17 +173,50 @@
 
 \section{Introduction}
 
-The basic subtyping axioms for applicatives are:
+
+\begin{figure}
   \[
 \begin{array}{lll}
   \infer[\textit{seq}]{\tl\ (T_1 \to T_2) <: \tl\ T_1 \to \tl T_2}{\ }
   &\ &
   \infer[\textit{pure}]{T <: \tl\ T}{\ }
+\\ \\
+  \infer[\textit{cov}]{\tl\ T <: \tl\ T'}{T <: T'}
+  &\ &
+  \infer[\textit{fun}]{T_1 \to T_2 <: T_1' \to T_2'}{T_1'<: T_1 & T_2 <: T_2'}
+      \\ \\ 
+      \infer[\textit{trans}]{T_1<: T_3}{T_1 <: T_2 & T_2 <: T_3}
+        &\ &
+        \infer[\textit{refl}]{\tn <: \tn}{\ }
   \end{array}
-  \]
+\]
+\caption{Declarative subtyping for applicatives}
+\label{fig:decl}
+\end{figure}
 
-\cite{peytonjones2001}
+%\cite{peytonjones2001}
 
+The basic declarative subtyping rules for applicatives are shown in Figure~\ref{fig:decl}.  Consider this example subtyping:
+\[
+\tn \to \tn \ \ <: \ \ \tl\ \tn \to \tl\ (\tl\ \tn)
+\]
+This is valid for applicatives, because we may first use \texttt{fmap}
+(which follows from \texttt{pure} and \texttt{seq}) to add $\tl$ to the
+domain and codomain parts of the type, and then we may use function subtyping
+to expose the codomain part, and add an extra $\tl$ with \texttt{pure}. So the
+coercion of $f : \tn \to \tn$ would be
+\[
+\textit{pure} \cdot (\textit{fmap}\ f)
+\]
+\noindent Note that with our current set of coercions, we cannot apply the function
+subtyping rule at the beginning, because we do not have (contravariantly) $\tl\ \tn <: \tn$.
+So we are forced to use composition (transitivity) here.
+
+The challenge of admissibility of transitivity may be thought of as formulating a set of
+coercion combinators excluding composition.  We need some form of function subtyping
+rule that takes occurrences of $\tl$ in the domain part of the upper bound type ($T_2$ in $T_1 <: T_2$)
+into account.  To do this, we adopt a new function subtyping rule that keeps track of how many applications
+of the functor would need to be inserted.  
 
 \section{A Decision Procedure}
 
@@ -198,25 +231,6 @@ The basic subtyping axioms for applicatives are:
   \label{fig:syn}
 \end{figure}
 
-Consider this example subtyping:
-\[
-\tn \to \tn \ \ <: \ \ \tl\ \tn \to \tl\ (\tl\ \tn)
-\]
-This is valid for applicatives, because we may first use \texttt{fmap}
-(which follows from \texttt{pure} and \texttt{seq}) to add $\tl$ to the
-domain and codomain parts of the type, and then we may use function subtyping
-to expose the codomain part, and add an extra $\tl$ with \texttt{pure}. So the
-coercion of $f : \tn \to \tn$ would be
-\[
-\textit{pure} \cdot (\textit{fmap}\ f)
-\]
-\noindent Note that with our current set of coercions, we cannot apply the function
-subtyping rule at the beginning, because we do not have (contravariantly) $\tl\ \tn <: \tn$.
-The challenge of admissibility of transitivity is to derive
-coercions that do not use composition.  So we need some form of function subtyping
-rule that takes occurrences of $\tl$ in the domain part of the upper bound type ($T_2$ in $T_1 <: T_2$)
-into account.  To do this, we adopt a new function subtyping rule that keeps track of how many applications
-of the functor would need to be inserted.  
 
   We work with types $T$ and $T'$ in the syntax shown in
   Figure~\ref{fig:syn}.  We use $\tn$ as a base type (it could be
@@ -232,7 +246,11 @@ of the functor would need to be inserted.
   \item $\subt{k}{T}{a}{T'}$ means that $\tl^k\ T <: T'$, and
   \item $\subt{k}{\tl^k\ T}{\tau}{T'}$ means that $T <: T'$.
   \end{itemize}
-  \noindent  An example derivation is shown in Figure~\ref{fig:ex}.
+  \noindent  Notice that given the meaning of $\subt{k}{T}{a}{T'}$ just stated,
+  we expect to have also that $\subt{k}{T}{a}{\tl^k\ T'}$ means that $T <: T'$.  Because if
+  $\tl^k\ T <: \tl^k\ T'$, then by an inversion argument that would not be so easy
+  in the presence of transitivity, we should have $T <: T'$.
+An example derivation with the rules of Figure~\ref{fig:decproc} is shown in Figure~\ref{fig:ex}.
 
 \begin{figure}
   \[
@@ -241,7 +259,7 @@ of the functor would need to be inserted.
     &\ &
     \infer[\textit{fun}]{\subt{i}{T_1\to T_2}{a}{T_1'\to T_2'}}{\subt{j}{T_1'}{\tau}{T_1} & \subt{k}{T_2}{a}{T_2'} & i \le j \le k}
     \\ \\
-    \infer[\textit{seq-dom}]{\subt{k+1}{\tl\ T}{\tau}{T'} }{\subt{k}{T}{\tau}{T'} }
+    \infer[\textit{seq-dom}]{\subt{k+1}{\tl\ T}{\tau}{T_1\to T_2} }{\subt{k}{T}{\tau}{T_1\to T_2} }
     &\ &
     \infer[\textit{reset}]{\subt{0}{T}{\tau}{T'}}{\subt{0}{T}{a}{T'}}
     \\ \\
@@ -260,18 +278,18 @@ of the functor would need to be inserted.
 
 \begin{figure}
   \[
-    %% \infer{\subt{0}{(\tl\ \tn \to \tl\ \tn)\to \tn}{a}{\tl\ (\tn\to\tn) \to \tn}}
-    %%     {\infer{\subt{0}{\tl\ (\tn\to\tn)}{\tau}{\tl\ \tn\to\tl\ \tn}{1}}
-    %%       {\infer{\subt{\tn\to\tn}{\tau}{\tl\ \tn\to\tl\ \tn}{0}}
-    %%         {\infer{\subt{\tn\to\tn}{a}{\tl\ \tn\to\tl\ \tn}{1}}
-    %%           {\infer{\subt{\tl\ \tn}{\tau}{\tn}{1}}
-    %%                  {\infer{\subt{\tn}{\tau}{\tn}{0}}{\infer{\subt{\tn}{a}{\tn}{0}}{\ }}}
-    %%                  &\infer{\subt{\tn}{a}{\tl\ \tn}{1}}
-    %%                         {\infer{\subt{\tn}{a}{\tn}{0}}{\ }}}}
-    %%       }
-    %%       & \infer{\subt{\tl\ \tn}{a}{\tl\ (\tl\ \tn)}{1}}
-    %%               {\infer{\subt{\tn}{a}{\tl\ \tn}{1}}
-    %%                         {\infer{\subt{\tn}{a}{\tn}{0}}{\ }}}}
+    \infer{\subt{0}{(\tl\ \tn \to \tl\ \tn)\to \tl\ \tn}{a}{\tl\ (\tn\to\tn) \to \tl\ (\tl\ \tn)}}
+           {\infer{\subt{0}{\tl\ (\tn\to\tn)}{\tau}{\tl\ \tn\to\tl\ \tn}}
+             {\infer[\textit{seq-cod}]{\subt{0}{\tl\ (\tn\to\tn)}{a}{\tl\ \tn\to\tl\ \tn}}
+               {\infer{\subt{1}{\tn\to\tn}{a}{\tl\ \tn\to\tl\ \tn}}
+                 {\infer[\textit{seq-dom}]{\subt{1}{\tl\ \tn}{\tau}{\tn}}
+                        {\infer{\subt{0}{\tn}{\tau}{\tn}}{\infer{\subt{0}{\tn}{a}{\tn}}{\ }}}
+                        &\infer[\textit{pure}]{\subt{1}{\tn}{a}{\tl\ \tn}}
+                               {\infer{\subt{0}{\tn}{a}{\tn}}{\ }}}}
+             }
+             & \infer[\textit{cov}]{\subt{1}{\tl\ \tn}{a}{\tl\ (\tl\ \tn)}}
+                     {\infer[\textit{pure}]{\subt{1}{\tn}{a}{\tl\ \tn}}
+                     {\infer{\subt{0}{\tn}{a}{\tn}}{\ }}}}
 \]
 
   \caption{Example derivation}
@@ -282,7 +300,7 @@ of the functor would need to be inserted.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{paper.bib}
-
+\nocite{peytonjones2001}
 
 \end{document}
 \endinput
