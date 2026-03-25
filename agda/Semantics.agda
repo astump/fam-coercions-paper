@@ -24,9 +24,9 @@ data Distrib : ℕ → Tp → Tp → Set where
               Distrib n T2 T2' →               
               Distrib n (T1 ⇒ T2) (T1' ⇒ T2')
 
-infix 6 ⊨_!_<:_
+infix 6 ⊨_<_]_
 
-⊨_!_<:_ : ℤ → Tp! → Tp! → Set
-⊨_!_<:_ (mkℤ 0 triv) T1 T2 = ⟦ T1 ⟧ <: ⟦ T2 ⟧
-⊨_!_<:_ (mkℤ (suc n) tt) T1 T2 = ∃ Tp (λ T' → Distrib (suc n) ⟦ T2 ⟧ T' ∧ ⟦ T1 ⟧ <: T')
-⊨_!_<:_ (mkℤ (suc n) ff) T1 T2 = ∃ Tp (λ T' → Distrib (suc n) ⟦ T1 ⟧ T' ∧ T' <: ⟦ T2 ⟧ )
+⊨_<_]_ : Tp! → ℤ → Tp! → Set
+⊨_<_]_ T1 (mkℤ 0 triv) T2 = ⟦ T1 ⟧ <: ⟦ T2 ⟧
+⊨_<_]_ T1 (mkℤ (suc n) tt) T2 = ∃ Tp (λ T' → Distrib (suc n) ⟦ T2 ⟧ T' ∧ ⟦ T1 ⟧ <: T')
+⊨_<_]_ T1 (mkℤ (suc n) ff) T2 = ∃ Tp (λ T' → Distrib (suc n) ⟦ T1 ⟧ T' ∧ T' <: ⟦ T2 ⟧ )
