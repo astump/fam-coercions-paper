@@ -23,10 +23,12 @@ data Distrib : ℕ → Tp → Tp → Set where
               Distrib j T1 T1' →
               Distrib n T2 T2' →               
               Distrib n (T1 ⇒ T2) (T1' ⇒ T2')
+  Distrib0 : ∀{T : Tp} →
+             Distrib 0 T T
 
 infix 6 ⊨_<_]_
 
 ⊨_<_]_ : Tp! → ℤ → Tp! → Set
-⊨_<_]_ T1 (mkℤ 0 triv) T2 = ⟦ T1 ⟧ <: ⟦ T2 ⟧
-⊨_<_]_ T1 (mkℤ (suc n) tt) T2 = ∃ Tp (λ T' → Distrib (suc n) ⟦ T2 ⟧ T' ∧ ⟦ T1 ⟧ <: T')
-⊨_<_]_ T1 (mkℤ (suc n) ff) T2 = ∃ Tp (λ T' → Distrib (suc n) ⟦ T1 ⟧ T' ∧ T' <: ⟦ T2 ⟧ )
+⊨ T1 < mkℤ 0 triv ] T2 = ⟦ T1 ⟧ <: ⟦ T2 ⟧
+⊨ T1 < mkℤ (suc n) tt ] T2 = ∃ Tp (λ T' → Distrib (suc n) ⟦ T2 ⟧ T' ∧ ⟦ T1 ⟧ <: T')
+⊨ T1 < mkℤ (suc n) ff ] T2 = ∃ Tp (λ T' → Distrib (suc n) ⟦ T1 ⟧ T' ∧ T' <: ⟦ T2 ⟧ )
