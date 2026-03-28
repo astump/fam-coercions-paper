@@ -16,3 +16,7 @@ data Tp! : Set where
 
 infixr 9 _!_⇒_
 infixr 10 _!N
+
+¬N⇒ : ∀{n T1 T2} → N ≢ iter n L_ (T1 ⇒ T2)
+¬N⇒ {zero} ()
+¬N⇒ {suc n} ()

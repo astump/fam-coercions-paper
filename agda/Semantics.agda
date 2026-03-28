@@ -23,8 +23,9 @@ data Distrib : ℕ → Tp → Tp → Set where
               Distrib j T1 T1' →
               Distrib n T2 T2' →               
               Distrib n (T1 ⇒ T2) (T1' ⇒ T2')
-  Distrib0 : ∀{T : Tp} →
-             Distrib 0 T T
+  Distrib0 : ∀{T T' : Tp} →
+             T ≡ T' → 
+             Distrib 0 T T'
 
 infix 6 ⊨_<_]_
 
@@ -32,3 +33,12 @@ infix 6 ⊨_<_]_
 ⊨ T1 < mkℤ 0 triv ] T2 = ⟦ T1 ⟧ <: ⟦ T2 ⟧
 ⊨ T1 < mkℤ (suc n) tt ] T2 = ∃ Tp (λ T' → Distrib (suc n) ⟦ T2 ⟧ T' ∧ ⟦ T1 ⟧ <: T')
 ⊨ T1 < mkℤ (suc n) ff ] T2 = ∃ Tp (λ T' → Distrib (suc n) ⟦ T1 ⟧ T' ∧ T' <: ⟦ T2 ⟧ )
+
+Distrib+ : ∀{n x k} →
+           Distrib n (iter x L_ N) (iter k L_ N) →
+           k ≡ n + x
+Distrib+ {n} {zero} {zero} (Distrib0 refl) = refl
+Distrib+ {suc n} {zero} {suc k} (DistribH i) rewrite Distrib+{n}{zero}{k} i = refl
+Distrib+ {suc n} {suc x} {suc k} (DistribH i) rewrite Distrib+{n}{suc x}{k} i = refl
+Distrib+ {zero} {suc x} {suc k} (Distrib0 e) rewrite iterL-inj{suc x}{suc k} e = refl
+Distrib+ {zero} {suc x} {zero} (Distrib0 ())
