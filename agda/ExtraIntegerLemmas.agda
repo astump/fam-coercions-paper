@@ -1,10 +1,7 @@
--- TODO: Remove this when done!
-{-# OPTIONS --allow-unsolved-metas #-}
-
 open import lib
 
 
--- Basic theorems about +ℤ
+-- Theorems about +ℤ
 
 +ℤ-0 : ∀{x : ℤ} → x +ℤ 0ℤ ≡ x 
 +ℤ-0 {mkℤ zero triv} = refl
@@ -210,7 +207,34 @@ diffℤ+ℤ2 {suc n} {suc m} {suc k}
         = refl
 +ℤ-assoc {mkℤ (suc n) ff} {mkℤ (suc m) ff} {mkℤ (suc k) ff} rewrite sym (+assoc n (suc m) (suc k)) = refl
 
+
 -- Theorems about ≤ℤ
+
+≤ℤ-trans : ∀{x y z : ℤ} → x ≤ℤ y ≡ tt → y ≤ℤ z ≡ tt → x ≤ℤ z ≡ tt
+≤ℤ-trans {x} {mkℤ zero triv} {mkℤ zero triv} p1 p2 = p1
+≤ℤ-trans {mkℤ zero triv} {mkℤ (suc m) y} {mkℤ zero triv} p1 p2 = refl
+≤ℤ-trans {mkℤ zero triv} {mkℤ zero triv} {mkℤ (suc k) z} p1 p2 = p2
+≤ℤ-trans {mkℤ zero triv} {mkℤ (suc m) tt} {mkℤ (suc k) tt} p1 p2 = refl
+≤ℤ-trans {mkℤ (suc n) ff} {mkℤ zero triv} {mkℤ (suc k) tt} p1 p2 = refl
+≤ℤ-trans {mkℤ (suc n) ff} {mkℤ (suc m) ff} {mkℤ zero triv} p1 p2 = refl
+≤ℤ-trans {mkℤ (suc n) tt} {mkℤ (suc m) tt} {mkℤ zero triv} p1 p2 with p2
+... | ()
+≤ℤ-trans {mkℤ (suc n) tt} {mkℤ (suc m) ff} {mkℤ zero triv} p1 p2 with p1
+... | ()
+≤ℤ-trans {mkℤ (suc n) ff} {mkℤ (suc m) tt} {mkℤ zero triv} p1 p2 with p2
+... | ()
+≤ℤ-trans {mkℤ (suc n) tt} {mkℤ (suc m) tt} {mkℤ (suc k) tt} p1 p2 = ≤-trans{n} p1 p2
+≤ℤ-trans {mkℤ (suc n) ff} {mkℤ (suc m) y} {mkℤ (suc k) tt} p1 p2 = refl
+≤ℤ-trans {mkℤ (suc n) ff} {mkℤ (suc m) ff} {mkℤ (suc k) ff} p1 p2 = ≤-trans{k} p2 p1
+
+≤ℤ-antisym : ∀{x y : ℤ} → x ≤ℤ y ≡ tt → y ≤ℤ x ≡ tt → x ≡ y
+≤ℤ-antisym {mkℤ zero triv} {mkℤ zero triv} p1 p2 = refl
+≤ℤ-antisym {mkℤ (suc n) tt} {mkℤ (suc m) tt} p1 p2 rewrite ≤-antisym{n}{m} p1 p2 = refl
+≤ℤ-antisym {mkℤ (suc n) ff} {mkℤ (suc m) ff} p1 p2 rewrite ≤-antisym{n}{m} p2 p1 = refl
+≤ℤ-antisym {mkℤ zero triv} {mkℤ (suc m) y} p1 p2 rewrite p1 with p2
+≤ℤ-antisym {mkℤ zero triv} {mkℤ (suc m) y} p1 p2 | ()
+≤ℤ-antisym {mkℤ (suc n) x} {mkℤ zero triv} p1 p2 rewrite p2 with p1
+≤ℤ-antisym {mkℤ (suc n) x} {mkℤ zero triv} p1 p2 | ()
 
 0-≤ℤ : ∀{n : ℕ} → 0ℤ ≤ℤ toℤ n ≡ tt
 0-≤ℤ {zero} = refl
@@ -224,6 +248,12 @@ diffℤ+ℤ2 {suc n} {suc m} {suc k}
 ≤ℤ-ff {zero} = refl
 ≤ℤ-ff {suc n} = refl
 
+≤-≤ℤ : ∀{n m : ℕ} → n ≤ m ≡ toℤ n ≤ℤ toℤ m
+≤-≤ℤ {zero} {zero} = refl
+≤-≤ℤ {zero} {suc m} = refl
+≤-≤ℤ {suc n} {zero} = refl
+≤-≤ℤ {suc n} {suc m} = refl
+
 ≤ℤ-suc : ∀{n : ℕ} {b : 𝔹} → toℤ n ≤ℤ mkℤ (suc n) b ≡ b
 ≤ℤ-suc {zero} = refl
 ≤ℤ-suc {suc n} {tt} = ≤-suc n
@@ -234,16 +264,12 @@ diffℤ+ℤ2 {suc n} {suc m} {suc k}
 ≤ℤ-suc2 {suc n} {tt} = ≤-suc2 n
 ≤ℤ-suc2 {suc n} {ff} = refl
 
+≤ℤ-sucs : ∀{n m : ℕ} → toℤ (suc n) ≤ℤ toℤ (suc m) ≡ toℤ n ≤ℤ toℤ m
+≤ℤ-sucs {n} {m} = ≤-≤ℤ{n}{m}
 
 ≤ℤ-0-diffℤ : ∀{n m : ℕ} → diffℤ zero n ≤ℤ toℤ m ≡ tt
 ≤ℤ-0-diffℤ {zero} {m} rewrite diffℤ-0{zero} = 0-≤ℤ {m}
 ≤ℤ-0-diffℤ {suc n} {m} = ≤ℤ-tt{n}{m}
-
-≤-≤ℤ : ∀{n m : ℕ} → n ≤ m ≡ toℤ n ≤ℤ toℤ m
-≤-≤ℤ {zero} {zero} = refl
-≤-≤ℤ {zero} {suc m} = refl
-≤-≤ℤ {suc n} {zero} = refl
-≤-≤ℤ {suc n} {suc m} = refl
 
 negℤ-≤ℤ : ∀{x y : ℤ} → x ≤ℤ y ≡ negℤ y ≤ℤ negℤ x
 negℤ-≤ℤ {mkℤ zero triv} {mkℤ zero triv} = refl
@@ -305,8 +331,8 @@ diffℤ-≤ℤ-swap {a} {b} {c} {d}
 ≤ℤ-+ {x} {y} (mkℤ zero triv) rewrite +ℤ-0{x} | +ℤ-0{y} = refl
 ≤ℤ-+ {x} {y} (mkℤ (suc n) b) = ≤ℤ-+help {x} {y} n b
 
-≤ℤ-trans : ∀{x y z : ℤ} → x ≤ℤ y ≡ tt → y ≤ℤ z ≡ tt → x ≤ℤ z ≡ tt
-≤ℤ-trans {x} {y} {z} p1 p2 = {!!}
+≤ℤ-+2 : ∀{x y : ℤ}(z : ℤ) → x ≤ℤ y ≡ z +ℤ x ≤ℤ z +ℤ y
+≤ℤ-+2 {x} {y} z rewrite +ℤcomm{z}{x} | +ℤcomm{z}{y} = ≤ℤ-+{x}{y} z
 
 ≤ℤ-diffℤ : ∀{n m : ℕ} → diffℤ n m ≤ℤ toℤ n ≡ tt
 ≤ℤ-diffℤ {zero} {zero} = refl
@@ -315,15 +341,25 @@ diffℤ-≤ℤ-swap {a} {b} {c} {d}
 ≤ℤ-diffℤ {suc n} {suc m} rewrite diffℤ-sucs{n}{m} =
   ≤ℤ-trans{diffℤ n m} (≤ℤ-diffℤ{n}{m}) (≤ℤ-suc{n})
 
-≤ℤ-+2 : ∀{x y : ℤ}(z : ℤ) → x ≤ℤ y ≡ z +ℤ x ≤ℤ z +ℤ y
-≤ℤ-+2 {x} {y} z rewrite +ℤcomm{z}{x} | +ℤcomm{z}{y} = ≤ℤ-+{x}{y} z
-
 ≤ℤ-+2a : ∀{x y : ℤ}{z : ℤ} → x ≤ℤ y ≡ tt → z +ℤ x ≤ℤ z +ℤ y ≡ tt
 ≤ℤ-+2a{x}{y}{z} e = sym (trans (sym e) ((≤ℤ-+2 z)))
 
 ≤ℤ+ : ∀{y z : ℤ} → 0ℤ ≤ℤ y ≡ tt → 0ℤ ≤ℤ z ≡ tt → 0ℤ ≤ℤ (y +ℤ z) ≡ tt
-≤ℤ+ = {!!}
+≤ℤ+ {mkℤ zero triv} {z} p1 p2 = p2
+≤ℤ+ {mkℤ (suc n) tt} {mkℤ zero triv} p1 p2 = refl
+≤ℤ+ {mkℤ (suc n) tt} {mkℤ (suc m) tt} p1 p2 = refl
 
+≤ℤ-total : ∀{x y : ℤ} → x ≤ℤ y ≡ ff → y ≤ℤ x ≡ tt
+≤ℤ-total {mkℤ zero triv} {mkℤ zero triv} p = refl
+≤ℤ-total {mkℤ zero triv} {mkℤ (suc m) y} p rewrite p = refl
+≤ℤ-total {mkℤ (suc n) x} {mkℤ zero triv} p with ~-≡-ff{~ x} p
+... | h rewrite ~~-elim x = h
+≤ℤ-total {mkℤ (suc n) tt} {mkℤ (suc m) tt} p = ≤-total{n} p
+≤ℤ-total {mkℤ (suc n) tt} {mkℤ (suc m) ff} p = refl
+≤ℤ-total {mkℤ (suc n) ff} {mkℤ (suc m) ff} p = ≤-total{m} p
 
 ≤ℤ+2 : ∀{x y x' y' : ℤ} → x ≤ℤ x' ≡ tt → y ≤ℤ y' ≡ tt → x +ℤ y ≤ℤ x' +ℤ y' ≡ tt
-≤ℤ+2 = {!!}
+≤ℤ+2 {x} {y} {x'} {y'} p1 p2
+  rewrite ≤ℤ-+{x}{x'} y'
+        | ≤ℤ-+2{y}{y'} x
+        = ≤ℤ-trans{x +ℤ y} p2 p1
