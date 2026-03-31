@@ -18,7 +18,7 @@ mutual
          h | u , e | v rewrite trans (sym(+ℤ-assoc{k}{k'}{toℤ m'})) e = v
 
  trns (Fun{n}{m}{i}{j}{T1}{T2}{T1'}{T2'} x y d dd)
-      (Fun{mn}{mm}{ii}{jj}{TT1}{TT2}{TT1'}{TT2'} x' y' d' dd') = Fun ((≤ℤ+{0ℤ}{ii} x' x)) h' (trns d' d) h 
+      (Fun{mn}{mm}{ii}{jj}{TT1}{TT2}{TT1'}{TT2'} x' y' d' dd') = Fun ((≤ℤ+{ii} x' x)) h' (trns d' d) h 
   where h : T2 < negℤ (ii +ℤ i) ] TT2'
         h rewrite negℤ-+{ii}{i} | +ℤcomm{negℤ ii}{negℤ i} = trns dd dd'
 
