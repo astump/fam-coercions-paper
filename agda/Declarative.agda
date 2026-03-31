@@ -91,7 +91,15 @@ N<:{n} e (Trans d d') | (m , x , e') | (m' , y , e'') = m' , ≤-trans{n} x y , 
 Linj : ∀{T T'} → L T ≡ L T' → T ≡ T'
 Linj refl = refl
 
-iterL-inj : ∀{n m : ℕ} → iter n L_ N ≡ iter m L_ N →
+iterLN-inj : ∀{n m : ℕ} → iter n L_ N ≡ iter m L_ N →
             n ≡ m
-iterL-inj {zero} {zero} e = refl
-iterL-inj {suc n} {suc m} e rewrite iterL-inj{n}{m} (Linj e) = refl
+iterLN-inj {zero} {zero} e = refl
+iterLN-inj {suc n} {suc m} e rewrite iterLN-inj{n}{m} (Linj e) = refl
+
+iterL⇒-inj : ∀{n m T1 T2 T1' T2'} → iter n L_ (T1 ⇒ T2) ≡ iter m L_ (T1' ⇒ T2') →
+            n ≡ m ∧ T1 ≡ T1' ∧ T2 ≡ T2'
+iterL⇒-inj {zero} {zero} refl = refl , refl , refl
+iterL⇒-inj {zero} {suc m} ()
+iterL⇒-inj {suc n} {zero} ()
+iterL⇒-inj {suc n} {suc m} e with iterL⇒-inj{n}{m} (Linj e)
+iterL⇒-inj {suc n} {suc m} e | refl , refl , refl = refl , refl , refl

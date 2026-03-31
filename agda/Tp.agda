@@ -1,5 +1,4 @@
 module Tp where
-
 open import lib
 
 data Tp : Set where
@@ -20,3 +19,7 @@ infixr 10 _!N
 ¬N⇒ : ∀{n T1 T2} → N ≢ iter n L_ (T1 ⇒ T2)
 ¬N⇒ {zero} ()
 ¬N⇒ {suc n} ()
+
+Tp!++ : Tp! → Tp!
+Tp!++ (x !N) = suc x !N
+Tp!++ (x ! T ⇒ T₁) = suc x ! T ⇒ T₁

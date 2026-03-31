@@ -11,6 +11,24 @@ infix 7 ⟦_⟧
 ⟦ n !N ⟧ = iter n L_ N
 ⟦ n ! T1 ⇒ T2 ⟧ = iter n L_ (⟦ T1 ⟧ ⇒ ⟦ T2 ⟧)
 
+⟦⟧++ : ∀{T : Tp!} → ⟦ Tp!++ T ⟧ ≡ L ⟦ T ⟧
+⟦⟧++ {x !N} = refl
+⟦⟧++ {x ! T ⇒ T₁} = refl
+
+⟦⟧inv : ∀{T : Tp} → ∃ Tp! (λ T' → ⟦ T' ⟧ ≡ T)
+⟦⟧inv {N} = 0 !N , refl
+⟦⟧inv {L T} with ⟦⟧inv{T}
+⟦⟧inv {L T} | T' , refl = Tp!++ T' , ⟦⟧++{T'}
+⟦⟧inv {T1 ⇒ T2} with ⟦⟧inv{T1} | ⟦⟧inv{T2} 
+⟦⟧inv {T1 ⇒ T2} | T1' , refl | T2' , refl =  0 ! T1' ⇒ T2' , refl
+
+⟦⟧inj : ∀{T1 T2} → ⟦ T1 ⟧ ≡ ⟦ T2 ⟧ → T1 ≡ T2
+⟦⟧inj {x !N} {y !N} e rewrite (iterLN-inj{x}{y} e) = refl
+⟦⟧inj {x !N} {y ! T2 ⇒ T3} e = ⊥-elim (¬⇒iterN{y}{x} (sym e))
+⟦⟧inj {x ! T1 ⇒ T2} {y !N} e = ⊥-elim (¬⇒iterN{x}{y} e)
+⟦⟧inj {x ! T1 ⇒ T2} {y ! T3 ⇒ T4} e with iterL⇒-inj{x}{y} e 
+⟦⟧inj {x ! T1 ⇒ T2} {y ! T3 ⇒ T4} e | e1 , e2 , e3 rewrite e1 | ⟦⟧inj{T1}{T3} e2 | ⟦⟧inj{T2}{T4} e3 = refl
+
 {- Distrib n T1 T2 means that starting with T1, we can distribute n L's and get T2.
    Distributing an L means putting it either at the start of a type, pushing it
    into domain and codomain, or else pushing it into just the codomain -}
@@ -19,10 +37,10 @@ data Distrib : ℕ → Tp → Tp → Set where
              Distrib n T T' → 
              Distrib (suc n) T (L T')
   DistribA : ∀{T1 T2 T1' T2' : Tp}{n j : ℕ} → 
-              j ≤ n ≡ tt → 
+              j ≤ suc n ≡ tt → 
               Distrib j T1 T1' →
-              Distrib n T2 T2' →               
-              Distrib n (T1 ⇒ T2) (T1' ⇒ T2')
+              Distrib (suc n) T2 T2' →               
+              Distrib (suc n) (T1 ⇒ T2) (T1' ⇒ T2')
   Distrib0 : ∀{T T' : Tp} →
              T ≡ T' → 
              Distrib 0 T T'
@@ -40,13 +58,21 @@ Distrib+ : ∀{n x k} →
 Distrib+ {n} {zero} {zero} (Distrib0 refl) = refl
 Distrib+ {suc n} {zero} {suc k} (DistribH i) rewrite Distrib+{n}{zero}{k} i = refl
 Distrib+ {suc n} {suc x} {suc k} (DistribH i) rewrite Distrib+{n}{suc x}{k} i = refl
-Distrib+ {zero} {suc x} {suc k} (Distrib0 e) rewrite iterL-inj{suc x}{suc k} e = refl
+Distrib+ {zero} {suc x} {suc k} (Distrib0 e) rewrite iterLN-inj{suc x}{suc k} e = refl
 Distrib+ {zero} {suc x} {zero} (Distrib0 ())
 
 ¬Distrib⇒N : ∀{x y z T1 T2} → ¬ Distrib x (iter y L_ (T1 ⇒ T2)) (iter z L_ N)
 ¬Distrib⇒N {zero} {zero} {zero} (Distrib0 ())
 ¬Distrib⇒N {zero} {zero} {suc z} (Distrib0 ())
 ¬Distrib⇒N {zero} {suc y} {zero} (Distrib0 ())
-¬Distrib⇒N {zero} {suc y} {suc z} (Distrib0 u) = ⊥-elim (¬⇒iterN{suc y}{suc z} u)
+¬Distrib⇒N {zero} {suc y} {suc z} (Distrib0 u) = ¬⇒iterN{suc y}{suc z} u
 ¬Distrib⇒N {suc x} {zero} {suc z} (DistribH i) = ¬Distrib⇒N{x}{zero}{z} i
 ¬Distrib⇒N {suc x} {suc y} {suc z} (DistribH i) = ¬Distrib⇒N{x}{suc y}{z} i
+
+¬DistribN⇒ : ∀{x y z T1 T2} → ¬ Distrib x (iter y L_ N) (iter z L_ (T1 ⇒ T2))
+¬DistribN⇒ {zero} {zero} {zero} (Distrib0 ())
+¬DistribN⇒ {zero} {zero} {suc z} (Distrib0 ())
+¬DistribN⇒ {zero} {suc y} {zero} (Distrib0 ())
+¬DistribN⇒ {zero} {suc y} {suc z}{T1}{T2} (Distrib0 e) = ¬⇒iterN{suc z}{suc y} (sym e)
+¬DistribN⇒ {suc x} {zero} {suc z} (DistribH i) = ¬DistribN⇒{x}{zero}{z} i
+¬DistribN⇒ {suc x} {suc y} {suc z} (DistribH i) = ¬DistribN⇒{x}{suc y}{z} i
