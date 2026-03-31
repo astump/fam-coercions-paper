@@ -3,39 +3,31 @@ module DecprocTrans where
 open import lib
 open import Tp
 open import Decproc
+open import ExtraIntegerLemmas
 
 mutual
- trans-decproc : ∀{T T' T''} → ! T <: T' → ! T' <: T'' → ! T <: T''
- trans-decproc {T} {N} {T''} NatRefl d' = d'
- trans-decproc {L T} {L T'} {T''} (Cov d) d' = trans2 d d'
- trans-decproc {T} {L T'} {T''} (Pure d) d' = trans1 d d'
- trans-decproc {T} {T1 ⇒ T2} {T''} (SeqFun x) d' = {!!}
+ trns : ∀{T1 T2 T3}{k k'} →
+        T1 < k ] T2 →
+        T2 < k' ] T3 →
+        T1 < k +ℤ k' ] T3
+ trns{k = k}{k'} (NatRefl{n} x) (NatRefl{n'}{m'} x') =
+   NatRefl h
+   where h : toℤ n ≤ℤ k +ℤ k' +ℤ toℤ m' ≡ tt
+         h with keep (k +ℤ k' +ℤ toℤ m')
+         h | u , e rewrite e with (≤ℤ-trans{toℤ n} x (≤ℤ-+2a{toℤ n'}{z = k} x'))
+         h | u , e | v rewrite trans (sym(+ℤ-assoc{k}{k'}{toℤ m'})) e = v
 
- trans1 : ∀{T T' T''} → ! T <: T' → ! L T' <: T'' → ! T <: T''
- trans1 {T} {T'} {L T''} d (Cov d') = Pure (trans-decproc d d')
- trans1 {T} {T'} {T1' ⇒ T2'} d (SeqFun x) = {!!}
- trans1 {T} {T'} {L T''} d (Pure d') = trans3 d d'
+ trns (Fun{n}{m}{i}{j}{T1}{T2}{T1'}{T2'} x y d dd)
+      (Fun{mn}{mm}{ii}{jj}{TT1}{TT2}{TT1'}{TT2'} x' y' d' dd') = Fun ((≤ℤ+{0ℤ}{ii} x' x)) h' (trns d' d) h 
+  where h : T2 < negℤ (ii +ℤ i) ] TT2'
+        h rewrite negℤ-+{ii}{i} | +ℤcomm{negℤ ii}{negℤ i} = trns dd dd'
 
- trans2 : ∀{T T' T''} → ! T <: T' → ! L T' <: T'' → ! L T <: T''
- trans2 {T} {T'} {L T''} d (Cov d') = Cov (trans-decproc d d')
- trans2 {T} {T'} {T1' ⇒ T2'} d (SeqFun x) = {!!}
- trans2 {T} {T'} {T''} d (Pure d') = {!!}
-
- trans3 : ∀{T T' T''} → ! T <: T' → ! L T' <: T'' → ! T <: L T''
- trans3 {T} {T'} {L T''} d (Cov d') = {!!}
- trans3 {T} {T'} {L T''} d (Pure d') = {!!}
- trans3 {T} {T'} {T1' ⇒ T2'} d (SeqFun x) = {!!}
-
- trans4 : ∀{T T1 T2 T'} →
-          Decompose T T1 T2 →
-          ! T1 ⇒ T2 <: T' →
-          ! T <: T'
- trans4 x (Pure d) = Pure (trans4 x d)
- trans4 x (SeqFun y) = SeqFun (trans5 x y)
-
- trans5 : ∀{T T1 T2 T1' T2'} →
-          Decompose T T1 T2 →
-          Decompose (T1 ⇒ T2) T1' T2' →
-          Decompose T T1' T2'
- trans5 x (DecomposeP y x₁ x₂) = {!!}
- trans5 x (Decompose⇒ x₁ x₂) = {!!}
+        h' : ii +ℤ i ≥ℤ toℤ n -ℤ (j +ℤ jj) -ℤ toℤ mm ≡ tt
+        h' with ≤ℤ+2 {toℤ m -ℤ jj -ℤ toℤ mm}{toℤ n -ℤ j -ℤ toℤ m}{ii} {i} y' y
+        h' | u rewrite negℤ-+{j}{jj} | +ℤcomm{toℤ m +ℤ negℤ jj +ℤ negℤ (toℤ mm)}{toℤ n +ℤ negℤ j +ℤ negℤ (toℤ m)}
+               | +ℤ-assoc{toℤ n +ℤ negℤ j}{negℤ (toℤ m)}{toℤ m +ℤ negℤ jj +ℤ negℤ (toℤ mm)}
+               | +ℤ-assoc{toℤ m}{negℤ jj}{negℤ (toℤ mm)}
+               | sym (+ℤ-assoc{negℤ (toℤ m)}{toℤ m}{negℤ jj +ℤ negℤ (toℤ mm)})
+               | +ℤ-cancel2{toℤ m}
+               | sym (+ℤ-assoc{toℤ n +ℤ negℤ j}{negℤ jj}{negℤ (toℤ mm)})
+               | +ℤ-assoc{toℤ n}{negℤ j}{negℤ jj} = u

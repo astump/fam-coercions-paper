@@ -42,3 +42,11 @@ Distrib+ {suc n} {zero} {suc k} (DistribH i) rewrite Distrib+{n}{zero}{k} i = re
 Distrib+ {suc n} {suc x} {suc k} (DistribH i) rewrite Distrib+{n}{suc x}{k} i = refl
 Distrib+ {zero} {suc x} {suc k} (Distrib0 e) rewrite iterL-inj{suc x}{suc k} e = refl
 Distrib+ {zero} {suc x} {zero} (Distrib0 ())
+
+¬Distrib⇒N : ∀{x y z T1 T2} → ¬ Distrib x (iter y L_ (T1 ⇒ T2)) (iter z L_ N)
+¬Distrib⇒N {zero} {zero} {zero} (Distrib0 ())
+¬Distrib⇒N {zero} {zero} {suc z} (Distrib0 ())
+¬Distrib⇒N {zero} {suc y} {zero} (Distrib0 ())
+¬Distrib⇒N {zero} {suc y} {suc z} (Distrib0 u) = ⊥-elim (¬⇒iterN{suc y}{suc z} u)
+¬Distrib⇒N {suc x} {zero} {suc z} (DistribH i) = ¬Distrib⇒N{x}{zero}{z} i
+¬Distrib⇒N {suc x} {suc y} {suc z} (DistribH i) = ¬Distrib⇒N{x}{suc y}{z} i

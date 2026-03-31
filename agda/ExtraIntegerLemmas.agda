@@ -71,6 +71,18 @@ diffℤ-sucs {n} {m} | inj₂ (inj₂ x) | inj₁ y with trans (sym (<-asym{n}{m
 diffℤ-sucs {n} {m} | inj₂ (inj₂ x) | inj₂ (inj₁ y) rewrite =ℕ-to-≡{n}{m} y with trans (sym (<-irrefl m)) x
 ... | ()
 
+diffℤ-nn : ∀{x : ℕ} → diffℤ x x ≡ 0ℤ
+diffℤ-nn {zero} = refl
+diffℤ-nn {suc x} rewrite diffℤ-sucs{x}{x} = diffℤ-nn{x}
+
++ℤ-cancel : ∀{x : ℤ} → x +ℤ negℤ x ≡ 0ℤ
++ℤ-cancel {mkℤ zero triv} = refl
++ℤ-cancel {mkℤ (suc n) tt} = diffℤ-nn{n}
++ℤ-cancel {mkℤ (suc n) ff} = diffℤ-nn{n}
+
++ℤ-cancel2 : ∀{x : ℤ} → negℤ x +ℤ x ≡ 0ℤ
++ℤ-cancel2{x} rewrite +ℤcomm{negℤ x}{x} = +ℤ-cancel{x}
+
 diffℤ-suc : ∀{n m : ℕ} → diffℤ (suc n) m ≡ diffℤ n m +ℤ 1ℤ
 diffℤ-suc {n} {zero} rewrite diffℤ-0{n} = +1ℤ
 diffℤ-suc {zero} {suc m} = diffℤ-sucs{0}{m}
@@ -201,3 +213,16 @@ diffℤ-≤ℤ-swap {a} {b} {c} {d}
 
 ≤ℤ-+2 : ∀{x y : ℤ}(z : ℤ) → x ≤ℤ y ≡ z +ℤ x ≤ℤ z +ℤ y
 ≤ℤ-+2 {x} {y} z rewrite +ℤcomm{z}{x} | +ℤcomm{z}{y} = ≤ℤ-+{x}{y} z
+
+≤ℤ-+2a : ∀{x y : ℤ}{z : ℤ} → x ≤ℤ y ≡ tt → z +ℤ x ≤ℤ z +ℤ y ≡ tt
+≤ℤ-+2a{x}{y}{z} e = sym (trans (sym e) ((≤ℤ-+2 z)))
+
+negℤ-+ : ∀{x y : ℤ} → negℤ (x +ℤ y) ≡ negℤ x +ℤ negℤ y
+negℤ-+ = {!!}
+
+≤ℤ+ : ∀{x y z : ℤ} → x ≤ℤ y ≡ tt → x ≤ℤ z ≡ tt → x ≤ℤ (y +ℤ z) ≡ tt
+≤ℤ+ = {!!}
+
+
+≤ℤ+2 : ∀{x y x' y' : ℤ} → x ≤ℤ x' ≡ tt → y ≤ℤ y' ≡ tt → x +ℤ y ≤ℤ x' +ℤ y' ≡ tt
+≤ℤ+2 = {!!}
