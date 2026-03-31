@@ -321,7 +321,7 @@ diffℤ-≤ℤ-swap {a} {b} {c} {d}
 ≤ℤ-+2a : ∀{x y : ℤ}{z : ℤ} → x ≤ℤ y ≡ tt → z +ℤ x ≤ℤ z +ℤ y ≡ tt
 ≤ℤ-+2a{x}{y}{z} e = sym (trans (sym e) ((≤ℤ-+2 z)))
 
-≤ℤ+ : ∀{x y z : ℤ} → x ≤ℤ y ≡ tt → x ≤ℤ z ≡ tt → x ≤ℤ (y +ℤ z) ≡ tt
+≤ℤ+ : ∀{y z : ℤ} → 0ℤ ≤ℤ y ≡ tt → 0ℤ ≤ℤ z ≡ tt → 0ℤ ≤ℤ (y +ℤ z) ≡ tt
 ≤ℤ+ = {!!}
 
 
