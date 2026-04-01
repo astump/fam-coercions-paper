@@ -10,6 +10,9 @@ open import lib
 +ℤ-0 {mkℤ zero triv} = refl
 +ℤ-0 {mkℤ (suc n) x} = refl
 
+-ℤ-0 : ∀{x : ℤ} → x -ℤ 0ℤ ≡ x 
+-ℤ-0 = +ℤ-0 
+
 +ℤcomm : ∀{i j : ℤ} → i +ℤ j ≡ j +ℤ i
 +ℤcomm {mkℤ zero triv}{j} = sym (+ℤ0{j})
 +ℤcomm {mkℤ (suc n) tt} {mkℤ zero triv} = refl
@@ -18,6 +21,9 @@ open import lib
 +ℤcomm {mkℤ (suc n) ff} {mkℤ zero triv} = refl
 +ℤcomm {mkℤ (suc n) ff} {mkℤ (suc m) tt} = refl
 +ℤcomm {mkℤ (suc n) ff} {mkℤ (suc m) ff} rewrite +suc m n | +suc n m | +comm n m = refl
+
++ℤ-comm : ∀{i j : ℤ} → i +ℤ j ≡ j +ℤ i
++ℤ-comm{i}{j} = +ℤcomm{i}{j}
 
 negℤ-invol : ∀{x : ℤ} → negℤ (negℤ x) ≡ x
 negℤ-invol {mkℤ zero triv} = refl
@@ -304,6 +310,9 @@ diffℤ-≤ℤ-swap {a} {b} {c} {d}
 ≤ℤ-+ : ∀{x y : ℤ}(z : ℤ) → x ≤ℤ y ≡ x +ℤ z ≤ℤ y +ℤ z
 ≤ℤ-+ {x} {y} (mkℤ zero triv) rewrite +ℤ-0{x} | +ℤ-0{y} = refl
 ≤ℤ-+ {x} {y} (mkℤ (suc n) b) = ≤ℤ-+help {x} {y} n b
+
+≤ℤ-+1 : ∀{x y z : ℤ} → x ≤ℤ y ≡ tt → x +ℤ z ≤ℤ y +ℤ z ≡ tt
+≤ℤ-+1{x}{y}{z} e = sym (trans (sym e) (≤ℤ-+{x}{y} z)) 
 
 ≤ℤ-trans : ∀{x y z : ℤ} → x ≤ℤ y ≡ tt → y ≤ℤ z ≡ tt → x ≤ℤ z ≡ tt
 ≤ℤ-trans {x} {y} {z} p1 p2 = {!!}

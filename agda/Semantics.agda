@@ -41,6 +41,9 @@ data Distrib : ℕ → Tp → Tp → Set where
               Distrib j T1 T1' →
               Distrib (suc n) T2 T2' →               
               Distrib (suc n) (T1 ⇒ T2) (T1' ⇒ T2')
+  DistribL : ∀{T T' : Tp}{n : ℕ} →
+             Distrib n T T' →
+             Distrib n (L T) (L T')
   Distrib0 : ∀{T T' : Tp} →
              T ≡ T' → 
              Distrib 0 T T'
@@ -60,6 +63,7 @@ Distrib+ {suc n} {zero} {suc k} (DistribH i) rewrite Distrib+{n}{zero}{k} i = re
 Distrib+ {suc n} {suc x} {suc k} (DistribH i) rewrite Distrib+{n}{suc x}{k} i = refl
 Distrib+ {zero} {suc x} {suc k} (Distrib0 e) rewrite iterLN-inj{suc x}{suc k} e = refl
 Distrib+ {zero} {suc x} {zero} (Distrib0 ())
+Distrib+ {n}{suc x}{suc k} (DistribL i) rewrite Distrib+{n}{x}{k} i | +suc n x = refl
 
 ¬Distrib⇒N : ∀{x y z T1 T2} → ¬ Distrib x (iter y L_ (T1 ⇒ T2)) (iter z L_ N)
 ¬Distrib⇒N {zero} {zero} {zero} (Distrib0 ())
@@ -68,6 +72,7 @@ Distrib+ {zero} {suc x} {zero} (Distrib0 ())
 ¬Distrib⇒N {zero} {suc y} {suc z} (Distrib0 u) = ¬⇒iterN{suc y}{suc z} u
 ¬Distrib⇒N {suc x} {zero} {suc z} (DistribH i) = ¬Distrib⇒N{x}{zero}{z} i
 ¬Distrib⇒N {suc x} {suc y} {suc z} (DistribH i) = ¬Distrib⇒N{x}{suc y}{z} i
+¬Distrib⇒N {n}{suc x}{suc k} (DistribL i) = ¬Distrib⇒N{n}{x}{k} i
 
 ¬DistribN⇒ : ∀{x y z T1 T2} → ¬ Distrib x (iter y L_ N) (iter z L_ (T1 ⇒ T2))
 ¬DistribN⇒ {zero} {zero} {zero} (Distrib0 ())
@@ -76,3 +81,4 @@ Distrib+ {zero} {suc x} {zero} (Distrib0 ())
 ¬DistribN⇒ {zero} {suc y} {suc z}{T1}{T2} (Distrib0 e) = ¬⇒iterN{suc z}{suc y} (sym e)
 ¬DistribN⇒ {suc x} {zero} {suc z} (DistribH i) = ¬DistribN⇒{x}{zero}{z} i
 ¬DistribN⇒ {suc x} {suc y} {suc z} (DistribH i) = ¬DistribN⇒{x}{suc y}{z} i
+¬DistribN⇒ {n}{suc x}{suc k} (DistribL i) = ¬DistribN⇒{n}{x}{k} i

@@ -91,6 +91,9 @@ N<:{n} e (Trans d d') | (m , x , e') | (m' , y , e'') = m' , ≤-trans{n} x y , 
 Linj : ∀{T T'} → L T ≡ L T' → T ≡ T'
 Linj refl = refl
 
+⇒inj : ∀{T1 T2 T1' T2'} → T1 ⇒ T2 ≡ T1' ⇒ T2' → T1 ≡ T1' ∧ T2 ≡ T2'
+⇒inj refl = refl , refl
+
 iterLN-inj : ∀{n m : ℕ} → iter n L_ N ≡ iter m L_ N →
             n ≡ m
 iterLN-inj {zero} {zero} e = refl
