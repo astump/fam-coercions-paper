@@ -372,3 +372,6 @@ diffℤ-≤ℤ-swap {a} {b} {c} {d}
   rewrite ≤ℤ-+{x}{x'} y'
         | ≤ℤ-+2{y}{y'} x
         = ≤ℤ-trans{x +ℤ y} p2 p1
+
+toℤ- : ℕ → ℤ
+toℤ- n = negℤ (toℤ n)
