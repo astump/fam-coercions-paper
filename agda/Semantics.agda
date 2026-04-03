@@ -102,12 +102,18 @@ Distrib⇒ {0} {suc x} {suc y} (Distrib0 e) with iterL⇒-inj{suc x}{suc y} e
 Distrib⇒ {0} {suc x} {suc y} (Distrib0 e) | refl , e2 , e3 rewrite ∸cancel1 x = 0 , refl , Distrib0 e2 , Distrib0 e3
 
 {-
-Distrib< : ∀{n T1 T2} → 
-           Distrib n ⟦ T1 ⟧ ⟦ T2 ⟧ →
-           T1 < toℤ- n ] T2
-Distrib< {n} {x !N} {x₁ !N} i = NatRefl {!!}
-Distrib< {n} {x !N} {x₁ ! T2 ⇒ T3} i = {!!}
-Distrib< {n} {x ! T1 ⇒ T2} {x₁ !N} i = {!!}
-Distrib< {n} {x ! T1 ⇒ T2} {y ! T1' ⇒ T2'} i with Distrib⇒{n}{x}{y}{⟦ T1 ⟧}{⟦ T2 ⟧}{⟦ T1' ⟧}{⟦ T2' ⟧} i 
-Distrib< {n} {x ! T1 ⇒ T2} {y ! T1' ⇒ T2'} i | j , jl , i1 , i2 = Fun {!!} {!!} {!Distrib< i1!} {!!}
--}
+mutual 
+ Distrib< : ∀{n T1 T2} → 
+            Distrib n ⟦ T1 ⟧ ⟦ T2 ⟧ →
+            T1 < toℤ n ] T2
+ Distrib< {n} {x !N} {x₁ !N} i = NatRefl {!!}
+ Distrib< {n} {x !N} {x₁ ! T2 ⇒ T3} i = {!!}
+ Distrib< {n} {x ! T1 ⇒ T2} {x₁ !N} i = {!!}
+ Distrib< {n} {x ! T1 ⇒ T2} {y ! T1' ⇒ T2'} i with Distrib⇒{n}{x}{y}{⟦ T1 ⟧}{⟦ T2 ⟧}{⟦ T1' ⟧}{⟦ T2' ⟧} i 
+ Distrib< {n} {x ! T1 ⇒ T2} {y ! T1' ⇒ T2'} i | j , jl , i1 , i2 = Fun {!!} {!!} (Distrib<- i1) {!!}
+
+ Distrib<- : ∀{n T1 T2} → 
+             Distrib n ⟦ T1 ⟧ ⟦ T2 ⟧ →
+             T2 < toℤ- n ] T1
+ Distrib<-{n}{T1}{T2} i = {!!}
+ -}
