@@ -50,13 +50,15 @@ ex8d = Fun{j = toℤ 2} refl refl (NatRefl refl) (NatRefl refl)
 ex8e : 0 ! (0 !N) ⇒ (0 !N)   < toℤ 1 ] 0 ! (2 !N) ⇒ (2 !N)
 ex8e = Fun{j = toℤ 2} refl refl (NatRefl refl) (NatRefl refl)
 
-ex8f : 0 ! (0 !N) ⇒ (0 !N)   < toℤ 1 ] 0 ! (3 !N) ⇒ (3 !N)
-ex8f = Fun{j = toℤ 3} refl refl (NatRefl refl) (NatRefl refl)
-
-ex8g : 0 ! (1 !N) ⇒ (1 !N)   < toℤ 1 ] 0 ! (0 !N) ⇒ (0 !N)
-ex8g = Fun {!!} {!!} {!!} {!!} 
+ex8f : 1 ! (0 !N) ⇒ (0 !N)   < toℤ 1 ] 0 ! (0 !N) ⇒ (0 !N)
+ex8f = Fun{j = toℤ 0} refl refl (NatRefl refl) (NatRefl refl)
 
 {-
-ex8g : 2 ! (0 !N) ⇒ (0 !N)   < toℤ 1 ] 0 ! (0 !N) ⇒ (0 !N)
-ex8g = Fun{j = toℤ 1} {!!} {!!} {!!} {!!}
+ex8g : 0 ! (1 !N) ⇒ (1 !N)   < toℤ 1 ] 0 ! (0 !N) ⇒ (0 !N)
+ex8g = Fun {!!} {!!} {!!} (NatRefl {!!}) 
+-}
+
+{-
+ex8h : 2 ! (0 !N) ⇒ (0 !N)   < toℤ 1 ] 0 ! (0 !N) ⇒ (0 !N)
+ex8h = Fun{j = toℤ 1} {!!} {!!} {!!} {!!}
 -}
