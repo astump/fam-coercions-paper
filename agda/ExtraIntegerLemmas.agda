@@ -35,9 +35,16 @@ toℤ-+ {suc n} {suc m} = refl
 +1ℤ {zero} = refl
 +1ℤ {suc n} rewrite +1 n = refl
 
++1ℤa : ∀{n : ℕ} → toℤ (suc n) ≡ 1ℤ +ℤ toℤ n
++1ℤa{n} rewrite +ℤcomm{1ℤ}{toℤ n} = +1ℤ
+
 +-1ℤ : ∀{n : ℕ} → mkℤ (suc n) ff ≡ negℤ (toℤ n) +ℤ -1ℤ
 +-1ℤ {zero} = refl
 +-1ℤ {suc n} rewrite +1 n = refl
+
+diffℤ-nn : ∀{n : ℕ} → diffℤ n n ≡ 0ℤ
+diffℤ-nn {zero} = refl
+diffℤ-nn {suc n} = diffℤ-nn{n}
 
 +ℤ-inv : ∀{x : ℕ} → (mkℤ (suc x) tt) +ℤ (mkℤ (suc x) ff) ≡ 0ℤ
 +ℤ-inv {zero} = refl
@@ -46,7 +53,7 @@ toℤ-+ {suc n} {suc m} = refl
 +ℤ-inv {suc x} | inj₁ p | p2 | () 
 +ℤ-inv {suc x} | inj₂ (inj₂ p) | p2 with trans (sym p) p2
 +ℤ-inv {suc x} | inj₂ (inj₂ p) | p2 | ()
-+ℤ-inv {suc x} | inj₂ (inj₁ p) | p2 = refl
++ℤ-inv {suc x} | inj₂ (inj₁ p) | p2 = diffℤ-nn{x}
 
 
 -- Theorems about diffℤ and negℤ
@@ -79,9 +86,6 @@ diffℤ-sucs {n} {m} | inj₂ (inj₂ x) | inj₁ y with trans (sym (<-asym{n}{m
 diffℤ-sucs {n} {m} | inj₂ (inj₂ x) | inj₂ (inj₁ y) rewrite =ℕ-to-≡{n}{m} y with trans (sym (<-irrefl m)) x
 ... | ()
 
-diffℤ-nn : ∀{n : ℕ} → diffℤ n n ≡ 0ℤ
-diffℤ-nn {zero} = refl
-diffℤ-nn {suc n} rewrite diffℤ-sucs{n}{n} = diffℤ-nn{n}
 
 diffℤ-suc : ∀{n m : ℕ} → diffℤ (suc n) m ≡ diffℤ n m +ℤ 1ℤ
 diffℤ-suc {n} {zero} rewrite diffℤ-0{n} = +1ℤ
@@ -260,6 +264,9 @@ diffℤ+ℤ2 {suc n} {suc m} {suc k}
 ≤-≤ℤ {suc n} {zero} = refl
 ≤-≤ℤ {suc n} {suc m} = refl
 
+≤-≤ℤ1 : ∀{n m : ℕ} → n ≤ m ≡ tt → toℤ n ≤ℤ toℤ m ≡ tt
+≤-≤ℤ1{n}{m} e rewrite ≤-≤ℤ{n}{m} = e
+
 ≤ℤ-suc : ∀{n : ℕ} {b : 𝔹} → toℤ n ≤ℤ mkℤ (suc n) b ≡ b
 ≤ℤ-suc {zero} = refl
 ≤ℤ-suc {suc n} {tt} = ≤-suc n
@@ -375,3 +382,24 @@ diffℤ-≤ℤ-swap {a} {b} {c} {d}
 
 toℤ- : ℕ → ℤ
 toℤ- n = negℤ (toℤ n)
+
+≤ℤ-refl : ∀{z : ℤ} → z ≤ℤ z ≡ tt
+≤ℤ-refl {mkℤ zero triv} = refl
+≤ℤ-refl {mkℤ (suc n) tt} = ≤-refl n
+≤ℤ-refl {mkℤ (suc n) ff} = ≤-refl n
+
+suc+ℤ : ∀{x y : ℕ} → toℤ (suc x) +ℤ toℤ y ≡ toℤ (suc (x + y))
+suc+ℤ{x} {y = zero} rewrite +0 x = refl
+suc+ℤ {y = suc y} = refl
+
+diffℤ-1 : ∀{x : ℕ} → diffℤ x (suc x) ≡ -1ℤ
+diffℤ-1 {zero} = refl
+diffℤ-1 {suc x} = diffℤ-1{x}
+
+diffℤ-+suc : ∀{n x : ℕ} → diffℤ (n + x) (suc n) ≡ diffℤ x 1
+diffℤ-+suc {zero} {x} = refl
+diffℤ-+suc {suc n} {x} = diffℤ-+suc{n}{x}
+
+-ℤ-suc : ∀{y : ℕ} → toℤ y +ℤ mkℤ (suc y) ff ≡ -1ℤ
+-ℤ-suc {zero} = refl
+-ℤ-suc {suc y} = diffℤ-1{y}

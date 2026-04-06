@@ -25,69 +25,101 @@ Distrib-pure {n} {x ! T1 ⇒ T2} {y ! T1' ⇒ T2'} i with Distrib⇒{n}{y}{x} i
 Distrib-pure {n} {x ! T1 ⇒ T2} {y ! T1' ⇒ T2'} i | j , jl , i1 , i2 = Fun {!!} {!!} {!!} {!!}
 -}
 
-mutual 
- Completeness : ∀{k : ℤ}{T T' : Tp!} → ⊨ T < k ] T' → T < k ] T' 
- Completeness {mkℤ zero triv} {n !N} {m !N} d with N<:{n} refl d
- Completeness {mkℤ zero triv} {n !N} {m !N} d | k , l , e'  = NatRefl h
-  where
-   h' : n ≤ m ≡ tt
-   h' rewrite iterLN-inj{m}{k} e' = l
-   h : toℤ n ≤ℤ toℤ m ≡ tt
-   h = ≤-toℤ{n}{m} h'
- Completeness {mkℤ zero triv} {n !N} {m ! T' ⇒ T''} d with N<:{n} refl d
- Completeness {mkℤ zero triv} {n !N} {m ! T' ⇒ T''} d | k , _ , e' = ⊥-elim (¬⇒iterN{m}{k} e') 
- Completeness {mkℤ zero triv} {n ! T ⇒ T₁} {m !N} d with <:N{m} refl d
- Completeness {mkℤ zero triv} {n ! T ⇒ T₁} {m !N} d | k , e' = ⊥-elim (¬⇒iterN{n}{k} e')
- Completeness {mkℤ zero triv} {zero ! T ⇒ T₁} {zero ! T' ⇒ T''} (Fun d d') = Fun refl refl (Completeness d) (Completeness d')
- Completeness {mkℤ zero triv} {zero ! T ⇒ T₁} {zero ! T' ⇒ T''} (Trans{T2 = T2} d d') with ⟦⟧inv{T2} 
- Completeness {mkℤ zero triv} {zero ! T ⇒ T₁} {zero ! T' ⇒ T''} (Trans{T2 = T2} d d') | T2' , refl = 
-  trns{T2 = T2'}  (Completeness d) (Completeness d')
- Completeness {mkℤ zero triv} {zero ! T ⇒ T₁} {suc m ! T' ⇒ T''} d with keep (iter m L_ (⟦ T' ⟧ ⇒ ⟦ T'' ⟧))
- Completeness {mkℤ zero triv} {zero ! T ⇒ T₁} {suc m ! T' ⇒ T''} d | Ti , e rewrite e with keep (⟦ T ⟧ ⇒ ⟦ T₁ ⟧)
- Completeness {mkℤ zero triv} {zero ! T ⇒ T₁} {suc m ! T' ⇒ T''} d | Ti , e | Ta , e' rewrite e' with d 
- Completeness {mkℤ zero triv} {zero ! T ⇒ T₁} {suc m ! T' ⇒ T''} _ | Ta , e | Ta , e' | Pure = {!!}
- Completeness {mkℤ zero triv} {zero ! T ⇒ T₁} {suc m ! T' ⇒ T''} _ | Ti , e | Ta , e' | (Trans d1 d2) = {!!}
- Completeness {mkℤ zero triv} {suc n ! T ⇒ T₁} {zero ! T' ⇒ T''} d = {!!}
- Completeness {mkℤ zero triv} {suc n ! T ⇒ T₁} {suc m ! T' ⇒ T''} d = {!!}
- Completeness {mkℤ (suc n) tt}{T} (T'' , i , d) = pull-Distrib d i
- Completeness {mkℤ (suc n) ff}{T} (T'' , i , d) = pull-Distrib2 d i
+Clem1 : ∀{a : ℕ} → toℤ (suc a) ≤ℤ mkℤ 1 tt +ℤ toℤ a ≡ tt
+Clem1{a} rewrite (+1ℤa{a}) = ≤ℤ-refl{mkℤ 1 tt +ℤ toℤ a}
 
- pull-Distrib : ∀{n}{T T' : Tp!}{T'' : Tp} → 
-                 ⟦ T ⟧ <: T'' → 
-                 Distrib (suc n) T'' ⟦ T' ⟧ → 
-                 T < toℤ (suc n) ] T'
- pull-Distrib{n}{T} d i = {!!}
+Clem2 : ∀{b : ℕ} → toℤ b ≤ℤ diffℤ b 0 ≡ tt
+Clem2{b} rewrite diffℤ-0{b} = ≤ℤ-refl{toℤ b}
 
-{-
- pull-Distrib : ∀{n}{T T' : Tp!}{T'' : Tp} → 
-                 ⟦ T ⟧ <: T'' → 
-                 Distrib (suc n) ⟦ T' ⟧ T'' → 
-                 T < toℤ (suc n) ] T'
- pull-Distrib {n} {x !N} {y !N} {T''} d i = {!!}
- pull-Distrib {n} {x !N} {y ! T' ⇒ T'''} {T''} d i with N<:{x}{iter x L_ N}{T''} refl d
- pull-Distrib {n} {x !N} {y ! T' ⇒ T'''}  d i | m , _ , refl = ⊥-elim (¬Distrib⇒N{suc n}{y}{m} i)
- pull-Distrib {n} {x ! T ⇒ T₁} {y !N} {T''} d i = {!!}
- pull-Distrib {n} {x ! T ⇒ T₁} {y ! T' ⇒ T'''} {T''} d i = {!!}
--}
+Clem3 : ∀{a : ℕ}{T1 : Tp!} → L iter a L_ N ≡ L ⟦ T1 ⟧ →
+        suc a !N < mkℤ 1 tt ] T1
+Clem3{a}{T1} e rewrite iterN⟦⟧{a}{T1} (Linj e) = NatRefl (Clem1{a})        
 
- pull-Distrib2 : ∀{n}{T T' : Tp!}{T'' : Tp} → 
-                 T'' <: ⟦ T' ⟧ → 
-                 Distrib (suc n) ⟦ T ⟧ T'' → 
-                 T < mkℤ (suc n) ff ] T'
- pull-Distrib2 = {!!}
+Clem4 : ∀{b : ℕ}{T2 : Tp!} → 
+        L iter b L_ N ≡ L ⟦ T2 ⟧ → 
+        T2 < mkℤ 1 ff ] suc b !N
+Clem4{b}{T2} e rewrite iterN⟦⟧{b}{T2} (Linj e) = NatRefl (Clem2{b})
 
- ⇒<: : ∀{n T T' T1 T2} → T ≡ iter n L_ (T1 ⇒ T2) → T <: T' →
-      ∃ ℕ (λ m → ∃ Tp (λ T1' → ∃ Tp (λ T2' →
-      T' ≡ iter m L_ (T1' ⇒ T2'))))
- ⇒<: {zero} {T1 ⇒ T2} {T'} refl (Fun{T1' = T1'}{T2'} d d₁) = zero , T1' , T2' ,  refl
- ⇒<: {zero} {T1 ⇒ T2} {T'} refl Pure = 1 , T1 , T2 , refl
- ⇒<: {zero} {T1 ⇒ T2} {T'} refl (Trans{T2 = T} d d₁) with ⇒<:{zero}{T1 ⇒ T2}{T} refl d
- ⇒<: {zero} {T1 ⇒ T2} {T'} refl (Trans{T2 = T} d d₁) | m , T1' , T2' , e' with ⇒<:{m}{T}{T'}{T1'}{T2'} e' d₁
- ⇒<: {zero} {T1 ⇒ T2} {T'} refl (Trans{T2 = T} d d₁) | m , T1' , T2' , e' | k , T1'' , T2'' , b' = k , T1'' , T2'' , b'
- ⇒<: {suc n} {L (A ⇒ B)} {L A ⇒ L B} {T1} {T2} e Seq = 0 , L A , L B , refl
- ⇒<: {suc n} {T} {L T} {T1} {T2} e Pure rewrite e = suc (suc n) , T1 , T2 , refl
- ⇒<: {suc n} {L T} {L T'} {T1} {T2} e (Cov d) with ⇒<:{n}{T}{T'}{T1}{T2} (Linj e) d 
- ⇒<: {suc n} {L T} {L T'} {T1} {T2} e (Cov d) | k , T1' , T2' , e' = suc k , T1' , T2' , cong L_ e'
- ⇒<: {suc n} {T} {T'} {T1} {T2} e (Trans{T2 = Tm} d d') with ⇒<:{suc n}{T}{Tm}{T1}{T2} e d
- ⇒<: {suc n} {T} {T'} {T1} {T2} e (Trans{T2 = Tm} d d') | m , T1' , T2' , e' with ⇒<:{m}{Tm}{T'}{T1'}{T2'} e' d'
- ⇒<: {suc n} {T} {T'} {T1} {T2} e (Trans{T2 = Tm} d d') | m , T1' , T2' , e' | k , T1'' , T2'' , e'' = k , T1'' , T2'' , e''
+Clem5 : ∀{b : ℕ}{T2 T2a T2b : Tp!} →
+        L iter b L_ (⟦ T2a ⟧ ⇒ ⟦ T2b ⟧) ≡ L ⟦ T2 ⟧ →
+        T2 < mkℤ 1 ff ] suc b ! T2a ⇒ T2b
+Clem5{b}{T2}{T2a}{T2b} e rewrite iter⇒⟦⟧{b}{T2}{T2a}{T2b} (Linj e) = Fun{j = 0ℤ} refl h (refl-decproc refl) (refl-decproc refl)
+ where h : 0ℤ ≥ℤ toℤ b +ℤ 1ℤ +ℤ mkℤ (suc b) ff ≡ tt
+       h rewrite sym (+1ℤ{b}) rewrite diffℤ-nn{b} = refl
+
+Clem6 : ∀{a : ℕ}{T1 T1a T1b : Tp!} →
+        L iter a L_ (⟦ T1a ⟧ ⇒ ⟦ T1b ⟧) ≡ L ⟦ T1 ⟧ →
+        suc a ! T1a ⇒ T1b < 1ℤ ] T1
+Clem6{a}{T1}{T1a}{T1b} e rewrite iter⇒⟦⟧{a}{T1}{T1a}{T1b} (Linj e) = Fun{j = 0ℤ} refl h (refl-decproc refl) (refl-decproc refl)
+ where h : 0ℤ ≥ℤ toℤ (suc a) +ℤ mkℤ 1 ff -ℤ toℤ a ≡ tt
+       h rewrite diffℤ-0{a} | +ℤ-cancel{toℤ a} = refl
+
+Clem7a : ∀{y : ℕ} → diffℤ y 1 +ℤ negℤ (toℤ y) ≡ -1ℤ
+Clem7a {zero} = refl
+Clem7a {suc y} rewrite diffℤ-0{y} = -ℤ-suc{y}
+
+Clem7 : ∀{n : ℕ}{T T' : Tp!} →
+        iter n L_ ⟦ T' ⟧ ≡ ⟦ T ⟧ →
+        T < toℤ (suc n) ] T'
+Clem7 {zero} {T} {T'} e rewrite ⟦⟧inj{T'}{T} e = refl-decproc{1ℤ} refl
+Clem7 {suc n} {suc x !N} {T'} e = <]sucN (Clem7{n}{x !N}{T'} (Linj e))
+Clem7 {suc n} {x ! T ⇒ T₁} {y !N} e rewrite iter-add{n}{y}{f = L_}{N} = ⊥-elim (¬⇒iterN{x}{suc n + y} (sym e))
+Clem7 {suc n} {x ! T ⇒ T₁} {y ! T' ⇒ T''} e rewrite iter-add{n}{y}{f = L_}{⟦ T' ⟧ ⇒ ⟦ T'' ⟧}
+ with iterL⇒-inj{suc n + y}{x}{⟦ T' ⟧}{⟦ T'' ⟧}{⟦ T ⟧}{⟦ T₁ ⟧} e 
+Clem7 {suc n} {_ ! T ⇒ T₁} {y ! T' ⇒ T''} e | refl , e2 , e3 rewrite ⟦⟧inj{T''}{T₁} e3 | ⟦⟧inj{T'}{T} e2 =
+  Fun{j = 0ℤ} refl h (refl-decproc refl) (refl-decproc refl)
+  where h : 0ℤ ≥ℤ mkℤ (suc (n + y)) tt -ℤ mkℤ (suc (suc n)) tt -ℤ toℤ y ≡ tt
+        h rewrite sym (suc+ℤ{n}{y}) | diffℤ-+suc{n}{y} rewrite Clem7a{y} = refl
+
+Completeness : ∀{k : ℤ}{T T' : Tp!} → ⊨ T < k ] T' → T < k ] T' 
+Completeness {mkℤ zero triv} {x !N} {y !N} d with N<:{x}{iter x L_ N}{iter y L_ N} refl d
+Completeness {mkℤ zero triv} {x !N} {y !N} d | m , lm , e rewrite iterLN-inj{y}{m} e = NatRefl (≤-≤ℤ1{x} lm)
+Completeness {mkℤ zero triv} {x !N} {y ! T' ⇒ T''} d with N<:{x} refl d 
+Completeness {mkℤ zero triv} {x !N} {y ! T' ⇒ T''} d | m , lm , e = ⊥-elim (¬⇒iterN{y}{m} e)
+Completeness {mkℤ zero triv} {x ! T ⇒ T₁} {y !N} d with <:N{y} refl d
+Completeness {mkℤ zero triv} {x ! T ⇒ T₁} {y !N} d | m  , e = ⊥-elim (¬⇒iterN{x}{m} e) 
+Completeness {mkℤ zero triv} {zero ! T ⇒ T₁} {zero ! T' ⇒ T''} (Fun d d') = Fun{j = 0ℤ} refl refl (Completeness d) (Completeness d')
+Completeness {mkℤ zero triv} {zero ! T1 ⇒ T2} {zero ! T1' ⇒ T2'} (Trans{T2 = TM} d d') with ⟦⟧inv{TM} 
+Completeness {mkℤ zero triv} {zero ! T1 ⇒ T2} {zero ! T1' ⇒ T2'} (Trans{T2 = TM} d d') | TM' , refl =
+  trns (Completeness {0ℤ} d) (Completeness{0ℤ}{TM'} d') 
+Completeness {mkℤ zero triv} {zero ! T1 ⇒ T2} {suc y ! T1' ⇒ T2'} d with keep (⟦ T1 ⟧ ⇒ ⟦ T2 ⟧) 
+Completeness {mkℤ zero triv} {zero ! T1 ⇒ T2} {suc y ! T1' ⇒ T2'} d | TL , e rewrite e with d 
+Completeness {mkℤ zero triv} {zero ! T1 ⇒ T2} {suc y ! T1' ⇒ T2'} d | _ , e | Pure with iterL⇒-inj{0}{y} e
+Completeness {mkℤ zero triv} {zero ! T1 ⇒ T2} {suc y ! T1' ⇒ T2'} d | _ , e | Pure | refl , e2 , e3 = 
+  Fun{j = 0ℤ} refl refl h1 h2
+  where h1 : T1' < 0ℤ ] T1
+        h1 rewrite ⟦⟧inj{T1}{T1'} e2 = refl-decproc refl
+        h2 : T2 < 0ℤ ] T2'
+        h2 rewrite ⟦⟧inj{T2}{T2'} e3 = refl-decproc refl
+Completeness {mkℤ zero triv} {zero ! T1 ⇒ T2} {suc y ! T1' ⇒ T2'} d | TL , e | Trans{T2 = TM} d1 d2 with ⟦⟧inv{TM}
+Completeness {mkℤ zero triv} {zero ! T1 ⇒ T2} {suc y ! T1' ⇒ T2'} d | TL , e | Trans{T2 = _} d1 d2 | TM' , refl rewrite sym e =
+  trns {0 ! T1 ⇒ T2} {TM'} {suc y ! T1' ⇒ T2'} (Completeness{0ℤ}{0 ! T1 ⇒ T2} d1) (Completeness{0ℤ}{TM'}{suc y ! T1' ⇒ T2'} d2)
+Completeness {mkℤ zero triv} {suc x ! T1 ⇒ T2} {zero ! T1' ⇒ T2'} d with keep (iter x L_ (⟦ T1 ⟧ ⇒ ⟦ T2 ⟧)) | keep ⟦ T1' ⟧ | keep ⟦ T2' ⟧
+Completeness {mkℤ zero triv} {suc x ! T1 ⇒ T2} {zero ! T1' ⇒ T2'} d | Ta , e | T1a , e1 | T2a , e2 rewrite e | e1 | e2 with d 
+Completeness {mkℤ zero triv} {1 ! T1 ⇒ T2} {zero ! (suc a !N) ⇒ (suc b !N)} _ | _ , refl | _ , e1 | _ , e2 | Seq =
+  Fun{j = toℤ 1} refl refl (Clem3{a}{T1} e1)  (Clem4{b}{T2} e2) 
+Completeness {mkℤ zero triv} {1 ! T1 ⇒ T2} {zero ! (suc a !N) ⇒ (suc b ! T2a ⇒ T2b)} _ | _ , refl | _ , e1 | _ , e2 | Seq = 
+  Fun{j = toℤ 1} refl refl (Clem3{a}{T1} e1) (Clem5{b}{T2}{T2a}{T2b} e2)
+
+Completeness {mkℤ zero triv} {1 ! T1 ⇒ T2} {zero ! (suc a ! T1a ⇒ T1b) ⇒ (suc b !N)} _ | _ , refl | _ , e1 | _ , e2 | Seq =
+  Fun refl refl (Clem6 e1) (Clem4 e2)
+Completeness {mkℤ zero triv} {1 ! T1 ⇒ T2} {zero ! (suc a ! T1a ⇒ T1b) ⇒ (suc b ! T2a ⇒ T2b)} _ | _ , refl | _ , e1 | _ , e2 | Seq = 
+  Fun{j = 1ℤ} refl refl (Clem6 e1) (Clem5 e2)
+Completeness {mkℤ zero triv} {suc x ! T1 ⇒ T2} {zero ! T1' ⇒ T2'} _ | Ta , e | T1a , e1 | T2a , e2 | Trans d1 d2 = {!!}
+Completeness {mkℤ zero triv} {suc x ! T1 ⇒ T2} {suc y ! T1' ⇒ T2'} d with keep (iter y L_ (⟦ T1' ⟧ ⇒ ⟦ T2' ⟧))
+Completeness {mkℤ zero triv} {suc x ! T1 ⇒ T2} {suc y ! T1' ⇒ T2'} d | M , e rewrite e with d 
+Completeness {mkℤ zero triv} {suc x ! T1 ⇒ T2} {suc y ! T1' ⇒ T2'} _ | _ , e | Pure 
+ with iterL⇒-inj{y}{suc x}{⟦ T1' ⟧}{⟦ T2' ⟧}{⟦ T1 ⟧}{⟦ T2 ⟧} e
+Completeness {mkℤ zero triv} {suc x ! T1 ⇒ T2} {suc y ! T1' ⇒ T2'} _ | _ , e | Pure | refl , e2 , e3
+  rewrite ⟦⟧inj{T2'}{T2} e3 | ⟦⟧inj{T1'}{T1} e2 =
+  Fun{j = 0ℤ} refl h (refl-decproc refl) (refl-decproc refl)
+  where h : 0ℤ ≥ℤ mkℤ (suc x) tt +ℤ mkℤ 0 triv -ℤ mkℤ (suc (suc x)) tt ≡ tt
+        h rewrite +ℤ0{mkℤ (suc x) tt} | diffℤ-1{x} = refl
+Completeness {mkℤ zero triv} {suc x ! T1 ⇒ T2} {suc y ! T1' ⇒ T2'} _ | M , e | Cov d = {!!}
+Completeness {mkℤ zero triv} {suc x ! T1 ⇒ T2} {suc y ! T1' ⇒ T2'} _ | M , e | Trans d1 d2 = {!!}
+Completeness {mkℤ (suc n) tt} {T} {T'} d with keep (⟦ T ⟧) | keep (iter n L_ ⟦ T' ⟧)
+Completeness {mkℤ (suc n) tt} {T} {T'} d | A , e | B , e' rewrite e | e' with d 
+Completeness {mkℤ (suc n) tt} {T} {T'} _ | A , e | _ , e' | Pure rewrite sym e = Clem7 e'
+Completeness {mkℤ (suc n) tt} {T} {T'} _ | L A , e | B , e' | Cov d = {!!}
+Completeness {mkℤ (suc n) tt} {T} {T'} _ | A , e | B , e' | Trans d1 d2 = {!!}
+Completeness {mkℤ (suc n) ff} {T} {T'} d = {!!}

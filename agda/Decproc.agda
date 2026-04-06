@@ -32,3 +32,10 @@ refl-decproc {mkℤ (suc n) tt} {x ! T1 ⇒ T2} e =
                | +ℤ-assoc{mkℤ (suc n) ff}{toℤ x}{negℤ (toℤ x)}
                | +ℤ-cancel{toℤ x} = refl
 refl-decproc {mkℤ (suc n) ff} {x ! T1 ⇒ T2} ()
+
+<]sucN : ∀{x n : ℕ}{T : Tp!} →
+         x !N < toℤ n ] T → 
+         suc x !N < toℤ (suc n) ] T
+<]sucN {x} {n} {y !N} (NatRefl e) = NatRefl h
+  where h : mkℤ (suc x) tt ≤ℤ mkℤ (suc n) tt +ℤ toℤ y ≡ tt
+        h rewrite suc+ℤ{n}{y} | ≤-≤ℤ{x}{n + y} | toℤ+{n}{y} = e

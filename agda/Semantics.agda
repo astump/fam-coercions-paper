@@ -37,3 +37,17 @@ infix 6 ⊨_<_]_
 ⊨ T1 < mkℤ (suc n) tt ] T2 = ⟦ T1 ⟧ <: iter (suc n) L_ ⟦ T2 ⟧
 ⊨ T1 < mkℤ (suc n) ff ] T2 = iter (suc n) L_ ⟦ T1 ⟧ <: ⟦ T2 ⟧
 
+iterN⟦⟧ : ∀{n T} → iter n L_ N ≡ ⟦ T ⟧ → T ≡ n !N
+iterN⟦⟧ {zero} {zero !N} e = refl
+iterN⟦⟧ {suc n} {x !N} e rewrite iterLN-inj{suc n}{x} e = refl
+iterN⟦⟧ {n} {x ! T ⇒ T'} e = ⊥-elim (¬⇒iterN{x}{n}{⟦ T ⟧}{⟦ T' ⟧} (sym e))
+
+iter⇒⟦⟧ : ∀{n T Ta Tb} →
+          iter n L_ (⟦ Ta ⟧ ⇒ ⟦ Tb ⟧) ≡ ⟦ T ⟧ →
+          T ≡ n ! Ta ⇒ Tb
+iter⇒⟦⟧ {zero} {x !N} {Ta} {Tb} e = ⊥-elim (¬⇒iterN{0}{x}{⟦ Ta ⟧}{⟦ Tb ⟧} e)
+iter⇒⟦⟧ {zero} {zero ! T1 ⇒ T2} {Ta} {Tb} e with iterL⇒-inj{0}{0} e 
+iter⇒⟦⟧ {zero} {zero ! T1 ⇒ T2} {Ta} {Tb} e | _ , e1 , e2 rewrite ⟦⟧inj{Ta}{T1} e1 | ⟦⟧inj{Tb}{T2} e2 = refl
+iter⇒⟦⟧ {suc n} {suc x !N} {Ta} {Tb} e = ⊥-elim (¬⇒iterN{suc n}{suc x}{⟦ Ta ⟧}{⟦ Tb ⟧} e)
+iter⇒⟦⟧ {suc n} {suc x ! T1 ⇒ T2} {Ta} {Tb} e with iterL⇒-inj{suc n}{suc x}{⟦ Ta ⟧}{⟦ Tb ⟧}{⟦ T1 ⟧}{⟦ T2 ⟧} e
+iter⇒⟦⟧ {suc n} {suc x ! T1 ⇒ T2} {Ta} {Tb} e | refl , e1 , e2 rewrite ⟦⟧inj{Ta}{T1} e1 | ⟦⟧inj{Tb}{T2} e2 = refl

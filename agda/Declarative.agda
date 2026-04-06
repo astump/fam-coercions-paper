@@ -55,12 +55,6 @@ size (Trans d d') = 1 + size d + size d'
 ≤iterL {zero} {suc m} d = Trans (≤iterL {zero} {m} (0≤{m})) Pure
 ≤iterL {suc n} {suc m} d = Cov (≤iterL {n} {m} (suc≤{n}{m} d))
 
-{-
-¬⇒iterN : ∀{n T1 T2} → ¬ (T1 ⇒ T2 ≡ iter n L_ N)
-¬⇒iterN {zero} ()
-¬⇒iterN {suc n} ()
--}
-
 L≢ : ∀{T T' : Tp} → T ≢ T' → L T ≢ L T'
 L≢ u refl = u refl
 
@@ -106,3 +100,19 @@ iterL⇒-inj {zero} {suc m} ()
 iterL⇒-inj {suc n} {zero} ()
 iterL⇒-inj {suc n} {suc m} e with iterL⇒-inj{n}{m} (Linj e)
 iterL⇒-inj {suc n} {suc m} e | refl , refl , refl = refl , refl , refl
+
+⇒<: : ∀{n T T' T1 T2} → T ≡ iter n L_ (T1 ⇒ T2) → T <: T' →
+      ∃ ℕ (λ m → ∃ Tp (λ T1' → ∃ Tp (λ T2' →
+      T' ≡ iter m L_ (T1' ⇒ T2'))))
+⇒<: {zero} {T1 ⇒ T2} {T'} refl (Fun{T1' = T1'}{T2'} d d₁) = zero , T1' , T2' ,  refl
+⇒<: {zero} {T1 ⇒ T2} {T'} refl Pure = 1 , T1 , T2 , refl
+⇒<: {zero} {T1 ⇒ T2} {T'} refl (Trans{T2 = T} d d₁) with ⇒<:{zero}{T1 ⇒ T2}{T} refl d
+⇒<: {zero} {T1 ⇒ T2} {T'} refl (Trans{T2 = T} d d₁) | m , T1' , T2' , e' with ⇒<:{m}{T}{T'}{T1'}{T2'} e' d₁
+⇒<: {zero} {T1 ⇒ T2} {T'} refl (Trans{T2 = T} d d₁) | m , T1' , T2' , e' | k , T1'' , T2'' , b' = k , T1'' , T2'' , b'
+⇒<: {suc n} {L (A ⇒ B)} {L A ⇒ L B} {T1} {T2} e Seq = 0 , L A , L B , refl
+⇒<: {suc n} {T} {L T} {T1} {T2} e Pure rewrite e = suc (suc n) , T1 , T2 , refl
+⇒<: {suc n} {L T} {L T'} {T1} {T2} e (Cov d) with ⇒<:{n}{T}{T'}{T1}{T2} (Linj e) d 
+⇒<: {suc n} {L T} {L T'} {T1} {T2} e (Cov d) | k , T1' , T2' , e' = suc k , T1' , T2' , cong L_ e'
+⇒<: {suc n} {T} {T'} {T1} {T2} e (Trans{T2 = Tm} d d') with ⇒<:{suc n}{T}{Tm}{T1}{T2} e d
+⇒<: {suc n} {T} {T'} {T1} {T2} e (Trans{T2 = Tm} d d') | m , T1' , T2' , e' with ⇒<:{m}{Tm}{T'}{T1'}{T2'} e' d'
+⇒<: {suc n} {T} {T'} {T1} {T2} e (Trans{T2 = Tm} d d') | m , T1' , T2' , e' | k , T1'' , T2'' , e'' = k , T1'' , T2'' , e''
