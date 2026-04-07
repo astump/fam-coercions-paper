@@ -403,3 +403,10 @@ diffℤ-+suc {suc n} {x} = diffℤ-+suc{n}{x}
 -ℤ-suc : ∀{y : ℕ} → toℤ y +ℤ mkℤ (suc y) ff ≡ -1ℤ
 -ℤ-suc {zero} = refl
 -ℤ-suc {suc y} = diffℤ-1{y}
+
+suc-ℤsuc : ∀{x y : ℕ} →
+           toℤ (suc x) -ℤ toℤ (suc y) ≡ toℤ x -ℤ toℤ y
+suc-ℤsuc {zero} {zero} = refl
+suc-ℤsuc {zero} {suc y} = refl
+suc-ℤsuc {suc x} {zero} = refl
+suc-ℤsuc {suc x} {suc y} = refl
