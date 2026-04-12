@@ -42,20 +42,6 @@ toℤ-+ {suc n} {suc m} = refl
 +-1ℤ {zero} = refl
 +-1ℤ {suc n} rewrite +1 n = refl
 
-diffℤ-nn : ∀{n : ℕ} → diffℤ n n ≡ 0ℤ
-diffℤ-nn {zero} = refl
-diffℤ-nn {suc n} = diffℤ-nn{n}
-
-+ℤ-inv : ∀{x : ℕ} → (mkℤ (suc x) tt) +ℤ (mkℤ (suc x) ff) ≡ 0ℤ
-+ℤ-inv {zero} = refl
-+ℤ-inv {suc x} with ℕ-trichotomy (suc x) (suc x) | (<-irrefl (suc x))
-+ℤ-inv {suc x} | inj₁ p | p2 with trans (sym p) p2
-+ℤ-inv {suc x} | inj₁ p | p2 | () 
-+ℤ-inv {suc x} | inj₂ (inj₂ p) | p2 with trans (sym p) p2
-+ℤ-inv {suc x} | inj₂ (inj₂ p) | p2 | ()
-+ℤ-inv {suc x} | inj₂ (inj₁ p) | p2 = diffℤ-nn{x}
-
-
 -- Theorems about diffℤ and negℤ
 
 diffℤ-0 : ∀{n : ℕ} → diffℤ n 0 ≡ toℤ n
@@ -67,25 +53,11 @@ diffℤ-0 {suc n} = refl
 0-diffℤ {suc n} = refl
 
 diffℤ-sucs : ∀{n m : ℕ} → diffℤ (suc n) (suc m) ≡ diffℤ n m
-diffℤ-sucs {n} {m} with ℕ-trichotomy (suc n) (suc m) | ℕ-trichotomy n m
-diffℤ-sucs {n} {m} | inj₁ p1 | inj₁ p2 with <∸suc{suc m}{suc n} p1 | <∸suc{m}{n} p2
-diffℤ-sucs {n} {m} | inj₁ p1 | inj₁ p2 | x1 , e1 | x2 , e2 rewrite e1 | (suc-inj e2) = refl
-diffℤ-sucs {n} {m} | inj₂ (inj₂ p1) | inj₂ (inj₂ p2) with <∸suc{suc n}{suc m} p1 | <∸suc{n}{m} p2
-diffℤ-sucs {n} {m} | inj₂ (inj₂ p1) | inj₂ (inj₂ p2) | x1 , e1 | x2 , e2 rewrite e1 | (suc-inj e2) = refl
-diffℤ-sucs {n} {m} | inj₂ (inj₁ p1) | inj₂ (inj₁ p2) = refl
-diffℤ-sucs {n} {m} | inj₁ x | inj₂ (inj₁ p) rewrite =ℕ-to-≡{n}{m} p with trans (sym (<-irrefl m)) x
-... | ()
-diffℤ-sucs {n} {m} | inj₁ x | inj₂ (inj₂ p) with trans (sym (<-asym{n}{m} x)) p
-... | ()
-diffℤ-sucs {n} {m} | inj₂ (inj₁ x) | inj₁ p rewrite =ℕ-to-≡{n}{m} x with trans (sym (<-irrefl m)) p
-... | ()
-diffℤ-sucs {n} {m} | inj₂ (inj₁ x) | inj₂ (inj₂ p) rewrite =ℕ-to-≡{n}{m} x with trans (sym (<-irrefl m)) p
-... | ()
-diffℤ-sucs {n} {m} | inj₂ (inj₂ x) | inj₁ y with trans (sym (<-asym{n}{m} y)) x
-... | ()
-diffℤ-sucs {n} {m} | inj₂ (inj₂ x) | inj₂ (inj₁ y) rewrite =ℕ-to-≡{n}{m} y with trans (sym (<-irrefl m)) x
-... | ()
+diffℤ-sucs {n} {m} = refl
 
+diffℤ-nn : ∀{n : ℕ} → diffℤ n n ≡ 0ℤ
+diffℤ-nn {zero} = refl
+diffℤ-nn {suc n} = diffℤ-nn{n}
 
 diffℤ-suc : ∀{n m : ℕ} → diffℤ (suc n) m ≡ diffℤ n m +ℤ 1ℤ
 diffℤ-suc {n} {zero} rewrite diffℤ-0{n} = +1ℤ
@@ -98,10 +70,10 @@ diffℤ-suc2 {zero} {suc m} rewrite 0-diffℤ{suc (suc m)} | sym (+1 m) = refl
 diffℤ-suc2 {suc n} {zero} rewrite diffℤ-sucs{n}{zero} = refl
 diffℤ-suc2 {suc n} {suc m} rewrite diffℤ-sucs{n}{suc m} | diffℤ-sucs{n}{m} = diffℤ-suc2{n}{m}
 
-diffℤ+negℤ : ∀{n m : ℕ} → diffℤ n m ≡ toℤ n +ℤ negℤ (toℤ m)
-diffℤ+negℤ {zero} {m} = 0-diffℤ{m}
-diffℤ+negℤ {suc n} {zero} = refl
-diffℤ+negℤ {suc n} {suc m} = diffℤ-sucs{n}{m}
+diffℤ-ℤ : ∀{n m : ℕ} → diffℤ n m ≡ toℤ n -ℤ (toℤ m)
+diffℤ-ℤ {zero} {m} = 0-diffℤ{m}
+diffℤ-ℤ {suc n} {zero} = refl
+diffℤ-ℤ {suc n} {suc m} = diffℤ-sucs{n}{m}
 
 negℤ-diffℤ : ∀{a b : ℕ} → diffℤ a b ≡ negℤ (diffℤ b a)
 negℤ-diffℤ {zero} {zero} = refl
@@ -149,7 +121,7 @@ negℤ-+ {mkℤ (suc n) ff} {mkℤ (suc m) ff} = refl
   rewrite 0-diffℤ{n}
         | +ℤcomm{1ℤ}{diffℤ m n}
         | sym (diffℤ-suc{m}{n})
-        | diffℤ+negℤ{suc m}{n}
+        | diffℤ-ℤ{suc m}{n}
         = +ℤcomm{negℤ (toℤ n)}{mkℤ (suc m) tt}
 +ℤ-assoc-1ℤ {mkℤ (suc n) ff} {mkℤ (suc m) ff}
   rewrite 0-diffℤ{n}
@@ -169,7 +141,7 @@ diffℤ+ℤ {suc n} {m} {k}
 
 diffℤ+ℤ2 : ∀{n m k : ℕ} → diffℤ n (m + k) ≡ diffℤ n m +ℤ negℤ (toℤ k)
 diffℤ+ℤ2 {n} {m} {zero} rewrite +0 m = sym (+ℤ-0{diffℤ n m})
-diffℤ+ℤ2 {n} {zero} {suc k} rewrite diffℤ-0{n} = diffℤ+negℤ{n}{suc k}
+diffℤ+ℤ2 {n} {zero} {suc k} rewrite diffℤ-0{n} = diffℤ-ℤ{n}{suc k}
 diffℤ+ℤ2 {zero} {suc m} {suc k} rewrite 0-diffℤ{suc (m + suc k)} = refl
 diffℤ+ℤ2 {suc n} {suc m} {suc k}
   rewrite diffℤ-sucs{n}{m}
@@ -350,6 +322,17 @@ diffℤ-≤ℤ-swap {a} {b} {c} {d}
 ≤ℤ-+2 : ∀{x y : ℤ}(z : ℤ) → x ≤ℤ y ≡ z +ℤ x ≤ℤ z +ℤ y
 ≤ℤ-+2 {x} {y} z rewrite +ℤcomm{z}{x} | +ℤcomm{z}{y} = ≤ℤ-+{x}{y} z
 
+≤ℤ-subℤ : ∀{x y z : ℤ} → x +ℤ y ≤ℤ z ≡ x ≤ℤ z -ℤ y
+≤ℤ-subℤ {x} {y} {z}
+  rewrite ≤ℤ-+{x +ℤ y}{z} (negℤ y)
+        | +ℤ-assoc{x}{y}{negℤ y}
+        | +ℤ-cancel{y}
+        | +ℤ-0{x}
+        = refl
+
+≤ℤ-subℤ2 : ∀{x y z : ℤ} → x -ℤ y ≤ℤ z ≡ x ≤ℤ z +ℤ y
+≤ℤ-subℤ2 {x} {y} {z} rewrite ≤ℤ-subℤ{x}{negℤ y}{z} | negℤ-invol{y} = refl
+
 ≤ℤ-diffℤ : ∀{n m : ℕ} → diffℤ n m ≤ℤ toℤ n ≡ tt
 ≤ℤ-diffℤ {zero} {zero} = refl
 ≤ℤ-diffℤ {zero} {suc m} = refl
@@ -417,3 +400,4 @@ toℤ≤ : ∀{a b : ℕ} →
 toℤ≤ {zero} {zero} e = refl
 toℤ≤ {zero} {suc b} e = refl
 toℤ≤ {suc a} {suc b} e = e
+

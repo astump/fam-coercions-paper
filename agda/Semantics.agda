@@ -12,7 +12,7 @@ infix 7 ⟦_⟧
 ⟦ n !N ⟧ = iter n L_ N
 ⟦ n ! T1 ⇒ T2 ⟧ = iter n L_ (⟦ T1 ⟧ ⇒ ⟦ T2 ⟧)
 
-⟦⟧++ : ∀{T : Tp!} → ⟦ Tp!++ T ⟧ ≡ L ⟦ T ⟧
+⟦⟧++ : ∀{T : Tp!} → ⟦ Tp!++ T ⟧ ≡ L_ ⟦ T ⟧
 ⟦⟧++ {x !N} = refl
 ⟦⟧++ {x ! T ⇒ T₁} = refl
 
@@ -24,8 +24,8 @@ infix 7 ⟦_⟧
 
 ⟦⟧inv : ∀{T : Tp} → ∃ Tp! (λ T' → ⟦ T' ⟧ ≡ T)
 ⟦⟧inv {N} = 0 !N , refl
-⟦⟧inv {L T} with ⟦⟧inv{T}
-⟦⟧inv {L T} | T' , refl = Tp!++ T' , ⟦⟧++{T'}
+⟦⟧inv {L_ T} with ⟦⟧inv{T}
+⟦⟧inv {L_ T} | T' , refl = Tp!++ T' , ⟦⟧++{T'}
 ⟦⟧inv {T1 ⇒ T2} with ⟦⟧inv{T1} | ⟦⟧inv{T2} 
 ⟦⟧inv {T1 ⇒ T2} | T1' , refl | T2' , refl =  0 ! T1' ⇒ T2' , refl
 

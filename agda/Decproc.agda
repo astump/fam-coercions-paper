@@ -62,4 +62,4 @@ Tp!++<] {k} (Fun{n}{m}{j} x x' d d') = Fun{j = j} x h d d'
        h u rewrite +ℤ-assoc{toℤ n'}{mkℤ (suc n) tt}{mkℤ (suc m) ff}
          | negℤ-invol{toℤ n}
          | +ℤ-assoc{toℤ n'}{toℤ n}{negℤ (toℤ m)}
-         | diffℤ+negℤ{n}{m} = u
+         | diffℤ-ℤ{n}{m} = u

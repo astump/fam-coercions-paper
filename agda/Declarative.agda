@@ -55,6 +55,17 @@ size (Trans d d') = 1 + size d + size d'
 ≤iterL {zero} {suc m} d = Trans (≤iterL {zero} {m} (0≤{m})) Pure
 ≤iterL {suc n} {suc m} d = Cov (≤iterL {n} {m} (suc≤{n}{m} d))
 
+≤iterL<: : ∀{n m : ℕ}{T1 T2 : Tp} → n ≤ m ≡ tt →
+           T1 <: T2 →
+           iter n L_ T1 <: iter m L_ T2
+≤iterL<: {zero} {zero} d1 d2 = d2
+≤iterL<: {zero} {suc m} d1 d2 = Trans d2 (iter-pure{suc m})
+≤iterL<: {suc n} {suc m} d1 d2 = Cov (≤iterL<: {n} {m} (suc≤{n}{m} d1) d2)
+
+≤iterL-all : ∀{n m : ℕ}{T : Tp} → n ≤ m ≡ tt →
+             iter n L_ T <: iter m L_ T
+≤iterL-all {n} {m} {T} p = ≤iterL<:{n}{m}{T}{T} p (refl-all{T})
+
 N<: : ∀{n T T'} → T ≡ iter n L_ N → T <: T' → ∃ ℕ (λ m → m ≥ n ≡ tt ∧ T' ≡ iter m L_ N)
 N<:{zero} e NatRefl = 0 , refl , refl
 N<: {zero} {T1 ⇒ T2} {T1' ⇒ T2'} () (Fun d d₁) 
