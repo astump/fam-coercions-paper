@@ -410,3 +410,10 @@ suc-ℤsuc {zero} {zero} = refl
 suc-ℤsuc {zero} {suc y} = refl
 suc-ℤsuc {suc x} {zero} = refl
 suc-ℤsuc {suc x} {suc y} = refl
+
+toℤ≤ : ∀{a b : ℕ} →
+       toℤ a ≤ℤ toℤ b ≡ tt →
+       a ≤ b ≡ tt
+toℤ≤ {zero} {zero} e = refl
+toℤ≤ {zero} {suc b} e = refl
+toℤ≤ {suc a} {suc b} e = e

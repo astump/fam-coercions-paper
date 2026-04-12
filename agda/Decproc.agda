@@ -39,3 +39,27 @@ refl-decproc {mkℤ (suc n) ff} {x ! T1 ⇒ T2} ()
 <]sucN {x} {n} {y !N} (NatRefl e) = NatRefl h
   where h : mkℤ (suc x) tt ≤ℤ mkℤ (suc n) tt +ℤ toℤ y ≡ tt
         h rewrite suc+ℤ{n}{y} | ≤-≤ℤ{x}{n + y} | toℤ+{n}{y} = e
+
+Tp!++<] : ∀{n : ℕ}{A' T' : Tp!} →
+         A' < toℤ n ] T' → 
+         Tp!++ A' < mkℤ (suc n) tt ] T'
+Tp!++<] {n} (NatRefl {a} {zero} x) rewrite +ℤ-0{toℤ n} = NatRefl (toℤ≤{a} x)
+Tp!++<] {n} (NatRefl {a} {suc b} x) rewrite toℤ-+{n}{suc b} = NatRefl (toℤ≤ {a} {n + suc b} x)
+Tp!++<] {k} (Fun{n}{m}{j} x x' d d') = Fun{j = j} x h d d'
+ where h : j ≥ℤ mkℤ (suc n) tt -ℤ mkℤ (suc k) tt -ℤ toℤ m ≡ tt
+       h rewrite suc-ℤsuc{n}{k} = x'
+
+<]Tp!++ : ∀{n : ℕ}{A' T' : Tp!} →
+         A' < toℤ- n ] T' → 
+         A' < mkℤ (suc n) ff ] Tp!++ T'
+<]Tp!++ {zero} (NatRefl {m = zero} x) = NatRefl x
+<]Tp!++ {zero} (NatRefl {m = suc m} x) = NatRefl x
+<]Tp!++ {suc n} (NatRefl {m = zero} x) = NatRefl x
+<]Tp!++ {suc n} (NatRefl {m = suc m} x) = NatRefl x
+<]Tp!++ {n} (Fun{n'}{m}{j} x x₁ d d₁) = Fun{j = j} x (h x₁) d d₁
+ where h : j ≥ℤ toℤ n' +ℤ negℤ (negℤ (toℤ n)) +ℤ negℤ (toℤ m) ≡ tt →
+           j ≥ℤ toℤ n' +ℤ mkℤ (suc n) tt +ℤ mkℤ (suc m) ff ≡ tt
+       h u rewrite +ℤ-assoc{toℤ n'}{mkℤ (suc n) tt}{mkℤ (suc m) ff}
+         | negℤ-invol{toℤ n}
+         | +ℤ-assoc{toℤ n'}{toℤ n}{negℤ (toℤ m)}
+         | diffℤ+negℤ{n}{m} = u

@@ -55,13 +55,6 @@ size (Trans d d') = 1 + size d + size d'
 ≤iterL {zero} {suc m} d = Trans (≤iterL {zero} {m} (0≤{m})) Pure
 ≤iterL {suc n} {suc m} d = Cov (≤iterL {n} {m} (suc≤{n}{m} d))
 
-L≢ : ∀{T T' : Tp} → T ≢ T' → L T ≢ L T'
-L≢ u refl = u refl
-
-¬⇒iterN : ∀{m n T1 T2} → iter m L_ (T1 ⇒ T2) ≢ iter n L_ N
-¬⇒iterN {suc m} {zero} ()
-¬⇒iterN {suc m} {suc n} e = L≢ (¬⇒iterN{m}{n}) e 
-
 N<: : ∀{n T T'} → T ≡ iter n L_ N → T <: T' → ∃ ℕ (λ m → m ≥ n ≡ tt ∧ T' ≡ iter m L_ N)
 N<:{zero} e NatRefl = 0 , refl , refl
 N<: {zero} {T1 ⇒ T2} {T1' ⇒ T2'} () (Fun d d₁) 
@@ -81,25 +74,6 @@ N<:{n} e (Trans d d') | (m , x , e') | (m' , y , e'') = m' , ≤-trans{n} x y , 
 <:N {suc n}{m} refl Pure = n , refl
 <:N {suc n} refl (Cov d) with <:N{n} refl d
 <:N {suc n} refl (Cov d) | m , e' = suc m , cong L_ e'
-
-Linj : ∀{T T'} → L T ≡ L T' → T ≡ T'
-Linj refl = refl
-
-⇒inj : ∀{T1 T2 T1' T2'} → T1 ⇒ T2 ≡ T1' ⇒ T2' → T1 ≡ T1' ∧ T2 ≡ T2'
-⇒inj refl = refl , refl
-
-iterLN-inj : ∀{n m : ℕ} → iter n L_ N ≡ iter m L_ N →
-            n ≡ m
-iterLN-inj {zero} {zero} e = refl
-iterLN-inj {suc n} {suc m} e rewrite iterLN-inj{n}{m} (Linj e) = refl
-
-iterL⇒-inj : ∀{n m T1 T2 T1' T2'} → iter n L_ (T1 ⇒ T2) ≡ iter m L_ (T1' ⇒ T2') →
-            n ≡ m ∧ T1 ≡ T1' ∧ T2 ≡ T2'
-iterL⇒-inj {zero} {zero} refl = refl , refl , refl
-iterL⇒-inj {zero} {suc m} ()
-iterL⇒-inj {suc n} {zero} ()
-iterL⇒-inj {suc n} {suc m} e with iterL⇒-inj{n}{m} (Linj e)
-iterL⇒-inj {suc n} {suc m} e | refl , refl , refl = refl , refl , refl
 
 ⇒<: : ∀{n T T' T1 T2} → T ≡ iter n L_ (T1 ⇒ T2) → T <: T' →
       ∃ ℕ (λ m → ∃ Tp (λ T1' → ∃ Tp (λ T2' →
