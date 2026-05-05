@@ -1,0 +1,30 @@
+The abstractions of functor, applicative, and monad are essential to
+modern functional programming in Haskell.  They enable much more concise
+programming, for types supporting those abstractions.  For example,
+consider a function
+
+addMaybe : Maybe Int -> Maybe Int -> Maybe Int
+
+Because Maybe is an instance of the Applicative type class, this function
+can be implemented just by
+
+addMaybe x y = (+) <$> x <*> y
+
+This is a big improvement, in terms of concision, over
+
+addMaybe' (Just x) (Just y) = Just (x + y)
+addMaybe' Nothing _ = Nothing
+addMaybe' _ Nothing = Nothing
+
+which is how one might otherwise express this function, without using
+the Applicative interface.
+
+While the definition of addMaybe is quite short, in the spirit of Haskell,
+we are interested in further reducing the boilerplate, in particular the
+Applicative combinators.  So instead of the above definition, we would simply
+like to write
+
+addMaybe x y = x + y
+
+In this paper, we take steps towards achieving the goal of eliding combinators
+from these ubiquitous abstractions, for the case of functor.  
