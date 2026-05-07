@@ -8,10 +8,8 @@ open import Decproc
 infix 7 ⟦_⟧ 
 
 ⟦_⟧ : Tp! → Tp
-⟦ [] !N ⟧ = N
-⟦ l@(x :: xs) !N ⟧ = constrL l N
-⟦ [] ! T1 ⇒ T2 ⟧ = ⟦ T1 ⟧ ⇒ ⟦ T2 ⟧
-⟦ l@(x :: xs) ! T1 ⇒ T2 ⟧ = constrL l (⟦ T1 ⟧ ⇒ ⟦ T2 ⟧)
+⟦ l !N ⟧ = constrL l N
+⟦ l ! T1 ⇒ T2 ⟧ = constrL l (⟦ T1 ⟧ ⇒ ⟦ T2 ⟧)
 
 infix 6 ⊨_<]_
 

@@ -2,7 +2,7 @@ module Tp where
 open import lib
 
 data Ctor : Set where
-  F_ : ℕ → Ctor
+  F : ℕ → Ctor
 
 data Tp : Set where
   N : Tp
@@ -11,7 +11,6 @@ data Tp : Set where
 
 infixr 9 _⇒_
 infixr 10 _of_
-infixr 11 F_
 
 data Tp! : Set where
   _!N : 𝕃 Ctor → Tp!
@@ -34,14 +33,15 @@ l1 ! T1 ⇒ T2 =T l2 ! T1' ⇒ T2' = =𝕃 (_=F_) l1 l2
                               && T2 =T T2'
 infixr 8 _=T_
 
+
 -- Applies constructor list to a type.
 -- Note that the head of the list is applied last,
 -- so that [Maybe, List] applied to Nat is Maybe List Nat
 constrL : 𝕃 Ctor → Tp → Tp
-constrL l = ConstrL' (reverse l)
-      where ConstrL' : 𝕃 Ctor → Tp → Tp
-            ConstrL' [] T = T
-            ConstrL' (X :: Xs) T = ConstrL' Xs (X of T)
+constrL l = constrL' (reverse l)
+      where constrL' : 𝕃 Ctor → Tp → Tp
+            constrL' [] T = T
+            constrL' (X :: Xs) T = constrL' Xs (X of T)
 
 -- Adds constructors to the "top" of the type.
 -- e.g.: Maybe List Nat  --->  Maybe List Maybe (Maybe List Nat)
