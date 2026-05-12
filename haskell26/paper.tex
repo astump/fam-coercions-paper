@@ -280,7 +280,6 @@ reader monad \(X \mapsto A \to X\) increases its arity.
   \caption{Types and subtype relationships for a calculus with implicit fmap.}\label{fig:calculus}
 \end{figure}
 
-
 \section{Coercions}
 The coercions correspond to the rules of \cref{fig:calculus}.
 \begin{figure}
@@ -314,18 +313,40 @@ Grammar of n, ne
 
     \inferrule*[Left=NAFmap]
       {\mathit{na} : A, B \sqsubseteq U, V}{\mathit{na} \nfmap 
-      : A \to B \leq \F U  \to \F V}
+      : A, B \sqsubseteq \F U, \F V}
+      \\
 
     \inferrule*[Left=NAArr]
-      {n_1 : U \leq A \\ n_2 : B \leq V}{\naarr\ n_1\ n_2 : A \to B \leq U  \to V}
+      {n_1 : U \leq A \\ n_2 : B \leq V}{\naarr\ n_1\ n_2 : A, B \sqsubseteq U, V}
   \end{mathpar}
   \caption{Normalized coercions.}\label{fig:calculus}
 \end{figure}
+
+\begin{proposition}[Uniqueness of normal forms \todo{agda icon}]
+  Let \(A, B, U\), and \(V\) be types.
+  \begin{itemize}
+    \item If \(n : A \leq B\) and \(n' : A \leq B\) then \(n = n'\).
+    \item If 
+      \(\na : A, B \sqsubseteq U, V\)
+      and
+      \(\na' : A, B \sqsubseteq U, V\)
+      then 
+      \(\na = \na'\).
+  \end{itemize}
+\end{proposition}
 
 \section{Soundness and Completeness}
 Discussion of the NbE method.
 
 Discussion of the proof.
+
+\begin{proposition}[Soundness of evaluation]
+  If \(c_1 \equiv c_2\), then \(\eval{c_1} = \eval{c_2}\).
+\end{proposition}
+
+\begin{proposition}[Reify inverts evaluation]
+  If \(c : A \leq B\), then \(\reify\ \eval{c} \equiv c\).
+\end{proposition}
 
 \section{Related Work}
 Reynolds?

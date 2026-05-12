@@ -67,7 +67,7 @@
 
 \newcommand{\hysep}[0]{\mathbin{\blacklozenge}}
 
-\newcommand{\todo}[1]{\textbf{[#1]}}
+\newcommand{\todo}[1]{{\textcolor{red}{[todo: #1]}}}
 \newcommand{\rref}[1]{\{\ref{#1}\}}
 
 \newtheorem{theorem}{Theorem}
@@ -108,8 +108,14 @@
 
 \newcommand{\nid}{\mathsf{nid}}
 \newcommand{\narr}{\mathsf{narr}}
+\newcommand{\naarr}{\mathsf{naarr}}
 \newcommand{\nmono}{\mathsf{nmono}}
 \newcommand{\nfmap}{\cdot \mathsf{nfmap}}
 \newcommand{\naarr}{\cdot \mathsf{nfmap}}
 
+\newcommand{\na}{\mathit{na}}
+
 \newcommand{\tbool}{\mathsf{bool}}
+
+\newcommand{\reify}{\mathsf{reify}}
+\newcommand{\eval}[1]{\llbracket #1 \rrbracket}
