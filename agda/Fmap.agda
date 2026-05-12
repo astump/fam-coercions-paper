@@ -5,6 +5,19 @@ open import Data.Nat.Properties
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary.Negation
 
+id : {A : Set} → A → A
+id x = x
+
+_⨾_ : {A B C : Set} → (A → B) → (B → C) → (A → C)
+f ⨾ g = λ a → g (f a)
+infix 50 _⨾_
+
+record Functor (F : Set → Set) : Set₁ where
+  field fmap : ∀{A B} → (A → B) → (F A → F B)
+  field fmap-id : ∀ {A} → fmap (id {A}) ≡ id {F A}
+  field fmap-⨾ : ∀ {A B C} {f : A → B} {g : B → C} →
+                   (fmap f ⨾ fmap g) ≡ fmap (f ⨾ g)
+
 -----------
 -- TYPES --
 -----------
