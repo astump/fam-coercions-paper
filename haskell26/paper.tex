@@ -78,7 +78,7 @@
 %% end of the preamble, start of the body of the document source.
 \begin{document}
 
-\title{Inserting Fmap Calls with Coercive Subtyping}
+\title{Inserting Fmap with Coercive Subtyping}
 
 %% \author{Ryan Doenges}
 %% \email{me@ryandoeng.es}
@@ -160,48 +160,131 @@
 \maketitle
 
 \section{Introduction}
-\begin{enumerate}
-  \item In Haskell, effects are modeled by functors T A
-    equipped with useful typeclass instances like Applicative or Monad.
-  \item Across modules, the functor in use varies with the collection of necessary effects.
-  \item A front-end that does I/O will need to use a functor that supports IO,
-    but pure computations might not use a functor at all.
-  \item At a boundary between two modules, calls need to be decorated with
-    liftings between their respective functors; if no such lifting exists
-    then the calling module may need to be reorganized around a new functor that
-    subsumes the old ones.
-  \item While altering the types in use requires human input,
-        inserting lift operations seems mechanical.
-  \item In this paper, we automate the insertion of fmap lifts with
-    a subtyping discipline that makes \(A \to B\) a subtype of \(FA \to FB\).
-  \item The subtyping judgement is \emph{coercive}:
-    each subtyping \(A \leq B\) comes with a function \(c : A \to B\)
-    that is inserted during type checking.
-  \item Despite the power of the fmap rule, the subtyping judgement remains
-    coherent: for a given \(A\) and \(B\), all coercions \(c : A \leq B\) are
-    equivalent.
-  \item Our proof, checked in Agda, is a normalization proof for coercions
-    that avoids the use of a small-step reduction relation.
-  \item Instead, it achieves normalization by evaluation:
-    coercions are mapped to a domain of normal forms, which can be reified back
-    into coercions.
-  \item The system of coercions in normal form \(n : A \leq B\)
-    can also serve as an algorithmic subtyping judgement:
-    it admits transitivity and reflexivity, but has unique derivations.
-  \item Besides giving some confidence in the safety of this programming model,
-    the proof of soundness has independent interest as a case study in
-    normalization by evaluation and it makes good use of Agda's dependent
-    pattern matching features.
-\end{enumerate}
-\section{Background}
-Some examples
+Typeclass abstractions like Functor, Applicative, and Monad are essential to
+modern functional programming.
+%
+The liberal application of type class combinators allows
+concise programming even in the presence of 
+complex effects and data structures.
+%
+For example, consider writing a Haskell program that increments integers wrapped
+in a \verb|Maybe| type.
+\begin{Verbatim}
+incrMaybe : Maybe Int -> Maybe Int
+incrMaybe (Just x) = Just (succ x)
+incrMaybe Nothing  = Nothing
+\end{Verbatim}
+This naive definition of \verb|incrMaybe| has to unwrap its argument with
+a pattern match and then wrap its output back up.
+A more idiomatic definition uses \verb|<$>|, the fmap combinator, which
+handles the unwrapping and wrapping.
+\begin{Verbatim}
+incrMaybe x = succ <$> x
+\end{Verbatim}
+In the presence of sufficient type information, we are interested in further
+reducing the boilerplate involved by making fmap implicit. This permits writing
+\verb|incrMaybe| with no use of fmap at all.
+\begin{Verbatim}
+incrMaybe x = succ x
+\end{Verbatim}
+It seems as if there is only one canonical way to make this program
+make sense, and automatically lifting functions to operate on arrays and other
+data structures is already prevalent both in programming languages and
+mathematical notation.
 
-A discussion of how incoherent subtyping happens / why it could happen
+In this paper, we study a \emph{coercive subtyping} discipline
+that infers where to insert implicit fmaps using subtyping.
+Each derivation of \(A \st B\) then corresponds to a coercion \(A \to B\)
+expressed in a simple combinator calculus.
+In coercive subtyping, type inference is coupled to an elaboration pass,
+which inserts coercions in the program based on the results of subtyping
+queries.
+This makes the operational meaning of surface programs depend on the result of
+type inference, which breaks with a more naive view of inference as
+merely tacking missing type annotations on to a program with already fixed
+semantics.
+Indeed, many programming languages confound their users with strange behavior
+involving implicit coercions, whether they are inserted statically or
+dynamically.
 
-\section{Type System}
-Grammar of c
+We can avoid these confusions by establishing \emph{coherence}, a basic
+metatheoretic property of systems of coercions. This problem was studied as
+early as 1980 by Reynolds~\cite{reynolds80}, who outlined an algebraic approach
+to proving the coherence of coercions. In his view, coercions form
+a \emph{category}: there are types \(A, B, \dots\) and between any two types
+there is a set of coercions \(\coe(A, B)\). There are always identity coercions
+\(\id_A \in \coe(A, A)\), which do nothing, and there are associative and unital
+composition operations \(\circ : \coe(B, C) \times \coe(A, B) \to \coe(A, C)\).
+The coercions are expected to form a preorder, that is, for every pair of arrows
+\(c1, c2 \in \coe(A, B)\), \(c1 \equiv c2\). He also studies their interaction
+with generic operators of the language, but we will restrict our attention to
+the coercions themselves.
 
-\section{Normalized Coercions}
+As is typical in programming languages, we establish our coercions are coherent
+by showing every coercion \(c : A \leq B\) can be put into a normal form \(\nf
+c\) that is equivalent to \(c\), and then show that normal forms are unique.
+Rather than relying on rewriting, we adopt the technique of \emph{normalization
+by evaluation} (NbE).
+
+Besides giving some confidence in the safety of this programming model, the
+proof of soundness has independent interest as a case study in the application
+of normalization by evaluation to implicit coercions.
+
+\section{Overview}
+The types and subtyping rules at issue are shown in Figure~\ref{fig:calculus}.
+We call these the declarative rules (as opposed to the algorithmic rules).
+The only nonstandard rule is \textsc{Fmap}, which permits using functions \(A
+\to B\) at the lifted type \(\F A \to \F B\). This rule may be iterated,
+permitting the use of functions at \(\F A \to \F B\), \(\F \F A \to \F \F B\),
+and so on. These rules serve as a good specification of the system, but they
+have practical and theoretical limitations.
+
+The declarative rules are not suitable for an implementation because they are not
+deterministic: too many rules apply to possible subtyping queries.
+Besides the fact that it is always possible to appeal to \textsc{Trans},
+queries of the form \(A \to B \leq \F U \to \F V\)  must choose between
+\textsc{Arr} and \textsc{Fmap}.
+
+They are also questionable from a semantic point of view because a single
+judgment may have many derivations and the coercions associated with these
+derivations may not be equivalent.
+
+Our grammar assumes that the functor \(\F\) is distinct from the other types,
+like the arrow type. This simplifies the proof of coherence and avoids funny
+business in type checking: for instance, lifting into a defined reader monad
+\(X \mapsto A \to X\) increases the arity of a function.
+
+\begin{figure}
+  \begin{minipage}{0.25\textwidth}
+  \[
+  \begin{array}{rcl}
+    A & ::= & \mathtt{bool} \\
+    & | & A \to A \\
+    & | & \F A
+  \end{array}
+  \]
+  \end{minipage}%
+  \begin{minipage}{0.75\textwidth}
+  \begin{mathpar}
+    \inferrule*[Left=Refl]{ }{A \leq A}
+    
+    \inferrule*[Left=Trans]{A \leq B \\ B \leq C}{A \leq C}
+   
+    \inferrule*[Left=Arr]{U \leq A \\ B \leq V}{A \to B \leq U \to V}
+ \\ 
+    \inferrule*[Left=Mono]{A \leq B}{\F A \leq \F B}
+
+    \inferrule*[Left=Fmap]{ }{A \to B \leq \F A \to \F B}
+  \end{mathpar}
+  \end{minipage}
+  \caption{Types and subtype relationships for a calculus with implicit fmap.}\label{fig:calculus}
+\end{figure}
+
+
+\section{Coercions}
+The coercions correspond to the rules of \cref{fig:calculus}.
+
+\section{Normal Coercions}
 Grammar of n, ne
 
 \section{Soundness and Completeness}
