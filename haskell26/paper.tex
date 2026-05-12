@@ -336,9 +336,24 @@ Grammar of n, ne
 \end{proposition}
 
 \section{Soundness and Completeness}
-Discussion of the NbE method.
 
-Discussion of the proof.
+\begin{itemize}
+  \item The equational theory of coercions: congruence closure of category laws
+    plus functor/bifunctor laws and the ``special fmap law"
+    \begin{itemize}
+      \item informal justification in terms of fmap laws and associativity of
+        composition (for terminating programs.... if we are going to
+        be careful...)
+      \item explanation of why this is necessary at all
+    \end{itemize}
+  \item The equational theory of normalized coercions: just syntactic equality.
+\end{itemize}
+
+\begin{itemize}
+  \item The reify function
+  \item The evaluation procedure (more involved, establishes admissibility of transitivity
+    and reflexivity)
+\end{itemize}
 
 \begin{proposition}[Soundness of evaluation]
   If \(c_1 \equiv c_2\), then \(\eval{c_1} = \eval{c_2}\).
@@ -347,6 +362,13 @@ Discussion of the proof.
 \begin{proposition}[Reify inverts evaluation]
   If \(c : A \leq B\), then \(\reify\ \eval{c} \equiv c\).
 \end{proposition}
+
+\begin{itemize}
+  \item normalization is reify-eval 
+  \item normalization is idempotent
+  \item normalization is sound
+  \item normalization is complete
+\end{itemize}
 
 \section{Related Work}
 Reynolds?
