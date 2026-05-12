@@ -10,10 +10,13 @@ id x = x
 
 _⨾_ : {A B C : Set} → (A → B) → (B → C) → (A → C)
 f ⨾ g = λ a → g (f a)
-infix 50 _⨾_
+infixl 50 _⨾_
+
+arr : {A B U V : Set} → (U → A) → (B → V) → ((A → B) → (U → V))
+arr ua bv ab = ua ⨾ ab ⨾ bv
 
 record Functor (F : Set → Set) : Set₁ where
-  field fmap : ∀{A B} → (A → B) → (F A → F B)
+  field fmap : {A B : Set} → (A → B) → (F A → F B)
   field fmap-id : ∀ {A} → fmap (id {A}) ≡ id {F A}
   field fmap-⨾ : ∀ {A B C} {f : A → B} {g : B → C} →
                    (fmap f ⨾ fmap g) ≡ fmap (f ⨾ g)
@@ -77,6 +80,44 @@ data _≃_ : {a b : ty} → coe a b → coe a b → Set where
 
 ≡-to-≃ : {a b : ty} {c1 c2 : coe a b} → c1 ≡ c2 → c1 ≃ c2
 ≡-to-≃ {a} {b} {c} refl = c-refl c
+
+module interp {B : Set} {F : Set → Set} {FM : Functor F} where
+  open Functor
+  check : {A B : Set} → (A → B) → (F A → F B)
+  check = fmap FM
+
+  interp : ty → Set
+  interp base = B
+  interp (f a) = F (interp a)
+  interp (a ⇒ b) = interp a → interp b
+
+  interp-coe : {a b : ty} → coe a b → (interp a → interp b)
+  interp-coe (c-id a) = id
+  interp-coe (c-comp c1 c2) = interp-coe c1 ⨾ interp-coe c2
+  interp-coe (c-arr c1 c2) = arr (interp-coe c1) (interp-coe c2)
+  interp-coe (c-mono c) = fmap FM (interp-coe c)
+  interp-coe c-fmap = fmap FM
+
+  interp-sound : {a b : ty} → {c1 c2 : coe a b} → c1 ≃ c2 → interp-coe c1 ≡ interp-coe c2
+  interp-sound (c-refl c) = refl
+  interp-sound (c-sym pf) rewrite (interp-sound pf) = refl
+  interp-sound (c-trans pf pf₁)
+    rewrite interp-sound pf
+          | interp-sound pf₁ = refl
+  interp-sound (c-cong-comp pf pf₁) = {!!}
+  interp-sound (c-cong-arr pf pf₁) = {!!}
+  interp-sound (c-cong-mono pf) = {!!}
+  interp-sound c-id-l = {!!}
+  interp-sound c-id-r = {!!}
+  interp-sound c-comp-assoc = {!!}
+  interp-sound c-mono-id = {!!}
+  interp-sound c-mono-comp = {!!}
+  interp-sound c-arr-id = {!!}
+  interp-sound c-arr-comp = {!!}
+  interp-sound c-arr-fmap = {!!}
+
+
+
 
 ------------------
 -- NORMAL FORMS --
