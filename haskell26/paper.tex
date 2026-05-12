@@ -249,16 +249,16 @@ They are also questionable from a semantic point of view because a single
 judgment may have many derivations and the coercions associated with these
 derivations may not be equivalent.
 
-Our grammar assumes that the functor \(\F\) is distinct from the other types,
-like the arrow type. This simplifies the proof of coherence and avoids funny
-business in type checking: for instance, lifting into a defined reader monad
-\(X \mapsto A \to X\) increases the arity of a function.
+Our grammar assumes that the functor \(\F\) is distinct from other type
+formers. This simplifies the proof of coherence and avoids funny business in
+type checking: for instance, lifting a function into a transparently defined
+reader monad \(X \mapsto A \to X\) increases its arity.
 
 \begin{figure}
   \begin{minipage}{0.25\textwidth}
   \[
   \begin{array}{rcl}
-    A & ::= & \mathtt{bool} \\
+    A & ::= & \tbool \\
     & | & A \to A \\
     & | & \F A
   \end{array}
@@ -283,17 +283,49 @@ business in type checking: for instance, lifting into a defined reader monad
 
 \section{Coercions}
 The coercions correspond to the rules of \cref{fig:calculus}.
+\begin{figure}
+  \begin{mathpar}
+    \inferrule*[Left=CId]{ }{\cid{A} : A \leq A}
+    
+    \inferrule*[Left=CComp]
+      {c_1 : A \leq B \\ c_2 : B \leq C}
+      {\ccomp{c_1}{c_2} : A \leq C}
+  \\ 
+    \inferrule*[Left=CArr]
+      {c_1 : U \leq A \\ c_2 : B \leq V}{\carr\ c_1\ c_2 : A \to B \leq U \to V}
+ \\ 
+    \inferrule*[Left=CMono]{c : A \leq B}{\cmono\ c : \F A \leq \F B}
+
+    \inferrule*[Left=CFmap]{ }{\cfmap : A \to B \leq \F A \to \F B}
+  \end{mathpar}
+  \caption{Declarative coercions.}\label{fig:calculus}
+\end{figure}
 
 \section{Normal Coercions}
 Grammar of n, ne
+\begin{figure}
+  \begin{mathpar}
+    \inferrule*[Left=NId]{ }{\nid : \tbool \leq \tbool}
+
+    \inferrule*[Left=NMono]{n : A \leq B}{\nmono\ n : \F A \leq \F B}
+    \\
+    \inferrule*[Left=NArr]
+      {\mathit{na} : A, B \sqsubseteq U, V}{\narr\ \mathit{na} : A \to B \leq \F A \to \F B}
+
+    \inferrule*[Left=NAFmap]
+      {\mathit{na} : A, B \sqsubseteq U, V}{\mathit{na} \nfmap 
+      : A \to B \leq \F U  \to \F V}
+
+    \inferrule*[Left=NAArr]
+      {n_1 : U \leq A \\ n_2 : B \leq V}{\naarr\ n_1\ n_2 : A \to B \leq U  \to V}
+  \end{mathpar}
+  \caption{Normalized coercions.}\label{fig:calculus}
+\end{figure}
 
 \section{Soundness and Completeness}
 Discussion of the NbE method.
 
 Discussion of the proof.
-
-\section{Implementation}
-Using Chronolog, we did some examples.
 
 \section{Related Work}
 Reynolds?
