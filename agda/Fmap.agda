@@ -81,6 +81,9 @@ data _≃_ : {a b : ty} → coe a b → coe a b → Set where
 ≡-to-≃ : {a b : ty} {c1 c2 : coe a b} → c1 ≡ c2 → c1 ≃ c2
 ≡-to-≃ {a} {b} {c} refl = c-refl c
 
+postulate
+  funext : {A B : Set} {f g : A → B} → ((x : A) → f x ≡ g x) → f ≡ g
+
 module interp {B : Set} {F : Set → Set} {FM : Functor F} where
   open Functor
   check : {A B : Set} → (A → B) → (F A → F B)
@@ -111,14 +114,14 @@ module interp {B : Set} {F : Set → Set} {FM : Functor F} where
     rewrite interp-sound pf
     rewrite interp-sound pf₁ = refl
   interp-sound (c-cong-mono pf)
-    rewrite interp-sound pf = {!refl!}
+    rewrite interp-sound pf = refl
   interp-sound c-id-l = refl
   interp-sound c-id-r = refl
-  interp-sound c-comp-assoc = {!!}
-  interp-sound c-mono-id = {!!}
-  interp-sound c-mono-comp = {!!}
-  interp-sound c-arr-id = {!!}
-  interp-sound c-arr-comp = {!!}
+  interp-sound c-comp-assoc = funext λ x → refl
+  interp-sound c-mono-id = fmap-id FM 
+  interp-sound c-mono-comp = sym (fmap-⨾ FM)
+  interp-sound c-arr-id = refl
+  interp-sound c-arr-comp = refl
   interp-sound c-arr-fmap = {!!}
 
 
