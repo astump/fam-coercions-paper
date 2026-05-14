@@ -122,9 +122,14 @@ module interp {B : Set} {F : Set → Set} {FM : Functor F} where
   interp-sound c-mono-comp = sym (fmap-⨾ FM)
   interp-sound c-arr-id = refl
   interp-sound c-arr-comp = refl
-  interp-sound c-arr-fmap = {!!}
-
-
+  interp-sound (c-arr-fmap {c1 = c₁} {c2 = c₂}) = funext λ g →
+    let ⟦c₁⟧ = interp-coe c₁
+        ⟦c₂⟧ = interp-coe c₂
+    in
+    trans
+      (cong (λ h → h ⨾ fmap FM ⟦c₂⟧)
+        (fmap-⨾ FM {f = ⟦c₁⟧} {g = g}))
+      (fmap-⨾ FM {f = ⟦c₁⟧ ⨾ g} {g = ⟦c₂⟧})
 
 
 ------------------
