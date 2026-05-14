@@ -22,7 +22,7 @@ record Functor (F : Set → Set) : Set₁ where
                    (fmap f ⨾ fmap g) ≡ fmap (f ⨾ g)
 
 -----------
--- TYPES --
+-- TYPES --emacs
 -----------
 data ty : Set where
   base : ty
@@ -104,11 +104,16 @@ module interp {B : Set} {F : Set → Set} {FM : Functor F} where
   interp-sound (c-trans pf pf₁)
     rewrite interp-sound pf
           | interp-sound pf₁ = refl
-  interp-sound (c-cong-comp pf pf₁) = {!!}
-  interp-sound (c-cong-arr pf pf₁) = {!!}
-  interp-sound (c-cong-mono pf) = {!!}
-  interp-sound c-id-l = {!!}
-  interp-sound c-id-r = {!!}
+  interp-sound (c-cong-comp pf pf₁)
+    rewrite interp-sound pf
+    rewrite interp-sound pf₁ = refl
+  interp-sound (c-cong-arr pf pf₁)
+    rewrite interp-sound pf
+    rewrite interp-sound pf₁ = refl
+  interp-sound (c-cong-mono pf)
+    rewrite interp-sound pf = {!refl!}
+  interp-sound c-id-l = refl
+  interp-sound c-id-r = refl
   interp-sound c-comp-assoc = {!!}
   interp-sound c-mono-id = {!!}
   interp-sound c-mono-comp = {!!}
