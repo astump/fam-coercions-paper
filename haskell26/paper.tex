@@ -221,7 +221,7 @@ with generic operators of the language, but we will restrict our attention to
 the coercions themselves.
 
 As is typical in programming languages, we establish our coercions are coherent
-by showing every coercion \(c : A \leq B\) can be put into a normal form \(\nf
+by showing every coercion \(c : A \subty B\) can be put into a normal form \(\nf
 c\) that is equivalent to \(c\), and then show that normal forms are unique.
 Rather than relying on rewriting, we adopt the technique of \emph{normalization
 by evaluation} (NbE).
@@ -242,17 +242,12 @@ have practical and theoretical limitations.
 The declarative rules are not suitable for an implementation because they are not
 deterministic: too many rules apply to possible subtyping queries.
 Besides the fact that it is always possible to appeal to \textsc{Trans},
-queries of the form \(A \to B \leq \F U \to \F V\)  must choose between
+queries of the form \(A \to B \subty \F U \to \F V\)  must choose between
 \textsc{Arr} and \textsc{Fmap}.
 
 They are also questionable from a semantic point of view because a single
 judgment may have many derivations and the coercions associated with these
 derivations may not be equivalent.
-
-Our grammar assumes that the functor \(\F\) is distinct from other type
-formers. This simplifies the proof of coherence and avoids funny business in
-type checking: for instance, lifting a function into a transparently defined
-reader monad \(X \mapsto A \to X\) increases its arity.
 
 \begin{figure}
   \begin{minipage}{0.25\textwidth}
@@ -266,58 +261,125 @@ reader monad \(X \mapsto A \to X\) increases its arity.
   \end{minipage}%
   \begin{minipage}{0.75\textwidth}
   \begin{mathpar}
-    \inferrule*[Left=Refl]{ }{A \leq A}
+    \inferrule*[Left=Refl]{ }{A \subty A}
     
-    \inferrule*[Left=Trans]{A \leq B \\ B \leq C}{A \leq C}
+    \inferrule*[Left=Trans]{A \subty B \\ B \subty C}{A \subty C}
    
-    \inferrule*[Left=Arr]{U \leq A \\ B \leq V}{A \to B \leq U \to V}
+    \inferrule*[Left=Arr]{U \subty A \\ B \subty V}{A \to B \subty U \to V}
  \\ 
-    \inferrule*[Left=Mono]{A \leq B}{\F A \leq \F B}
+    \inferrule*[Left=Mono]{A \subty B}{\F A \subty \F B}
 
-    \inferrule*[Left=Fmap]{ }{A \to B \leq \F A \to \F B}
+    \inferrule*[Left=Fmap]{ }{A \to B \subty \F A \to \F B}
   \end{mathpar}
   \end{minipage}
   \caption{Types and subtype relationships for a calculus with implicit fmap.}\label{fig:calculus}
 \end{figure}
 
+\todo{Describe the design of normalized coercions by constructing
+``multiplication tables''}
+
 \section{Coercions}
-The coercions correspond to the rules of \cref{fig:calculus}.
+To define coercions, we introduce proof terms to the subtyping judgment and then
+define an equivalence on proof terms. In the new judgment \(c : A \subty B\),
+the proof term \(c\) is an intrinsically typed coercion; for proof rules that
+consume multiple derivations the coercion \(c\) is defined using a coercion
+combinator (Fig.~\ref{fig:coe}).
+
+\begin{definition}[Coercion congruence]
+  The equivalence relation \(\equiv\) is the least congruence \(\equiv\) such
+  that for all \(c : A \subty B\),
+\begin{align*}
+\ccomp{\cid{}}{c} &\equiv c \\
+\ccomp{c}{\cid{}} &\equiv c \\
+\ccomp{c_1}{(\ccomp{c_2}{c_3})} &\equiv \ccomp{(\ccomp{c_1}{c_2})}{c_3} \\
+\cmono\ (\cid{A}) &\equiv \cid{\F A} \\
+\cmono\ (\ccomp{c_1}{c_2}) &\equiv \ccomp{\cmono\ c_1}{\cmono\ c_2} \\
+\carr\ \cid{A}\ \cid{B} &\equiv \cid{A \to B} \\
+\carr\ (\ccomp{c_1}{c_2})\ (\ccomp{c_3}{c_4}) &\equiv
+\ccomp{\carr\ c_2\ c_3}{\carr\ c_1\ c_4} \\
+\ccomp{\cfmap}{\carr\ (\cmono\ c_1)\ (\cmono\ c_2)} &\equiv \ccomp{\carr\ c_1\ c_2}{\cfmap}
+\end{align*}
+\end{definition}
+In order, these laws say that coercions form a category, \(\cmono\) is a functor
+on that category, and \(\carr\) is a bifunctor on that category.  The final law
+about \(\cfmap\) is more complicated becuase \(\cfmap\) is not a functor on
+coercions but instead a functor on types. In the equational theory of coercions,
+all that can be said about \(\fmap\) is how it interacts with other coercions on
+arrow types.
+
+\subsection{Compiling coercions correctly}
+In order to justify the equational theory and show that these coercion
+combinators can be soundly compiled to a programming language, we provide a
+translation into typed lambda calculus equipped with an abstract functor
+\texttt{F}.  Then we prove that the translation preserves equivalence, which
+is given by the equational theory in the source language and by
+\(\beta\eta\)-equivalence and fmap laws in the target.
+\begin{minipage}{0.5\textwidth}
+\begin{align*}
+  \cc\tbool &= \ltbool \\
+  \cc{A \to B} &= \cc{A} \ltarr \cc{B} \\
+  \cc{\F A} &= \ltf \cc{A} \\
+\end{align*}
+\end{minipage}
+\begin{minipage}{0.5\textwidth}
+\begin{align*}
+  \cc{\cid{A}} &= \lambda x : \cc{A}.\, x \\
+  \cc{\ccomp{c_1}{c_2}} &= \lambda x.\,\cc{c_2}\ (c_1\ x) \\
+  \cc{\carr\ c_1\ c_2} &= \lambda f\, x.\,c_2\ (f\ (c_1\ x)) \\
+  \cc{\cmono\ c} &= \ltfmap\ \cc{c} \\
+  \cc{\cfmap} &= \ltfmap
+\end{align*}
+\end{minipage}
+
+\begin{proposition}[\ccname{} sound \todo{agda icon}]
+  For all \(c_1, c_2 : A \subty B\), \[
+    c_1 \equiv c_2 \Longrightarrow \cc{c_1} \equiv_{\beta\eta\ltf} \cc{c_2}
+  \]
+\end{proposition}
+
+\subsection{Normal forms for coercions}
+
 \begin{figure}
+  \begin{flushleft}
+    \fbox{\(c : A \subty B\)}
+  \end{flushleft}
   \begin{mathpar}
-    \inferrule*[Left=CId]{ }{\cid{A} : A \leq A}
+    \inferrule*[Left=CId]{ }{\cid{A} : A \nsubty A}
     
     \inferrule*[Left=CComp]
-      {c_1 : A \leq B \\ c_2 : B \leq C}
-      {\ccomp{c_1}{c_2} : A \leq C}
+      {c_1 : A \subty B \\ c_2 : B \subty C}
+      {\ccomp{c_1}{c_2} : A \subty C}
   \\ 
     \inferrule*[Left=CArr]
-      {c_1 : U \leq A \\ c_2 : B \leq V}{\carr\ c_1\ c_2 : A \to B \leq U \to V}
+      {c_1 : U \subty A \\ c_2 : B \subty V}{\carr\ c_1\ c_2 : A \to B \subty U \to V}
  \\ 
-    \inferrule*[Left=CMono]{c : A \leq B}{\cmono\ c : \F A \leq \F B}
+    \inferrule*[Left=CMono]{c : A \subty B}{\cmono\ c : \F A \subty \F B}
 
-    \inferrule*[Left=CFmap]{ }{\cfmap : A \to B \leq \F A \to \F B}
+    \inferrule*[Left=CFmap]{ }{\cfmap : A \to B \subty \F A \to \F B}
   \end{mathpar}
-  \caption{Declarative coercions.}\label{fig:calculus}
+  \caption{Declarative coercions.}\label{fig:coe}
 \end{figure}
 
-\section{Normal Coercions}
-Grammar of n, ne
 \begin{figure}
+  \begin{flushleft}
+    \fbox{\(n : A \nsubty B\)}\quad\fbox{\(\mathit{na} : A,B  \nasubty U, V\)}
+  \end{flushleft}
   \begin{mathpar}
-    \inferrule*[Left=NId]{ }{\nid : \tbool \leq \tbool}
+    \\
+    \inferrule*[Left=NId]{ }{\nid : \tbool \nsubty \tbool}
 
-    \inferrule*[Left=NMono]{n : A \leq B}{\nmono\ n : \F A \leq \F B}
+    \inferrule*[Left=NMono]{n : A \nsubty B}{\nmono\ n : \F A \nsubty \F B}
     \\
     \inferrule*[Left=NArr]
-      {\mathit{na} : A, B \sqsubseteq U, V}{\narr\ \mathit{na} : A \to B \leq \F A \to \F B}
+      {\mathit{na} : A, B \nasubty U, V}{\narr\ \mathit{na} : A \to B \nsubty \F A \to \F B}
 
     \inferrule*[Left=NAFmap]
-      {\mathit{na} : A, B \sqsubseteq U, V}{\mathit{na} \nfmap 
-      : A, B \sqsubseteq \F U, \F V}
+      {\mathit{na} : A, B \nasubty U, V}{\mathit{na} \nfmap
+      : A, B \nasubty \F U, \F V}
       \\
 
     \inferrule*[Left=NAArr]
-      {n_1 : U \leq A \\ n_2 : B \leq V}{\naarr\ n_1\ n_2 : A, B \sqsubseteq U, V}
+      {n_1 : U \nsubty A \\ n_2 : B \nsubty V}{\naarr\ n_1\ n_2 : A, B \nasubty U, V}
   \end{mathpar}
   \caption{Normalized coercions.}\label{fig:calculus}
 \end{figure}
@@ -325,17 +387,17 @@ Grammar of n, ne
 \begin{proposition}[Uniqueness of normal forms \todo{agda icon}]
   Let \(A, B, U\), and \(V\) be types.
   \begin{itemize}
-    \item If \(n : A \leq B\) and \(n' : A \leq B\) then \(n = n'\).
+    \item If \(n : A \nsubty B\) and \(n' : A \nsubty B\) then \(n = n'\).
     \item If 
-      \(\na : A, B \sqsubseteq U, V\)
+      \(\na : A, B \nasubty U, V\)
       and
-      \(\na' : A, B \sqsubseteq U, V\)
+      \(\na' : A, B \nasubty U, V\)
       then 
       \(\na = \na'\).
   \end{itemize}
 \end{proposition}
 
-\section{Soundness and Completeness}
+\section{Coherence}
 
 \begin{itemize}
   \item The equational theory of coercions: congruence closure of category laws
@@ -360,7 +422,7 @@ Grammar of n, ne
 \end{proposition}
 
 \begin{proposition}[Reify inverts evaluation]
-  If \(c : A \leq B\), then \(\reify\ \eval{c} \equiv c\).
+  If \(c : A \subty B\), then \(\reify\ \eval{c} \equiv c\).
 \end{proposition}
 
 \begin{itemize}
@@ -370,8 +432,28 @@ Grammar of n, ne
   \item normalization is complete
 \end{itemize}
 
+\section{Implementation in Agda}
+The type .. is quotiented by a congruence relation.
+
+The model justifying the congruence relation interprets types in an Agda
+universe.  While effectful, potentially nonterminating programming languages
+have different equational theories than Agda, the equational theory of coercions
+should be stable.
+
+\section{Perspectives}
+Appealing extensions: applicatives, monads, \dots
+
+Difficulties in doing that: loss of the peel invariant, etc
+
+Appealing results: coherence for an entire lambda calculus
+
+Difficulties in doing that: difficult to set up an untyped semantics in order to
+prove a bracketing theorem
+
 \section{Related Work}
-Reynolds?
+Reynolds~\cite{reynolds80}.
+
+Coherence proof for monoidal categories~\cite{beylin95}.
 
 \section{Conclusion}
 

@@ -117,7 +117,7 @@ module interp {B : Set} {F : Set → Set} {FM : Functor F} where
     rewrite interp-sound pf = refl
   interp-sound c-id-l = refl
   interp-sound c-id-r = refl
-  interp-sound c-comp-assoc = funext λ x → refl
+  interp-sound c-comp-assoc = refl
   interp-sound c-mono-id = fmap-id FM 
   interp-sound c-mono-comp = sym (fmap-⨾ FM)
   interp-sound c-arr-id = refl

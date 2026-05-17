@@ -15,6 +15,7 @@
 \DeclareUnicodeCharacter{2080}{\ensuremath{_0}}
 %\definecolor{darkred}{RGB}{100,10,10}
 
+\usepackage{textgreek}
 
 \newcommand{\BD}[1]{\textcolor{olive}{[BD: #1]}}
 \newcommand{\PA}[1]{\textcolor{cyan}{[PA: #1]}}
@@ -91,16 +92,15 @@
 
 \newcommand{\tl}[0]{\mathsf{L}}
 \newcommand{\tn}[0]{\mathsf{N}}
-\newcommand{\subt}[4]{(#1)\ #2 <:^{#3} #4}
 
 \newcommand{\st}{\mathrel{<:}}
 \newcommand{\coe}{\mathsf{Coe}}
 \newcommand{\ncoe}{\mathsf{NCoe}}
 \newcommand{\nf}{\mathsf{nf}\,}
-\newcommand{\F}{\mathsf{F}\,}
+\newcommand{\F}{F\,}
 \newcommand{\id}{\mathsf{id}}
 
-\newcommand{\cid}[1]{\mathsf{id}\ #1}
+\newcommand{\cid}[1]{\mathsf{id}_{#1}}
 \newcommand{\ccomp}[2]{#1 \cdot #2}
 \newcommand{\carr}{\mathsf{arr}}
 \newcommand{\cmono}{\mathsf{mono}}
@@ -111,11 +111,22 @@
 \newcommand{\naarr}{\mathsf{naarr}}
 \newcommand{\nmono}{\mathsf{nmono}}
 \newcommand{\nfmap}{\cdot \mathsf{nfmap}}
-\newcommand{\naarr}{\cdot \mathsf{nfmap}}
 
 \newcommand{\na}{\mathit{na}}
 
-\newcommand{\tbool}{\mathsf{bool}}
+\newcommand{\tbool}{\mathbb{B}}
+
+\newcommand{\cc}[1]{\text{\texttt{C}}(#1)}}
+\newcommand{\ccname}[1]{\texttt{C}}
+\newcommand{\ltbool}{\texttt{bool}}
+\newcommand{\ltarr}{\,\text{\texttt{->}}\,}
+\newcommand{\ltf}{\texttt{F}}
+\newcommand{\ltfmap}{\texttt{fmap}}
+\newcommand{\ltlam}[2]{\texttt{\\#1.#2}}
 
 \newcommand{\reify}{\mathsf{reify}}
 \newcommand{\eval}[1]{\llbracket #1 \rrbracket}
+
+\newcommand{\subty}{\leq}
+\newcommand{\nsubty}{\leq_{\mathsf{n}}}
+\newcommand{\nasubty}{\leq_{\mathsf{na}}}
