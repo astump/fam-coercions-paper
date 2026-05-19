@@ -15,8 +15,6 @@
 \DeclareUnicodeCharacter{2080}{\ensuremath{_0}}
 %\definecolor{darkred}{RGB}{100,10,10}
 
-\usepackage{textgreek}
-
 \newcommand{\BD}[1]{\textcolor{olive}{[BD: #1]}}
 \newcommand{\PA}[1]{\textcolor{cyan}{[PA: #1]}}
 
@@ -110,13 +108,13 @@
 \newcommand{\narr}{\mathsf{narr}}
 \newcommand{\naarr}{\mathsf{naarr}}
 \newcommand{\nmono}{\mathsf{nmono}}
-\newcommand{\nfmap}{\cdot \mathsf{nfmap}}
+\newcommand{\nfmap}[1]{\mathsf{nfmap}\ #1}
 
 \newcommand{\na}{\mathit{na}}
 
 \newcommand{\tbool}{\mathbb{B}}
 
-\newcommand{\cc}[1]{\text{\texttt{C}}(#1)}}
+\newcommand{\cc}[1]{\text{\texttt{C}}(#1)}
 \newcommand{\ccname}[1]{\texttt{C}}
 \newcommand{\ltbool}{\texttt{bool}}
 \newcommand{\ltarr}{\,\text{\texttt{->}}\,}
@@ -125,8 +123,16 @@
 \newcommand{\ltlam}[2]{\texttt{\\#1.#2}}
 
 \newcommand{\reify}{\mathsf{reify}}
-\newcommand{\eval}[1]{\llbracket #1 \rrbracket}
+\newcommand{\reifyna}{\mathsf{reify}_{\mathsf{na}}}
+\newcommand{\eval}[1]{\mathsf{eval}\ #1}
+\newcommand{\mkid}[1]{\mathsf{mkid}_{#1}}
+\newcommand{\mkcomp}{\mathsf{mkcomp}}
 
 \newcommand{\subty}{\leq}
 \newcommand{\nsubty}{\leq_{\mathsf{n}}}
 \newcommand{\nasubty}{\leq_{\mathsf{na}}}
+
+\newcommand{\peel}[1]{\mathsf{peel}(#1)}
+
+\newcommand{\coeeq}{\equiv}
+\newcommand{\agdachk}[1]{\todo{agda: \texttt{#1}}}
