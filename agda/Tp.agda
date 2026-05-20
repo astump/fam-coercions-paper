@@ -50,3 +50,7 @@ L≢ u refl = u refl
 ¬⇒iterN {suc m} {zero} ()
 ¬⇒iterN {suc m} {suc n} e = L≢ (¬⇒iterN{m}{n}) e 
 
+Tp!+ : ℕ → Tp! → Tp!
+Tp!+ k (x !N) = (k + x) !N
+Tp!+ k (x ! T ⇒ T₁) = (k + x) ! T ⇒ T₁
+

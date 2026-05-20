@@ -401,3 +401,16 @@ toℤ≤ {zero} {zero} e = refl
 toℤ≤ {zero} {suc b} e = refl
 toℤ≤ {suc a} {suc b} e = e
 
+-ℤtoℤ-nonpos : ∀{n m : ℕ} → 
+               0ℤ ≥ℤ toℤ n -ℤ toℤ m ≡ tt →
+               n ∸ m ≡ 0
+-ℤtoℤ-nonpos {zero} {zero} u = refl
+-ℤtoℤ-nonpos {zero} {suc m} u = refl
+-ℤtoℤ-nonpos {suc n} {suc m} u rewrite suc-ℤsuc{n}{m} = -ℤtoℤ-nonpos{n}{m} u
+
+toℤ-ℤ : ∀{a b c : ℕ} →
+        toℤ a ≥ℤ toℤ b -ℤ toℤ c ≡ tt →
+        a ≥ b ∸ c ≡ tt
+toℤ-ℤ {a} {zero} {c} u rewrite 0∸{c} = ≤0 a
+toℤ-ℤ {suc a} {suc b} {zero} u rewrite +ℤ0{toℤ (suc b)} = u
+toℤ-ℤ {a} {suc b} {suc c} u rewrite suc-ℤsuc{b}{c} = toℤ-ℤ {a} {b} {c} u

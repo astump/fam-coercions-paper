@@ -12,6 +12,11 @@ infix 7 ⟦_⟧
 ⟦ n !N ⟧ = iter n L_ N
 ⟦ n ! T1 ⇒ T2 ⟧ = iter n L_ (⟦ T1 ⟧ ⇒ ⟦ T2 ⟧)
 
+⟪_⟫ : Tp → Tp!
+⟪ N ⟫ =  0 !N
+⟪ L T ⟫ = Tp!++ ⟪ T ⟫
+⟪ T1 ⇒ T2 ⟫ = 0 ! ⟪ T1 ⟫ ⇒ ⟪ T2 ⟫
+
 ⟦⟧++ : ∀{T : Tp!} → ⟦ Tp!++ T ⟧ ≡ L_ ⟦ T ⟧
 ⟦⟧++ {x !N} = refl
 ⟦⟧++ {x ! T ⇒ T₁} = refl
@@ -72,4 +77,9 @@ iter⇒⟦⟧ {suc n} {suc x ! T1 ⇒ T2} {Ta} {Tb} e | refl , e1 , e2 rewrite �
         ∃ Tp! (λ A' → T ≡ Tp!++ A')
 ⟦⟧L {suc x !N} {A} e = x !N , refl
 ⟦⟧L {suc x ! T1 ⇒ T2} {A} e = x ! T1 ⇒ T2 , refl
+
+iter-Tp!+ : ∀{n : ℕ}{T : Tp!} →
+            iter n L_ ⟦ T ⟧ ≡ ⟦ Tp!+ n T ⟧
+iter-Tp!+ {k} {x !N} = iter-add{k}
+iter-Tp!+ {k} {x ! T ⇒ T₁} = iter-add{k}
 
