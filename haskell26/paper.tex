@@ -207,28 +207,128 @@ Indeed, many programming languages confound their users with strange behavior
 involving implicit coercions, whether they are inserted statically or
 dynamically.
 
-We can avoid these confusions by establishing \emph{coherence}, a basic
-metatheoretic property of systems of coercions. This problem was studied as
-early as 1980 by Reynolds~\cite{reynolds80}, who outlined an algebraic approach
-to proving the coherence of coercions. In his view, coercions form
-a \emph{category}: there are types \(A, B, \dots\) and between any two types
-there is a set of coercions \(\coe(A, B)\). There are always identity coercions
-\(\id_A \in \coe(A, A)\), which do nothing, and there are associative and unital
-composition operations \(\circ : \coe(B, C) \times \coe(A, B) \to \coe(A, C)\).
-The coercions are expected to form a preorder, that is, for every pair of arrows
-\(c1, c2 \in \coe(A, B)\), \(c1 \coeeq c2\). He also studies their interaction
-with generic operators of the language, but we will restrict our attention to
-the coercions themselves.
+Under a coercive subtyping discipline, type inference becomes an elaboration
+pass that walks an untyped term \(e\), inserting coercions as it goes, to
+construct a typed term \(e'\). In theoretical terms, the type system has a
+judgment shaped like \(\Gamma \vdash e \rightsquigarrow e' : A\) where \(e\) is
+an input and \(e'\) is an output. It appeals to a subtyping judgment
+\(c : A \subty B\) that emits a coercion \(c\), which is brought back into
+the grammar of terms by a translation \(\cc{c} : A \to B\). This is all tied together
+in the subsumption rule:
+\[
+  \inferrule*[Left=Sub]{
+    \Gamma \vdash e : A\\
+    c : A \subty B
+  }{
+    \Gamma \vdash e \rightsquigarrow \cc{c}\ e : B }
+\]
+This process may alter the semantics of \(e\), if they are even defined at all.
+But there is another problem. In a declarative type system there are, in general,
+many derivations of the same typing judgment. When dealing with coercive subtyping,
+this means that while there is generally a unique derivation for a fixed pair of
+\(e\) and \(e'\), there may be many possible choices of \(e'\) from the same
+initial \(e\). This means that different implementations of the same type system
+could give different semantics to the same program.
 
-As is typical in programming languages, we establish our coercions are coherent
-by showing every coercion \(c : A \subty B\) can be put into a normal form \(\nf
-c\) that is equivalent to \(c\), and then show that normal forms are unique.
-Rather than relying on rewriting, we adopt the technique of \emph{normalization
-by evaluation} (NbE).
+\paragraph{Coherence for subtyping and elaboration}
+To ensure the meaning of a program is stable across all possible typing
+derivations, metatheorists prove \emph{coherence}.  A subtyping judgment is
+coherent when all coercions \(c : A \subty B\) between the same types are
+semantically equivalent.  This means that every path in the ``coercion graph''
+is equivalent or, to borrow a category-theoretic slogan, ``all diagrams
+commute.'' The elaboration judgment is coherent when all \(e'\) with
+\(\Gamma \vdash e \rightsquigarrow e' : B\) are semantically equivalent and
+furthermore \(e\) is semantically equivalent to \(e'\).
+Of course, nobody ever runs code that was elaborated by a declarative type
+system. They are nondeterministic specifications for type checkers. Instead,
+implementations of type inference will hew closely to an algorithmic type system
+including a system of coercions \(c_a : A \asubty B\). By virtue of being
+algorithmic, this system will have unique coercions and emit unique elaborated
+terms.  It enjoys subtyping coherence automatically because its coercions and
+elaborated terms are not merely equivalent, but equal.
 
-Besides giving some confidence in the safety of this programming model, the
-proof of soundness has independent interest as a case study in the application
-of normalization by evaluation to implicit coercions.
+However expedient it may be to determinize everything in sight, this approach
+ends up costing more in the long term.  Committing to a particular algorithmic
+typing judgment seriously constrains future implementations of the type system.
+There are many perfectly reasonable algorithmic typing judgments (and
+implementations) associated to any one declarative system. A
+Damas-Hindley-Milner system will produce different derivations than one based on
+bidirectional typing, and so on.  A future algorithmic type system with its own
+idiosyncratic solution to the problem of determinizing the rules will include
+its own typed grammar of coercions \(c_b: A \bsubty B\) and its own elaboration
+judgment. In order to show these have anything to do with the other coercions
+\(c_a : A \asubty B\), we need a common semantics in which to compare them.
+Without a declarative system, our only option is try and prove a contextual
+equivalence \[
+  \cca{c_a} \approx \ccb{c_b}.
+\]
+Needless to say, this is not a direct route. Since the invariants the two
+algorithmic type systems exploit in order to determinize the rules of the
+declarative system are likely to be different, the coercions they produce
+for a given query are unlikely to share any structural similarities.
+On top of that, equational reasoning in the target language may be complex or
+underspecified when compared to equational reasoning about coercions, which are
+likely to be terminating and effect-free programs.
+
+We propose \emph{implementation-independent coherence}, a formulation of
+coherence for subtyping that can exploit the benefits of choosing a
+distinguished algorithmic system without requiring future algorithmic systems to
+be related directly to it.  Rather than defining coercions only for a
+deterministic judgment, we begin from a grammar of coercions \(c : A \subty B\)
+for the declarative system. These combinators are equipped with an axiomatized
+equivalence relation \(c_1 \coeeq c_2\).  The grammar will supply proof terms
+for the judgment \(A \subty B\) without appealing to the grammar of expressions
+\(e\).  The equivalence relation will be finitely axiomatized, in the style of
+abstract algebra, and will not appeal to the translation \(\ccname\) of
+coercions into expressions. In order to justify the equivalence relation, we
+check that the translation \(\ccname\) is sound:
+\[
+  c_1 \simeq c_2 \Longrightarrow
+  \ccname(c_1) \approx \ccname(c_2)
+\]
+
+We then define an algorithmic system \(n : A \nsubty B\) of \emph{normal coercions},
+so named because they will be used to put (declarative) coercions into normal form.
+These will enjoy unique derivations. In order to prove coherence, we exhibit a
+pair of translations of coercions
+\begin{align*}
+  \evalname &: A \subty B \to A \nsubty B \\
+  \reify &: A \nsubty B \to A \subty B
+\end{align*}
+and prove that \(\reify (\eval c) \coeeq c\). Together with the uniqueness of
+algorithmic coercions, this implies (1) the coherence of declarative coercions
+and (2) that eval and reify each preserve equivalence.
+
+Consider the situation now for a future algorithmic judgment
+\(c_a :  A \asubty B\). We already know declarative coercions are coherent, so
+we just need to know that in the new system of coercions each \(c_a\) is
+equivalent to a declarative coercion \(c\). All we have to do is define another
+pair of functions
+\begin{align*}
+  \evalname_{\mathsf{a}} &: A \subty B \to A \asubty B \\
+  \reify_{\mathsf{a}} &: A \asubty B \to A \subty B,
+\end{align*}
+This time around, the equivalence
+\(\reify_{\mathsf{a}}\ (\evalname_{\mathsf{a}}\ c) \equiv c\) follows from the
+coherence result that was already proved.  It does have to be checked that
+\(\cca{c_a} \approx \cc{\reify_{\mathsf{a}}{c_a}}\), but this can always be
+taken as a definition of \(\cca{c_a}\).
+
+\paragraph{Comparison to Reynolds' method}
+The coherence problem was studied as early as 1980 by
+Reynolds~\cite{reynolds80}, who outlined an algebraic approach to coherence of
+elaboration that complements our own. It was Reynolds who recognized that
+coercions form a \emph{category}: there are types \(A, B, \dots\) and between
+any two types there is a set of coercions \(\coe(A, B)\). There should always be
+identity coercions \(\id_A \in \coe(A, A)\), which do nothing, and an
+associative and unital composition operation
+\(\circ : \coe(B, C) \times \coe(A, B) \to \coe(A, C)\).
+Reynolds assumed that coercions form a preorder, that is, for every pair of
+arrows \(c1, c2 \in \coe(A, B)\), \(c1 = c2\). While this is true (up to
+quotienting by equivalence) for any coherent coercive subtyping relation,
+our approach to coherence is a robust technique for establishing it in the first
+place.
+
 
 \section{Overview}
 The types and subtyping rules at issue are shown in Figure~\ref{fig:calculus}.
@@ -286,8 +386,7 @@ consume multiple derivations the coercion \(c\) is defined using a coercion
 combinator (Fig.~\ref{fig:coe}).
 
 \begin{definition}[Coercion congruence]
-  The equivalence relation \(\coeeq\) is the least congruence \(\coeeq\) such
-  that for all \(c : A \subty B\),
+  The equivalence relation \(\coeeq\) is the least congruence obeying the following laws, which are implicitly universally quantified.
 \begin{align*}
 \ccomp{\cid{}}{c} &\coeeq c \\
 \ccomp{c}{\cid{}} &\coeeq c \\
@@ -300,7 +399,7 @@ combinator (Fig.~\ref{fig:coe}).
 \ccomp{\cfmap}{\carr\ (\cmono\ c_1)\ (\cmono\ c_2)} &\coeeq \ccomp{\carr\ c_1\ c_2}{\cfmap}
 \end{align*}
 \end{definition}
-In order, these laws say that coercions form a category, \(\cmono\) is a functor
+In order, the laws say that coercions form a category, \(\cmono\) is a functor
 on that category, and \(\carr\) is a bifunctor on that category.  The final law,
 which we refer to as the \emph{special fmap law}, is unusual becuase \(\cfmap\)
 is not a functor on coercions but instead a functor on types. In the equational
@@ -585,7 +684,7 @@ homomorphism for the defined algebra on normal coercions.
 
 \begin{proposition}[\agdachk{reify-na-fmap-l}]
   If \(\na : \F A, \F B \nasubty U, V\) then
-          \[\reifyna\ (\nfmapl\ \na) \coeeq \ccomp{\cfmap}{\creifyna\ \na}.\]
+          \[\reifyna\ (\nfmapl\ \na) \coeeq \ccomp{\cfmap}{\reifyna\ \na}.\]
 \end{proposition}
 
 \begin{proposition}[\agdachk{reify-mkcomp}]\label{reify-mkcomp}
@@ -685,7 +784,7 @@ but they come with challenges.
 
 A subtyping system for an applicative functor \(F\) should include the
 declarative coercions \(\textsf{pure} : A \subty \F A\) and
-\(\textsf{seq} : \F(A \to B) \subty \FA \to \FB\). Our normal coercions for
+\(\textsf{seq} : \F(A \to B) \subty \F A \to \F B\). Our normal coercions for
 plain old functors do not immediately generalize to this setting. The peel
 invariant (Prop.~\ref{prop:peel}) relied on in some proofs no longer holds
 because both of the new coercions do not preserve number of leading \(F\)s in
