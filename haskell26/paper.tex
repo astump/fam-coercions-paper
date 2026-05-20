@@ -120,8 +120,19 @@
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
-  This paper shows how to use subtyping to infer uses of the basic
-  monad operations.
+  Programming with typeclass-defined combinators like fmap allows programs a
+great deal of generality and concision, but programmers have to explicitly
+invoke combinators in the right places in order to get their programs to type
+check. In this paper, we propose inferring these operations using a coercive
+subtyping discipline, which infers where to insert operations by looking for
+points in the program where types do not yet agree but can be made to line up
+with coercions. For functors, we promote the fmap combinator to a coercion
+\(A \to B \subty \F A \to \F B\) and incorporate it into a system of more
+ordinary coercions. We prove that subtyping is coherent, meaning that
+the result is independent of the chosen derivation. The proof of coherence uses
+coherence by normalization, a novel approach to coherence proofs that was
+inspired by normalization by evaluation. All definitions and theorems in the
+paper are proved in Agda.
 \end{abstract}
 
 %%
