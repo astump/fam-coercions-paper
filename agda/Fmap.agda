@@ -256,12 +256,17 @@ reify-mkid base = c-refl (c-id base)
 reify-mkid (f a) = c-trans {f a} (c-cong-mono (reify-mkid a)) c-mono-id
 reify-mkid (a ⇒ b) = c-trans (c-cong-arr (reify-mkid a) (reify-mkid b)) c-arr-id
 
+reify-na-fmap-l : {a b u v : ty} (na : ncoe-arr (f a) (f b) u v) →
+  reify-arr (na-fmap-l na) ≃ c-comp c-fmap (reify-arr na)
+reify-na-fmap-l (na-arr (n-mono n1) (n-mono n2)) =
+  c-sym c-arr-fmap -- ta daaa!
+reify-na-fmap-l (na-fmap na) =
+  c-trans (c-cong-comp (reify-na-fmap-l na) (c-refl _)) c-comp-assoc
+
 reify-n-comp : {a b c : ty} (n1 : ncoe a b) (n2 : ncoe b c) →
   reify (n-comp n1 n2) ≃ c-comp (reify n1) (reify n2)
 reify-na-comp : {a b u v x y : ty} (na1 : ncoe-arr a b u v) (na2 : ncoe-arr u v x y) →
   reify-arr (na-comp na1 na2) ≃ c-comp (reify-arr na1) (reify-arr na2)
-reify-na-fmap-l : {a b u v : ty} (na : ncoe-arr (f a) (f b) u v) →
-  reify-arr (na-fmap-l na) ≃ c-comp c-fmap (reify-arr na)
 
 reify-n-comp n-id n2 rewrite n-comp-id-l n2 = c-sym c-id-l
 reify-n-comp (n-mono n1) (n-mono n2) = c-trans (c-cong-mono (reify-n-comp n1 n2)) c-mono-comp
@@ -280,10 +285,6 @@ reify-na-comp (na-fmap na1) (na-arr n1 n2) =
 reify-na-comp (na-fmap na1) (na-fmap na2) =
   c-trans (c-cong-comp (reify-na-comp (na-fmap na1) na2) (c-refl _))
           c-comp-assoc
-reify-na-fmap-l (na-arr (n-mono n1) (n-mono n2)) =
-  c-sym c-arr-fmap -- ta daaa!
-reify-na-fmap-l (na-fmap na) =
-  c-trans (c-cong-comp (reify-na-fmap-l na) (c-refl _)) c-comp-assoc
 
 
 ------------------------------

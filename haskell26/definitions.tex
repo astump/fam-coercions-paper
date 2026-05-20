@@ -117,7 +117,7 @@
 \newcommand{\cc}[1]{\text{\texttt{C}}(#1)}
 \newcommand{\ccname}[1]{\texttt{C}}
 \newcommand{\ltbool}{\texttt{bool}}
-\newcommand{\ltarr}{\,\text{\texttt{->}}\,}
+\newcommand{\ltarr}{\ \text{\texttt{->}}\ }
 \newcommand{\ltf}{\texttt{F}}
 \newcommand{\ltfmap}{\texttt{fmap}}
 \newcommand{\ltlam}[2]{\texttt{\\#1.#2}}
@@ -127,6 +127,8 @@
 \newcommand{\eval}[1]{\mathsf{eval}\ #1}
 \newcommand{\mkid}[1]{\mathsf{mkid}_{#1}}
 \newcommand{\mkcomp}{\mathsf{mkcomp}}
+\newcommand{\mkcompna}{\mathsf{mkcomp}_{\mathsf{na}}}
+\newcommand{\nfmapl}{\mathsf{nfmap}_{\mathsf{l}}}
 
 \newcommand{\subty}{\leq}
 \newcommand{\nsubty}{\leq_{\mathsf{n}}}
@@ -134,5 +136,5 @@
 
 \newcommand{\peel}[1]{\mathsf{peel}(#1)}
 
-\newcommand{\coeeq}{\equiv}
-\newcommand{\agdachk}[1]{\todo{agda: \texttt{#1}}}
+\newcommand{\coeeq}{\simeq}
+\newcommand{\agdachk}[1]{{\textcolor{teal}{\texttt{#1}}}}

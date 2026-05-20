@@ -216,7 +216,7 @@ there is a set of coercions \(\coe(A, B)\). There are always identity coercions
 \(\id_A \in \coe(A, A)\), which do nothing, and there are associative and unital
 composition operations \(\circ : \coe(B, C) \times \coe(A, B) \to \coe(A, C)\).
 The coercions are expected to form a preorder, that is, for every pair of arrows
-\(c1, c2 \in \coe(A, B)\), \(c1 \equiv c2\). He also studies their interaction
+\(c1, c2 \in \coe(A, B)\), \(c1 \coeeq c2\). He also studies their interaction
 with generic operators of the language, but we will restrict our attention to
 the coercions themselves.
 
@@ -286,26 +286,28 @@ consume multiple derivations the coercion \(c\) is defined using a coercion
 combinator (Fig.~\ref{fig:coe}).
 
 \begin{definition}[Coercion congruence]
-  The equivalence relation \(\equiv\) is the least congruence \(\equiv\) such
+  The equivalence relation \(\coeeq\) is the least congruence \(\coeeq\) such
   that for all \(c : A \subty B\),
 \begin{align*}
-\ccomp{\cid{}}{c} &\equiv c \\
-\ccomp{c}{\cid{}} &\equiv c \\
-\ccomp{c_1}{(\ccomp{c_2}{c_3})} &\equiv \ccomp{(\ccomp{c_1}{c_2})}{c_3} \\
-\cmono\ (\cid{A}) &\equiv \cid{\F A} \\
-\cmono\ (\ccomp{c_1}{c_2}) &\equiv \ccomp{\cmono\ c_1}{\cmono\ c_2} \\
-\carr\ \cid{A}\ \cid{B} &\equiv \cid{A \to B} \\
-\carr\ (\ccomp{c_1}{c_2})\ (\ccomp{c_3}{c_4}) &\equiv
+\ccomp{\cid{}}{c} &\coeeq c \\
+\ccomp{c}{\cid{}} &\coeeq c \\
+\ccomp{c_1}{(\ccomp{c_2}{c_3})} &\coeeq \ccomp{(\ccomp{c_1}{c_2})}{c_3} \\
+\cmono\ (\cid{A}) &\coeeq \cid{\F A} \\
+\cmono\ (\ccomp{c_1}{c_2}) &\coeeq \ccomp{\cmono\ c_1}{\cmono\ c_2} \\
+\carr\ \cid{A}\ \cid{B} &\coeeq \cid{A \to B} \\
+\carr\ (\ccomp{c_1}{c_2})\ (\ccomp{c_3}{c_4}) &\coeeq
 \ccomp{\carr\ c_2\ c_3}{\carr\ c_1\ c_4} \\
-\ccomp{\cfmap}{\carr\ (\cmono\ c_1)\ (\cmono\ c_2)} &\equiv \ccomp{\carr\ c_1\ c_2}{\cfmap}
+\ccomp{\cfmap}{\carr\ (\cmono\ c_1)\ (\cmono\ c_2)} &\coeeq \ccomp{\carr\ c_1\ c_2}{\cfmap}
 \end{align*}
 \end{definition}
 In order, these laws say that coercions form a category, \(\cmono\) is a functor
-on that category, and \(\carr\) is a bifunctor on that category.  The final law
-about \(\cfmap\) is more complicated becuase \(\cfmap\) is not a functor on
-coercions but instead a functor on types. In the equational theory of coercions,
-all that can be said about \(\cfmap{}\) is how it interacts with other coercions on
-arrow types.
+on that category, and \(\carr\) is a bifunctor on that category.  The final law,
+which we refer to as the \emph{special fmap law}, is unusual becuase \(\cfmap\)
+is not a functor on coercions but instead a functor on types. In the equational
+theory of coercions, all that can be said about \(\cfmap{}\) is how it interacts
+with other coercions on arrow types. No rule is needed to describe how it
+interacts with \(\cfmap{}\), since \(\cfmap \cdot \cfmap\) is, in general, only
+equal to itself.
 
 \subsection{Compiling coercions correctly}
 In order to justify the equational theory and show that these coercion
@@ -331,9 +333,9 @@ is given by the equational theory in the source language and by
 \end{align*}
 \end{minipage}
 
-\begin{proposition}[\ccname{} sound \agdachk{interp-sound}]
+\begin{proposition}[\agdachk{interp-sound}]
   For all \(c_1, c_2 : A \subty B\), \[
-    c_1 \equiv c_2 \Longrightarrow \cc{c_1} \equiv_{\beta\eta\ltf} \cc{c_2}
+    c_1 \coeeq c_2 \Longrightarrow \cc{c_1} \equiv_{\beta\eta\ltf} \cc{c_2}
   \]
 \end{proposition}
 
@@ -396,7 +398,7 @@ predictable relationship between the number of leading functors in
 the types on their left and right. To this point, define the \emph{peel number} of a
 type to be  \(\peel{\F A} = 1 + \peel A\) and \(\peel A = 0\) otherwise.  The
 peel number is preserved by normal subtyping and increased by arrow subtyping.
-\begin{proposition}[Peel invariants]
+\begin{proposition}[Peel invariants]\label{prop:peel}
   Let \(A, B, U\), and \(V\) be types.
   \begin{enumerate}
     \item If \(A \nsubty B\) then \(\peel A = \peel B\).
@@ -410,23 +412,28 @@ With this in hand, we can distinguish arrow coercions. In fact, the \(k\) that
 appears in the invariant for arrow subtyping counts the number of
 \(\mathsf{nfmap}\) constructors that appear in the corresponding derivation.
 
-\begin{proposition}[Uniqueness of normal forms \agdachk{ncoe-uniq}]\label{thm:uniqueness}
+\begin{proposition}[\agdachk{ncoe-uniq}]\label{thm:uniqueness}
   Let \(A, B, U\), and \(V\) be types.
   \begin{itemize}
-    \item If \(n : A \nsubty B\) and \(n' : A \nsubty B\) then \(n = n'\).
+    \item If \(n_1 : A \nsubty B\) and \(n_2 : A \nsubty B\) then \(n_1 = n_2\).
     \item If 
-      \(\na : A, B \nasubty U, V\)
+      \(\na_1 : A, B \nasubty U, V\)
       and
-      \(\na' : A, B \nasubty U, V\)
+      \(\na_2 : A, B \nasubty U, V\)
       then 
-      \(\na = \na'\).
+      \(\na_1 = \na_2\).
   \end{itemize}
 \end{proposition}
 \begin{proof}
-  By mutual induction on \(n\) and \(\na\). We show a few representative cases.
+  By mutual induction on \(n\) and \(\na\). We show a couple of representative cases.
 \begin{itemize}
-  \item \todo{mono case}
-  \item \todo{na-fmap case}
+  \item Case \(n_1 = \nmono\ n_1'\): By inversion, \(n_2 = \nmono\ n_2'\) and we can apply the IH.
+  \item Case \(\na_1 = \nfmap{\na_1'}\) with \(\na_1' : A, B \nasubty U, V\):
+        By Prop.~\ref{prop:peel}, we have \(\peel{A} \leq \peel{U}\).
+        If \(\na_2 = \nfmap{\na_2'}\) then the IH applies. Otherwise,
+        \(\na_2 = \naarr\ n_1\ n_2\) for some coercions \(n_1 : \F U \nsubty A\)
+        and \(n_2 : B \subty F V\). Applying Prop.~\ref{prop:peel} again yields
+        \(\peel{A} = \peel{U} + 1\), a contradiction.\qedhere
 \end{itemize}
 \end{proof}
 
@@ -439,12 +446,12 @@ closer to syntactic equality. In this section we establish coherence for
 coercions by lifting it from a proof of uniqueness for normal coercions.
 
 \begin{theorem}
-  If \(c_1, c_2 : A \subty B\) then \(c_1 \equiv c_2\).
+  If \(c_1, c_2 : A \subty B\) then \(c_1 \coeeq c_2\).
 \end{theorem}
 
 \begin{itemize}
   \item The equational theory of coercions: congruence closure of category laws
-    plus functor/bifunctor laws and the ``special fmap law"
+    plus functor/bifunctor laws and the special fmap law.
     \begin{itemize}
       \item informal justification in terms of fmap laws and associativity of
         composition (for terminating programs.... if we are going to
@@ -501,9 +508,8 @@ algebra---coercions---into normal coercions.
   \eval{(\ccomp{c_1}{c_2})} &= \mkcomp\ (\eval{c_1})\ (\eval{c_2}) \\
   \eval{(\cmono\ c)} &= \nmono\ (\eval{c}) \\
   \eval{(\carr\ c_1\ c_2)} &= \narr\ (\naarr\ (\eval{c_1})\ (\eval{c_2})) \\
-  \eval{\cfmap} &= \narr\ \nfmap \\
+  \eval{\cfmap} &= \narr\ \nfmap
 \end{align*}
-
 The identity operator is defined by induction on type. This helps explain why
 the normal coercions do not have a built-in \(\nid_A\) operator for any type
 \(A\), but only include it for base types. Otherwise, at every type \(A\) the
@@ -515,31 +521,58 @@ two distinct proofs \(\nid_A\) and \(\mkid{A}\) would both prove
   \mkid{\F A} &= \nmono\ (\mkid{A})
 \end{align*}
 
-The composition operator is more complex. In order to design the composition
-operator and, in fact, design the algebra of normal coercions,
-\todo{multiplication table section}
-\todo{show definition of mkcomp}
+The composition operator is more complex. It deals with the mutually inductive
+types of normal coercions and arrow coercions. While most clauses in the
+definition below are straightforward structural recursion, there is a snag in
+one case, which composes an arrow coercion ending in an fmap with another arrow
+coercion. The available fmap constructor in the grammar for \(\na\) only puts
+fmaps on the right, so we need to push the fmap ``through'' the second argument,
+all the way to the end, and adjust the coercion to fit.
 
-It is easy to show that evaluation preserves coercion equivalence since
-evaluation preserves type and normal coercions are unique.
-This is remarkable because it implies (for instance) that our defined
-composition and reflexivity operators obey all the laws of coercions.  Given the
-complexity of the composition operator, this is a very simple proof.
-\begin{proposition}[Soundness of evaluation \agdachk{eval-sound}]
+More precisely, we are defining an operation that composes an arrow coercion
+\(\na\) with an fmap on the left. We do not actually care what this does to the
+term as long as it acts like the coercion \(\ccomp{\cfmap}{\reify\ \na}\).
+It has the type
+\(\nfmapl : \F A, \F B \nsubty U, V \to A, B \nsubty U, V\)
+and is defined by only two clauses.
+\begin{align*}
+\nfmapl\ (\nfmap{\na}) &= \nfmap{(\nfmapl{\na})} \\
+\nfmapl\ (\naarr\ (\nmono\ n_1)\ (\nmono\ n_2)) &= \nfmap{(\naarr\ n_1\ n_2)}
+\end{align*}
+These rules are exhaustive. The trick here is that if \(\na\) is safe to compose
+with an fmap on the left, it must have \(\F\) types in its domain(s). If it has
+the form \(\naarr\ n_1'\ n_2'\), the only way the sub-coercions \(n_1'\) and
+\(n_2'\) can be well-typed is by beginning with \(\nmono\).  This procedure,
+which pushes an fmap through a term by ``demoting'' \(\nmono\) coercions,
+will be justified by the special fmap law.
+
+Let us return to our original task: defining composition for normal coercions.
+This can now be carried out by a simple structural recursion.
+\begin{align*}
+  \mkcomp\ n_1\ \nid &= n_1 \\
+  \mkcomp\ \nid\ n_2 &= n_2\\
+  \mkcomp\ (\nmono\ n_1)\ (\nmono\ n_2) &= \nmono\ (\mkcomp\ n_1 n_2) \\
+  \mkcomp\ (\narr\ \na_1)\ (\narr \na_2) &= \narr\ (\mkcompna\ \na_1\ \na_2) \\
+  \mkcompna\ (\naarr\ n_1\ n_2)\ (\naarr\ n_3\ n_4) &= \naarr\ (\mkcomp\ n_3\ n_1)\ (\mkcomp\ n_2\ n_4) \\
+  \mkcompna\  \na_1\ (\nfmap{\na_2})&= \nfmap{(\mkcompna\ \na_1\ \na_2)} \\
+  \mkcompna\ (\nfmap{\na_1})\ \na_2 &= \mkcompna\ \na_1\ (\nfmapl\ \na_2)
+\end{align*}
+We have now fully defined the evaluation function \(\eval\).  It respects equivalence by virtue of preserving the types of its arguments.
+\begin{proposition}[\agdachk{eval-sound}]
   For all \(c_1, c_2 : A \subty B\),
-  if \(c_1 \equiv c_2\) then \(\eval{c_1} = \eval{c_2}\).
+  if \(c_1 \coeeq c_2\) then \(\eval{c_1} = \eval{c_2}\).
 \end{proposition}
 \begin{proof}
   Since \(\eval{c_1}, \eval{c_2} : A \nsubty B\), this follows from
   uniqueness (Prop.~\ref{thm:uniqueness}).
 \end{proof}
 
-\subsection{Inverting evaluation}
+\subsection{Reification inverts evaluation}
 We now hew close to the path laid by normalization by evaluation and prove that
 \(\reify\) is a left inverse to \(\mathsf{eval}\). This makes the normalization
 function \(\reify \circ \mathsf{eval}\) sound. The proof of this lemma exercises
-all the rules of the equivalence relation \(\equiv\) on coercions,
-including the ``special fmap rule.''
+all the rules of the equivalence relation \(\coeeq\) on coercions,
+including the special fmap rule.
 
 The first order of business in this proof is to establish that \(\reify\) is a
 homomorphism for the defined algebra on normal coercions.
@@ -550,21 +583,24 @@ homomorphism for the defined algebra on normal coercions.
   By induction on \(A\) using the identity laws for \(\cmono\) and \(\carr\).
 \end{proof}
 
-The lemma about composition is really two lemmas, since the composition operator
-also has to compose arrow coercions.
+\begin{proposition}[\agdachk{reify-na-fmap-l}]
+  If \(\na : \F A, \F B \nasubty U, V\) then
+          \[\reifyna\ (\nfmapl\ \na) \coeeq \ccomp{\cfmap}{\creifyna\ \na}.\]
+\end{proposition}
+
 \begin{proposition}[\agdachk{reify-mkcomp}]\label{reify-mkcomp}
   Let \(A, B, U, V, X\), and \(Y\) be types.
   \begin{enumerate}
     \item For all \(n_1 : A \nsubty B\) and \(n_2 : B \nsubty C\),
-  \[\reify\ (\mkcomp\ n_1\ n_2) \equiv \ccomp{(\reify\ n_1)}{(\reify\ n_2)}.\]
-    \item For all \(\na_1 : A, B \nasubty U, V\) and \(\na_2 : U, V \nasubty X, Y\), \dots \todo{mkcompna}
-    \item For all \(\na : A, B \nasubty U, V\), \dots \todo{na-fmap-l}
+  \[\reify\ (\mkcomp\ n_1\ n_2) \coeeq \ccomp{(\reify\ n_1)}{(\reify\ n_2)}.\]
+    \item For all \(\na_1 : A, B \nasubty U, V\) and \(\na_2 : U, V \nasubty X, Y\),
+          \[\reifyna\ (\mkcompna\ \na_1\ \na_2) \coeeq \ccomp{(\reifyna\ \na_1)}{(\reifyna\ \na_2)}\].
   \end{enumerate}
 \end{proposition}
 
 Now we can prove that reify inverts evaluation.
-\begin{lemma}[Reify-eval \agdachk{reify-eval}]\label{reify-eval}
-  If \(c : A \subty B\), then \(\reify\ \eval{c} \equiv c\).
+\begin{lemma}[\agdachk{reify-eval}]\label{reify-eval}
+  If \(c : A \subty B\), then \(\reify\ \eval{c} \coeeq c\).
 \end{lemma}
 \begin{proof}
   By induction on \(c\).
@@ -575,7 +611,7 @@ Now we can prove that reify inverts evaluation.
     \item Case \(c = \carr\ c_1\ c_2\): By the IH.
     \item Case \(c = \cfmap\): We reason equationally.
           \begin{align*}
-            \cfmap \equiv ?
+            \cfmap \coeeq ?
           \end{align*}
           \todo{finish proof}
   \end{itemize}
@@ -585,13 +621,13 @@ Now we can prove that reify inverts evaluation.
   If \(c_1, c_2 : A \subty B\) then \(c_1 \coeeq c_2\).
 \end{theorem}
 \begin{proof}
-  We reason equationally since \(\equiv\) is an equivalence relation.  The
-  middle step uses equality, which is finer than \(\equiv\) and respected by
+  We reason equationally since \(\coeeq\) is an equivalence relation.  The
+  middle step uses equality, which is finer than \(\coeeq\) and respected by
   \(\reify\).
   \begin{align*}
-    c_1 &\equiv \reify (\eval{c_1}) & \text{by symmetry of \(\equiv\) and normalization (Lemma~\ref{reify-eval})}&\\
+    c_1 &\coeeq \reify (\eval{c_1}) & \text{by symmetry of \(\coeeq\) and normalization (Lemma~\ref{reify-eval})}&\\
     &= \reify (\eval{c_2}) & \text{by uniqueness (Prop~\ref{thm:uniqueness})} &\\
-    &\equiv c_2 & \text{by normalization (Lemma~\ref{reify-eval})} &\qedhere
+    &\coeeq c_2 & \text{by normalization (Lemma~\ref{reify-eval})} &\qedhere
   \end{align*}
 \end{proof}
 
@@ -643,6 +679,20 @@ reify-eval (c-fmap {a} {b}) =
 
 
 \section{Perspectives}
+We have shown that coercive subtyping for functors is coherent. In the future, we are hoping to extend these results to simplify programming with richer abstractions, like applicative functors and monads.
+These would permit more sophisticated applications of the subtyping discipline,
+but they come with challenges.
+
+A subtyping system for an applicative functor \(F\) should include the
+declarative coercions \(\textsf{pure} : A \subty \F A\) and
+\(\textsf{seq} : \F(A \to B) \subty \FA \to \FB\). Our normal coercions for
+plain old functors do not immediately generalize to this setting. The peel
+invariant (Prop.~\ref{prop:peel}) relied on in some proofs no longer holds
+because both of the new coercions do not preserve number of leading \(F\)s in
+types. These coercions introduce many more pairs of coercions that can be
+composed, and designing a system of normal coercions that can choose a canonical
+form for all these compositions will require further research.
+
 Appealing extensions: applicatives, monads, \dots
 
 Difficulties in doing that: loss of the peel invariant, etc
@@ -653,9 +703,33 @@ Difficulties in doing that: difficult to set up an untyped semantics in order to
 prove a bracketing theorem
 
 \section{Related Work}
-Reynolds~\cite{reynolds80}.
+Promotiing fmap to a coercion has some similarity with work on effect systems,
+where programs are permitted to run in an effect bounded below by the
+effects they actually require. Effect systems may exhibit coherence if liftings
+between effects do not commute.\todo{cites}
 
-Coherence proof for monoidal categories~\cite{beylin95}.
+The categorical point of view on implicit coercions appears to have originated
+with Reynolds~\cite{reynolds80}, but we address an issue left unhandled in that
+paper. He begins with a system of coercions that has at most one coercion
+between any two types and proceeds to prove that certain term-level operations
+defined at each type, like addition, commute with the coercions; this
+establishes the coherence of terms built from basic operations in the presence
+of subtyping. Our theorem takes a step back and begins with a possibly
+incoherent system of declarative coercions. We show our system of normal
+coercions has at most one coercion between any two types, but we also show that
+its equational theory matches the equational theory of the original set of
+coercions. Instead of checking that it commutes with term level operators, we
+check that it commutes with the operations of the declarative coercion algebra.
+
+Our application of normalization by evaluation to a coherence problem is
+certainly precedented, although we are unaware of any applications to
+algorithmic subtyping. We were particularly inspired by the coherence proof for
+monoidal categories of Beylin and Dyjber~\cite{beylin95}, which recovers an old
+result of Mac Lane from a proof of normalization for monoids. In a sense, a
+monoid is a single-sorted category (or a category is a many-sorted monoid); our
+normalization of terms involving identities (reflexivity proofs) and
+compositions (transitivity proofs) bears formal similarities to Beylin and
+Dyjber's proof.
 
 \section{Conclusion}
 
