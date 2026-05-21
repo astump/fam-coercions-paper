@@ -410,23 +410,23 @@ elaborated terms are not merely equivalent, but equal.
 
 This is not a shortcut to solving the coherence problem.  However expedient it may be to
 determinize everything in sight, it will end up costing more in the long term.
-There are many perfectly reasonable algorithmic typing judgments (and
-implementations) associated to any one declarative system. A
-Damas-Hindley-Milner system will produce different derivations than one based on
-bidirectional typing, and so on.  A future algorithmic type system with its own
-idiosyncratic solution to the problem of determinizing the rules will include
-its own typed grammar of coercions \(c_b: A \bsubty B\) and its own elaboration
-judgment. In order to show these have anything to do with the other coercions
-\(c_a : A \asubty B\), we need a common semantics in which to compare them.
-Without a declarative system, our only option is try and prove a contextual
-equivalence \[
+Here is a hypothetical situation. Suppose you have committed to a particular
+algorithmic subtyping judgment. There are many perfectly reasonable
+algorithmic typing judgments (and implementations) associated to any one
+declarative system.  When someone introduces a new algorithmic type system with
+its own idiosyncratic solution to the problem of determinizing the rules, it
+will have a new grammar of coercions \(c_b: A \bsubty B\) and a new own
+elaboration judgment. In order to show these have anything to do with the other
+coercions \(c_a : A \asubty B\), a common semantics is needed in which to compare
+them.  Without a declarative system, the only option is try and prove a
+contextual equivalence \[
   \cca{c_a} \approx \ccb{c_b}.
 \]
 Needless to say, this is not a direct route. Since the invariants the two
 algorithmic type systems exploit in order to determinize the rules of the
 declarative system are likely to be different, the coercions they produce
-for a given query are unlikely to share any structural similarities.
-On top of that, equational reasoning in the target language may be complex or
+for a given query are unlikely to share much structural similarity.  On top of
+that, equational reasoning in the target language may be complex or
 underspecified when compared to equational reasoning about coercions, which
 ought to be terminating and effect-free programs.
 
@@ -490,7 +490,7 @@ identity coercions \(\id_A \in \coe(A, A)\), which do nothing, and an
 associative and unital composition operation
 \(\circ : \coe(B, C) \times \coe(A, B) \to \coe(A, C)\).
 Reynolds assumed that coercions form a preorder, that is, for every pair of
-arrows \(c1, c2 \in \coe(A, B)\), \(c1 = c2\). While this is true (up to
+arrows \(c_1, c_2 \in \coe(A, B)\), \(c_1 = c_2\). While this is true (up to
 equivalence) for any coherent coercive subtyping relation,
 our approach to coherence is a robust technique for establishing it in the first
 place.
@@ -499,8 +499,10 @@ place.
 The first order of business in establishing coherence is to decide on a
 reasonable definition of equivalence for coercions. As mentioned above, we take
 an algebraic approach and define an equivalence using a short list of axioms.
-It helps that coercion combinators appear to form a category, so the appropriate
-axioms are, for the most part, easy to guess.
+It helps that coercion combinators form a category, so most of the axioms are
+easy to guess. We omit the congruence rules, which say that all the
+constructors of the coercion grammar respect the equivalence, and the
+reflexivity, transitivity, and symmetry rules, which make it an equivalence relation.
 
 \begin{definition}[Coercion congruence]
   The equivalence relation \(\coeeq\) is the least congruence obeying the following laws, which are implicitly universally quantified.\\
