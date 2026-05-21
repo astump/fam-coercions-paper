@@ -934,7 +934,6 @@ eval (Div e1 e2) = eval e1 `maybeDiv` eval e2
 Unfortunately, there are a few immediate technical obstacles to achieving this
 level of brevity in realistic programs while maintaining soundness,
 decidability, and coherence.
-
 A subtyping system for an applicative functor \(F\) should include the
 declarative coercions \(\textsf{pure} : A \subty \F A\) and
 \(\textsf{seq} : \F(A \to B) \subty \F A \to \F B\). Our normal coercions for
@@ -1015,10 +1014,10 @@ Dyjber's proof.
 
 Allais~et~al.~\cite{allais2025frex} describe Frex, a suite of tools for working
 with single-sorted algebraic theories using normalization by evaluation.  An
-extension of Frex to multi-sorted algebraic theories, as was proposed by Allais
-and an overlapping set of authors at one point~\cite{allais2023}, would subsume
-our development and make it easier to add new non-overlapping coercions and
-types to the system without tedious reproving and refactoring.
+extension of Frex to multi-sorted algebraic theories, as proposed by Allais and
+an overlapping set of authors~\cite{allais2023}, would subsume our development
+and make it easier to add new coercions and types to the system without tedious
+reproving and refactoring.
 
 \section{Conclusion}
 We have presented a subtyping judgment for statically inferring silent uses of
