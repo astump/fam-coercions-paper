@@ -893,8 +893,9 @@ equivalences.  This means that our proofs end up containing big proof terms that
 are littered with congruence and transitivity rules, like the following clause
 from the proof of \texttt{reify-eval}. What this term really does is a series of
 rewrites along \texttt{c-arr-fmap}, \texttt{reify-mkid}, \texttt{c-mono-id},
-\texttt{c-arr-id}, and \texttt{c-id-r}, but it also has to declare where in the
-term those rewrites happen and in what order.
+\texttt{c-arr-id}, and \texttt{c-id-r}, but most of the space is devoted to
+declaring where inside the coercion those rewrites happen (the \texttt{c-cong-*}
+subterms) and in what order (the \texttt{c-trans} subterms).
 \begin{Verbatim}
 reify-eval (c-fmap {a} {b}) =
    c-trans (c-sym c-arr-fmap)
@@ -942,6 +943,9 @@ eval (Add e1 e2) = eval e1 + eval e2
 eval (Mul e1 e2) = eval e1 * eval e2
 eval (Div e1 e2) = eval e1 `maybeDiv` eval e2
 \end{Verbatim}
+This is a much more appealing definition than the previous one, and like our
+example in the introduction we expect there be essentially one canonical way to
+make it typecheck.
 
 Unfortunately, there are a few immediate technical obstacles to achieving this
 level of brevity in realistic programs while maintaining soundness,
@@ -952,9 +956,10 @@ declarative coercions \(\textsf{pure} : A \subty \F A\) and
 plain old functors do not immediately generalize to this setting. The peel
 invariant (Proposition~\ref{prop:peel}) relied on in some proofs no longer holds
 because both of the new coercions do not preserve number of leading \(F\)s in
-types. These coercions introduce many more pairs of coercions that can be
-composed, and designing a system of normal coercions that can choose a canonical
-form for all these compositions will require further research.
+types. By entangling the functor and arrow types, these coercions introduce many
+more pairs of coercions that can be composed, and designing a system of normal
+coercions that can choose a canonical form for all these compositions will
+require further research.
 
 We have not defined an algorithmic type inference judgment for our system
 or proved it coherent. We expect this to be straightforward for a monomorphic
@@ -982,15 +987,13 @@ whose famous ``bracketing theorem'' relates an untyped semantics where subtyping
 is interpreted by inclusion to a typed semantics where subtyping is interpreted
 by coercion maps.
 Here there
-may be a snag. These logical relations relate an untyped semantics, where
-subtyping is interpreted by inclusion, to a typed semantics, where subtyping is
-interpreted by coercion
-maps.  In the case of functor subtyping, this requires devising an untyped
-semantics for programs that makes fmap into an inclusion \[
+may be a snag. In the case of functor subtyping, the untyped semantics has to
+interpret types in such a way that fmap becomes an inclusion \[
   \llbracket A \to B \rrbracket \subseteq \llbracket \F A \to \F B \rrbracket
 \]
 while still providing a sound model of the rest of the type system. This is an
 unusual requirement, to say the least, and will require further research.
+
 
 \section{Related Work}
 Promoting fmap to a coercion has some similarity with work on effect systems,
