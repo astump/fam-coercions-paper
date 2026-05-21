@@ -382,7 +382,7 @@ could give different semantics to the same program.
 
 \paragraph{Coherence for subtyping and elaboration}
 To ensure the meaning of a program is stable across all possible typing
-derivations, metatheorists prove \emph{coherence}.  A subtyping judgment is
+derivations, language designers prove \emph{coherence}.  A subtyping judgment is
 coherent when all coercions \(c : A \subty B\) between the same types are
 semantically equivalent.  This means that every path in the ``coercion graph''
 is equivalent or, to borrow a category-theoretic slogan, ``all diagrams
@@ -480,7 +480,7 @@ associative and unital composition operation
 \(\circ : \coe(B, C) \times \coe(A, B) \to \coe(A, C)\).
 Reynolds assumed that coercions form a preorder, that is, for every pair of
 arrows \(c1, c2 \in \coe(A, B)\), \(c1 = c2\). While this is true (up to
-quotienting by equivalence) for any coherent coercive subtyping relation,
+equivalence) for any coherent coercive subtyping relation,
 our approach to coherence is a robust technique for establishing it in the first
 place.
 
@@ -518,7 +518,7 @@ is not a functor on coercions but instead a functor on types. In the equational
 theory of coercions, all that can be said about \(\cfmap{}\) is how it interacts
 with other coercions on arrow types. No rule is needed to describe how it
 interacts with \(\cfmap{}\), since \(\cfmap \cdot \cfmap\) is, in general, only
-equal to itself. The special fmap law implies the last pair of ambigous derivations shown
+equal to itself. The special fmap law implies the last pair of ambiguous derivations shown
 in Section~\ref{sec:overview} is coherent.
 
 \subsection{Compiling coercions correctly}
@@ -654,7 +654,8 @@ relation, like syntactic equality. In this section we establish coherence for
 coercions by lifting it from a proof of uniqueness for normal coercions. In a
 sense we are deriving a decidable equality that happens to always return true.
 We are also, by virtue of working with a monomorphic combinator calculus,
-dealing with a simpler system than NbE algorithms typically do.
+dealing with a simpler system than normalization by evaluation is typically
+applied to.
 
 \subsection{Reification and evaluation}
 Normal coercions are immediately interpretable as coercions, as exhibited by the
@@ -853,7 +854,7 @@ We found Agda well suited to the task of mechanizing normalization by evaluation
 for coercions. All proof assistants are adequate for algebra over a single sort,
 but in many-sorted and indexed algebras good pattern matching becomes indispensable.
 Agda's dependent pattern matching allowed us to use an intrinsically typed syntax
-and write concise proofs. In Agda, many cases in defintions by recursion which
+and write concise proofs. In Agda, many cases in definitions by recursion which
 we would otherwise have to prove impossible were actually automatically dispatched
 by the pattern matching coverage algorithm.  In inductive proofs, this makes a
 big difference in the usability of the system and the efficiency of formalizing
@@ -968,7 +969,7 @@ while still providing a sound model of the rest of the type system. This is an
 unusual requirement, to say the least, and will require further research.
 
 \section{Related Work}
-Promotiing fmap to a coercion has some similarity with work on effect systems,
+Promoting fmap to a coercion has some similarity with work on effect systems,
 where programs are permitted to run in an effect bounded below by the
 effects they actually require. Effect systems may exhibit coherence if liftings
 between effects do not commute. This issue has been addressed by Biernacki and
