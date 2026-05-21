@@ -188,20 +188,33 @@ Given the declared type, there is really only one way to make this program make
 sense.  It does not typecheck otherwise, so what would be the harm in inserting
 an fmap? Automatically lifting functions to operate on arrays and other data
 structures is already prevalent both in programming languages and informal
-mathematical notation. If programming with functors can be handled in this way
-then implicit programming with more powerful abstractions like applicative
-functors~\cite{mcbride2008applicative} and monads could also become tractable.
+mathematical notation. By the same token, programming with more specific
+abstractions like applicative functors~\cite{mcbride2008applicative} and monads
+could also be made simpler by rendering combinators like \texttt{bind} and
+\texttt{seq} implicit.
 
-To insert missing fmaps where they are needed, we propose a discipline of
-implicit coercions, which are meant to be inserted during a combined type
-inference and elaboration pass. An implementation would walk the provided term,
-send a collection of subtyping constraints to a solver, and then use the
-solver's response to decide where to put coercions.
+However, adding new implicit behavior to programming languages may make their
+semantics unstable and confusing. The semantics of these hidden combinators must
+be made clear and predictable if they are to become an acceptable part of
+functional programming practice. In other words, we need to do some metatheory.
+
+First, we point out that these missing combinators ought to be viewed as
+implicit coercions between types. Implicit conversions are special functions
+that are inserted during type inference in order to make a program type check.
+They are usually drawn from a restricted grammar.
+Traditionally, coercions are used to permit programs to gloss over details like
+numerical conversions, which are both tedious and predictable. Our systems of
+typeclass combinators are more abstract, but (provided they are drawn from
+lawful Functor instances) they ought to be predictable enought to be baked in to
+the type checking process. Besides standard lemmas about type inference such as
+completeness and principal typing, the chief metatheoretic property of interest
+for coercive subtyping is \emph{coherence}: this says that whatever coercions
+are inserted during type inference leave program meaning unchanged.
 
 In this paper, we address the problem of inserting implicit typeclass operations
-for the Functor typeclass.
-This allows applying pure functions to data stored in
-functors without having to insert calls to fmap. We describe a combined
+for the Functor typeclass with a system of coercions and establish a form of
+coherence for the system.  This allows applying pure functions to values of
+functor type without having to insert calls to fmap. We describe a combined
 coercion and subtyping judgment \[
   c : A \leq B
 \]
@@ -235,7 +248,7 @@ in which a complicated equivalence is analyzed by identifying canonical forms
 for its equivalence classes. In this case, the canonical forms are precisely the
 coercions from the algorithmic subtyping judgment.
 
-Our paper makes the following contributions.
+To summarize, our paper makes the following contributions.
 \begin{itemize}
   \item Declarative and algorithmic coercive subtyping judgments for inferring missing uses of \(\cfmap\) in functional programs.
   \item An equivalence-preserving translation of coercion combinators into lambda calculus.
