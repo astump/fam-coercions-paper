@@ -581,7 +581,6 @@ by \(\beta\eta\)-equivalence, function extensionality, and fmap laws in the targ
 Using the equational theory, we now design the algorithmic system. The idea is
 to remove the \textsc{Refl} and \textsc{Trans} rules and instead have one rule
 for each type former.
-\todo{mult table thing}
 
 \subsection{Uniqueness of normal coercions}
 It is not immediately clear that normal coercions have \(n_1 = n_2\) for any
@@ -629,10 +628,10 @@ appears in the invariant for arrow subtyping counts the number of
 \begin{itemize}
   \item Case \(n_1 = \nmono\ n_1'\): By inversion, \(n_2 = \nmono\ n_2'\) and we can apply the IH.
   \item Case \(\na_1 = \nfmap{\na_1'}\) with \(\na_1' : A, B \nasubty U, V\):
-        By Prop.~\ref{prop:peel}, we have \(\peel{A} \leq \peel{U}\).
+        By Proposition~\ref{prop:peel}, we have \(\peel{A} \leq \peel{U}\).
         If \(\na_2 = \nfmap{\na_2'}\) then the IH applies. Otherwise,
         \(\na_2 = \naarr\ n_1\ n_2\) for some coercions \(n_1 : \F U \nsubty A\)
-        and \(n_2 : B \subty F V\). Applying Prop.~\ref{prop:peel} again yields
+        and \(n_2 : B \subty F V\). Applying Proposition~\ref{prop:peel} again yields
         \(\peel{A} = \peel{U} + 1\), a contradiction.\qedhere
 \end{itemize}
 \end{proof}
@@ -644,10 +643,6 @@ more commonly used to establish that a language has decidable equality by
 lifting it from a model with an already decidable relation, which is often
 closer to syntactic equality. In this section we establish coherence for
 coercions by lifting it from a proof of uniqueness for normal coercions.
-
-\begin{theorem}
-  If \(c_1, c_2 : A \subty B\) then \(c_1 \coeeq c_2\).
-\end{theorem}
 
 \subsection{Reification and evaluation}
 Normal coercions are immediately interpretable as coercions, as exhibited by the
@@ -696,13 +691,13 @@ algebra---coercions---into normal coercions.
   \eval{(\ccomp{c_1}{c_2})} &= \mkcomp\ (\eval{c_1})\ (\eval{c_2}) \\
   \eval{(\cmono\ c)} &= \nmono\ (\eval{c}) \\
   \eval{(\carr\ c_1\ c_2)} &= \narr\ (\naarr\ (\eval{c_1})\ (\eval{c_2})) \\
-  \eval{\cfmap} &= \narr\ \nfmap
+  \eval{\cfmap} &= \narr\ (\nfmap{(\naarr\ \mkid{A}\ \mkid{B})})
 \end{align*}
 The identity operator is defined by induction on type. This helps explain why
 the normal coercions do not have a built-in \(\nid_A\) operator for any type
 \(A\), but only include it for base types. Otherwise, at every type \(A\) the
 two distinct proofs \(\nid_A\) and \(\mkid{A}\) would both prove
-\(A \nsubty A\), which would break uniqueness (Prop.~\ref{thm:uniqueness}).
+\(A \nsubty A\), which would break uniqueness (Proposition ~\ref{thm:uniqueness}).
 \begin{align*}
   \mkid{\tbool} &= \nid \\
   \mkid{A \to B} &= \narr\ (\naarr\ (\mkid{A})\ (\mkid{B})) \\
@@ -752,7 +747,7 @@ We have now fully defined the evaluation function \(\eval\).  It respects equiva
 \end{proposition}
 \begin{proof}
   Since \(\eval{c_1}, \eval{c_2} : A \nsubty B\), this follows from
-  uniqueness (Prop.~\ref{thm:uniqueness}).
+  uniqueness (Proposition ~\ref{thm:uniqueness}).
 \end{proof}
 
 \subsection{Reification inverts evaluation}
@@ -763,7 +758,7 @@ all the rules of the equivalence relation \(\coeeq\) on coercions,
 including the special fmap rule.
 
 The first order of business in this proof is to establish that \(\reify\) is a
-homomorphism for the defined algebra on normal coercions.
+homomorphism for the algebra on normal coercions.
 \begin{proposition}[\agdachk{reify-mkid}]\label{reify-mkid}
   For all \(A\), \(\reify\ \mkid{A} \coeeq \cid{A}\).
 \end{proposition}
@@ -782,30 +777,37 @@ homomorphism for the defined algebra on normal coercions.
     \item For all \(n_1 : A \nsubty B\) and \(n_2 : B \nsubty C\),
   \[\reify\ (\mkcomp\ n_1\ n_2) \coeeq \ccomp{(\reify\ n_1)}{(\reify\ n_2)}.\]
     \item For all \(\na_1 : A, B \nasubty U, V\) and \(\na_2 : U, V \nasubty X, Y\),
-          \[\reifyna\ (\mkcompna\ \na_1\ \na_2) \coeeq \ccomp{(\reifyna\ \na_1)}{(\reifyna\ \na_2)}\].
+          \[\reifyna\ (\mkcompna\ \na_1\ \na_2) \coeeq \ccomp{(\reifyna\ \na_1)}{(\reifyna\ \na_2)}.\]
   \end{enumerate}
 \end{proposition}
 
-Now we can prove that reify inverts evaluation.
+Now we can prove that reify inverts evaluation. The interesting case, which
+shows that \(\cfmap\) is equivalent to the round-trip \(\reify\ (\eval{\cfmap})\),
+has to appeal to the special fmap law.
 \begin{lemma}[\agdachk{reify-eval}]\label{reify-eval}
   If \(c : A \subty B\), then \(\reify\ \eval{c} \coeeq c\).
 \end{lemma}
 \begin{proof}
   By induction on \(c\).
   \begin{itemize}
-    \item Case \(c = \cid{A}\): By Prop.~\ref{reify-mkid}.
-    \item Case \(c = \ccomp{c_1}{c_2}\): By Prop.~\ref{reify-mkcomp} and the IH.
+    \item Case \(c = \cid{A}\): By Proposition~\ref{reify-mkid}.
+    \item Case \(c = \ccomp{c_1}{c_2}\): By Proposition~\ref{reify-mkcomp} and the IH.
     \item Case \(c = \cmono\ c\): By the IH.
     \item Case \(c = \carr\ c_1\ c_2\): By the IH.
     \item Case \(c = \cfmap\): We reason equationally.
           \begin{align*}
-            \cfmap \coeeq ?
+\reify\ (\eval{\cfmap})&= \ccomp{\carr\ (\reify\ \mkid{A})\ (\reify\ \mkid{B})}{\cfmap} &\text{By definition}\\
+            &\coeeq \ccomp{(\carr\ \cid{A}\ \cid{B})}{\cfmap} &\text{Proposition~\ref{reify-mkid}} \\
+            &\coeeq \ccomp{\cfmap}{\carr\ (\cmono\ \cid{A})\ (\cmono\ \cid{B})} &\text{Special fmap law}\\
+            &\coeeq \ccomp{\cfmap}{\carr\ \cid{\F A}\ \cid{\F B}} &\text{Identity law for \(\cmono\)}\\
+            &\coeeq \ccomp{\cfmap}{\cid{\F A \to \F B}} &\text{Identity law for \(\carr\)}\\
+            &\coeeq \cfmap &\text{Right identity law}
           \end{align*}
-          \todo{finish proof}
   \end{itemize}
 \end{proof}
 
-\begin{theorem}
+Coherence is an immediate consequence of the lemma.
+\begin{theorem}[\agdachk{coe-coh}]\label{thm:coherence}
   If \(c_1, c_2 : A \subty B\) then \(c_1 \coeeq c_2\).
 \end{theorem}
 \begin{proof}
@@ -814,32 +816,28 @@ Now we can prove that reify inverts evaluation.
   \(\reify\).
   \begin{align*}
     c_1 &\coeeq \reify (\eval{c_1}) & \text{by symmetry of \(\coeeq\) and normalization (Lemma~\ref{reify-eval})}&\\
-    &= \reify (\eval{c_2}) & \text{by uniqueness (Prop~\ref{thm:uniqueness})} &\\
+    &= \reify (\eval{c_2}) & \text{by uniqueness (Proposition~\ref{thm:uniqueness})} &\\
     &\coeeq c_2 & \text{by normalization (Lemma~\ref{reify-eval})} &\qedhere
   \end{align*}
 \end{proof}
 
-
-
 \section{Implementation in Agda}
-All of our definitions and theorems are proved in Agda,
+All of our definitions and theorems were implemented in Agda,
 where we made heavy use of dependently typed syntax and dependent pattern matching
 to keep our theorems concise and our proofs simple.
 The presentation of the system in the paper glosses over details that were
 checked by Agda, like the well-typedness of the output of the reification and
 evaluation functions.
 
-\todo{key defns here in a syntax-highlighted environment}
-
 We found Agda well suited to the task of mechanizing normalization by evaluation
 for coercions. All proof assistants are adequate for algebra over a single sort,
 but in many-sorted and indexed algebras good pattern matching becomes indispensable.
 Agda's dependent pattern matching allowed us to use an intrinsically typed syntax
-and write concise proofs. Recall the multiplication table from Section~\todo{ref
-to mult discussion once it's written}. In Agda, many of the cases we explained
-away are automatically ruled out by the pattern matching algorithm. In inductive
-proofs, this makes a big difference in the usability of the system and the
-efficiency of formalizing metatheory.
+and write concise proofs. In Agda, many cases in defintions by recursion which
+we would otherwise have to prove impossible were actually automatically dispatched
+by the pattern matching coverage algorithm.  In inductive proofs, this makes a
+big difference in the usability of the system and the efficiency of formalizing
+metatheory.
 
 While reasoning about coercions, we rely on a user-defined equivalence relation
 instead of Agda's propositional equality. While Agda has special ``rewrite
@@ -907,7 +905,7 @@ A subtyping system for an applicative functor \(F\) should include the
 declarative coercions \(\textsf{pure} : A \subty \F A\) and
 \(\textsf{seq} : \F(A \to B) \subty \F A \to \F B\). Our normal coercions for
 plain old functors do not immediately generalize to this setting. The peel
-invariant (Prop.~\ref{prop:peel}) relied on in some proofs no longer holds
+invariant (Proposition~\ref{prop:peel}) relied on in some proofs no longer holds
 because both of the new coercions do not preserve number of leading \(F\)s in
 types. These coercions introduce many more pairs of coercions that can be
 composed, and designing a system of normal coercions that can choose a canonical
