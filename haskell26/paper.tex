@@ -241,7 +241,7 @@ Our paper makes the following contributions.
   \item An equivalence-preserving translation of coercion combinators into lambda calculus.
   \item A proof of soundness, completeness, and uniqueness for algorithmic coercions.
   \item A proof of coherence for declarative subtyping based on normalization by evaluation.
-  \item A mechanization of all of the above in Agda.\footnote{References to Agda definitions in the supplementary material are rendered in \agdachk{teal}.}
+  \item A mechanization of all of the above in Agda.\footnote{References to Agda definitions are rendered in \agdachk{teal}. The file is available in the supplementary material.}
 \end{itemize}
 
 \section{Overview}\label{sec:overview}
@@ -397,9 +397,8 @@ algorithmic, this system will have unique coercions and emit unique elaborated
 terms.  It enjoys subtyping coherence automatically because its coercions and
 elaborated terms are not merely equivalent, but equal.
 
-However expedient it may be to determinize everything in sight, this approach
-ends up costing more in the long term.  Committing to a particular algorithmic
-typing judgment seriously constrains future implementations of the type system.
+This is not a shortcut to solving the coherence problem.  However expedient it may be to
+determinize everything in sight, it will end up costing more in the long term.
 There are many perfectly reasonable algorithmic typing judgments (and
 implementations) associated to any one declarative system. A
 Damas-Hindley-Milner system will produce different derivations than one based on
@@ -950,17 +949,14 @@ semantics for programs that makes fmap into an inclusion \[
 while still providing a sound model of the rest of the type system. This is an
 unusual requirement, to say the least, and will require further research.
 
-Another technique is used by Biernacki and Polesiuk to establish coherence for
-an effect subtyping system~\cite{DBLP:journals/lmcs/BiernackiP18}, although they
-are able to avoid the many hazards of untyped denotational semantics by setting
-up a step-indexed logical relation~\cite{ahmed:thesis} atop an operational
-semantics.
-
 \section{Related Work}
 Promotiing fmap to a coercion has some similarity with work on effect systems,
 where programs are permitted to run in an effect bounded below by the
 effects they actually require. Effect systems may exhibit coherence if liftings
-between effects do not commute.\todo{cites}
+between effects do not commute. This issue has been addressed by Biernacki and
+Polesiuk~\cite{DBLP:journals/lmcs/BiernackiP18}, who use a step-indexed logical
+relation atop an operational semantics to establish the equivalence of terms
+typed under different derivations.
 
 The categorical point of view on implicit coercions appears to have originated
 with Reynolds~\cite{reynolds80}, but we address an issue left unhandled in that
@@ -985,14 +981,22 @@ normalization of terms involving identities (reflexivity proofs) and
 compositions (transitivity proofs) bears formal similarities to Beylin and
 Dyjber's proof.
 
+Allais~et~al.~\cite{allais2025frex} describe Frex, a suite of tools for working
+with single-sorted algebraic theories using normalization by evaluation.  An
+extension of Frex to multi-sorted algebraic theories, as was proposed by Allais
+and an overlapping set of authors at one point~\cite{allais2023}, would subsume
+our development and make it easier to add new (non-overlapping) coercions and
+types to the system without tedious reproving and refactoring.
+
 \section{Conclusion}
-We have presented a system for statically inferring silent uses of the fmap
-combinator in monomorphic functional programs.  Our system uses coercive subtyping, which
-treats fmap as a coercion that may be inserted wherever the types involved make
-it make sense. To keep program meaning stable in the face of this potentially
-intrusive and nondeterministic procedure, we proved coherence using a new
-approach we call \emph{coherence by normalization}.  All our definitions and
-proofs were checked in Agda.
+We have presented a subtyping judgment for statically inferring silent uses of
+the fmap combinator in monomorphic functional programs.  Our system uses
+coercive subtyping, which treats fmap as a coercion that may be inserted
+wherever the types involved make it make sense. To keep program meaning stable
+in the face of this potentially intrusive and nondeterministic procedure, we
+proved coherence of subtyping derivations using a new approach we call
+\emph{coherence by normalization}.  All our definitions and proofs were checked
+in Agda.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{paper.bib}
