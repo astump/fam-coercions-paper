@@ -484,29 +484,6 @@ quotienting by equivalence) for any coherent coercive subtyping relation,
 our approach to coherence is a robust technique for establishing it in the first
 place.
 
-\begin{figure}
-  \begin{flushleft}
-    \fbox{\(n : A \nsubty B\)}\quad\fbox{\(\mathit{na} : A,B  \nasubty U, V\)}
-  \end{flushleft}
-  \begin{mathpar}
-    \\
-    \inferrule*[Left=NId]{ }{\nid : \tbool \nsubty \tbool}
-
-    \inferrule*[Left=NMono]{n : A \nsubty B}{\nmono\ n : \F A \nsubty \F B}
-    \\
-    \inferrule*[Left=NArr]
-      {\mathit{na} : A, B \nasubty U, V}{\narr\ \mathit{na} : A \to B \nsubty \F A \to \F B}
-
-    \inferrule*[Left=NAFmap]
-      {\mathit{na} : A, B \nasubty U, V}{\nfmap{\mathit{na}} : A, B \nasubty \F U, \F V}
-      \\
-
-    \inferrule*[Left=NAArr]
-      {n_1 : U \nsubty A \\ n_2 : B \nsubty V}{\naarr\ n_1\ n_2 : A, B \nasubty U, V}
-  \end{mathpar}
-  \caption{Normalized coercions.}\label{fig:ncalculus}
-\end{figure}
-
 \section{Defining and justifying the equational theory}
 The first order of business in establishing coherence is to decide on a
 reasonable definition of equivalence for coercions. As mentioned above, we take
@@ -579,8 +556,39 @@ by \(\beta\eta\)-equivalence, function extensionality, and fmap laws in the targ
 
 \section{Algorithmic judgment and normal coercions}
 Using the equational theory, we now design the algorithmic system. The idea is
-to remove the \textsc{Refl} and \textsc{Trans} rules and instead have one rule
-for each type former.
+to remove the \textsc{Refl} and \textsc{Trans} rules and instead devise a system
+where they are admissible. We also need to address the overlap between the fmap
+and \(\narr\) rules.  Our solution is shown in Figure~\ref{fig:ncalculus}.
+We will sometimes elide the proof terms \(n\) and \(\na\) and just refer to the
+subtyping judgments \(A \nsubty B\) and \(A, B \nasubty U, V\).
+We separate the system into normal coercions \(n : A \nsubty B\) and arrow
+coercions \(\na : A, B \nasubty U, V\). The normal coercions have exactly one
+rule for each type former. The arrow coercions include \(\naarr\), which
+performs ordinary mixed-variance arrow subtyping by appealing to two normal coercions,
+and \(\mathsf{nfmap}\), which extends an arrow coercion with one use of fmap on the right.
+
+\begin{figure}
+  \begin{flushleft}
+    \fbox{\(n : A \nsubty B\)}\quad\fbox{\(\mathit{na} : A,B  \nasubty U, V\)}
+  \end{flushleft}
+  \begin{mathpar}
+    \\
+    \inferrule*[Left=NId]{ }{\nid : \tbool \nsubty \tbool}
+
+    \inferrule*[Left=NMono]{n : A \nsubty B}{\nmono\ n : \F A \nsubty \F B}
+    \\
+    \inferrule*[Left=NArr]
+      {\mathit{na} : A, B \nasubty U, V}{\narr\ \mathit{na} : A \to B \nsubty U \to V}
+
+    \inferrule*[Left=NAFmap]
+      {\mathit{na} : A, B \nasubty U, V}{\nfmap{\mathit{na}} : A, B \nasubty \F U, \F V}
+      \\
+
+    \inferrule*[Left=NAArr]
+      {n_1 : U \nsubty A \\ n_2 : B \nsubty V}{\naarr\ n_1\ n_2 : A, B \nasubty U, V}
+  \end{mathpar}
+  \caption{Normalized coercions.}\label{fig:ncalculus}
+\end{figure}
 
 \subsection{Uniqueness of normal coercions}
 It is not immediately clear that normal coercions have \(n_1 = n_2\) for any
@@ -588,7 +596,7 @@ It is not immediately clear that normal coercions have \(n_1 = n_2\) for any
 on one paired with some inversion lemmas on the other, but there are issues in
 the arrow cases. For instance, inverting \(\na_2 : A, B \nasubty \F U, \F V\)
 suggests that \(na_2\) has the form \(\na_2 = \nfmap{\na'}\) or
-\(\na_2 = \naarr\ n_1'\ n_2'\), but both possiblities remain plausible.
+\(\na_2 = \naarr\ n_1'\ n_2'\), but both options are possible.
 Fortunately, there are some invariants preserved by subtyping that will allow
 ruling out the latter possibility.
 
@@ -609,7 +617,8 @@ peel number is preserved by normal subtyping and increased by arrow subtyping.
 \end{proof}
 With this in hand, we can distinguish arrow coercions. In fact, the \(k\) that
 appears in the invariant for arrow subtyping counts the number of
-\(\mathsf{nfmap}\) constructors that appear in the corresponding derivation.
+\(\mathsf{nfmap}\) constructors that appear in the underlying arrow coercion
+\(\na\).
 
 \begin{proposition}[\agdachk{ncoe-uniq}]\label{thm:uniqueness}
   Let \(A, B, U\), and \(V\) be types.
@@ -639,14 +648,22 @@ appears in the invariant for arrow subtyping counts the number of
 \section{Coherence}
 In this section, we prove that all coercions of the same type are equivalent. We
 establish our result using the methods of normalization by evaluation, which is
-more commonly used to establish that a language has decidable equality by
-lifting it from a model with an already decidable relation, which is often
-closer to syntactic equality. In this section we establish coherence for
-coercions by lifting it from a proof of uniqueness for normal coercions.
+more commonly used to derive decidable equality for a language by lifting it
+from a model that is already equipped with an easily decidable equivalence
+relation, like syntactic equality. In this section we establish coherence for
+coercions by lifting it from a proof of uniqueness for normal coercions. In a
+sense we are deriving a decidable equality that happens to always return true.
+We are also, by virtue of working with a monomorphic combinator calculus,
+dealing with a simpler system than NbE algorithms typically do.
 
 \subsection{Reification and evaluation}
 Normal coercions are immediately interpretable as coercions, as exhibited by the
 following straightforward definition of \(\reify\).
+Note that the reification of \(\nfmap{\na}\) puts \(\cfmap\) after the
+reification of \(\na\) and not before. This is an arbitrary choice, like the
+choosing between cons lists and snoc lists. Putting \(\cfmap\) at the front
+would affect the ``bias'' of subsequent proofs but all the top-level theorems
+would say the same things.
 \begin{align*}
   \reify\ \nid &= \cid{\tbool} \\
   \reify\ (\nmono\ n) &= \cmono\ (\reify\ n) \\
@@ -654,22 +671,22 @@ following straightforward definition of \(\reify\).
   \reifyna\ (\naarr\ n_1\ n_2) &= \carr\ (\reify\ n_1)\ (\reify\ n_2) \\
   \reifyna\ (\nfmap{\na}) &= \ccomp{\reifyna \na}{\cfmap}
 \end{align*}
-Note that the reification of \(\nfmap{\na}\) puts \(\cfmap\) after the
-reification of \(\na\) and not before. This is an arbitrary choice, like the
-choosing between cons lists and snoc lists. Putting \(\cfmap\) at the front
-would affect the ``bias'' of subsequent proofs but all the top-level theorems
-would say the same things.
 
 Reification is sound because all functions preserve equality. By composition,
-\(\interp{-} \circ \reify\) is also sound. This means our syntactic equality
-agrees with the intended model in lambda calculus.  The type of reify is also
-informative. Read through Curry-Howard, it says that the normal subtyping
-relation is sound (but not necessarily complete) for subtyping. \[
+the induced translation
+\(\ccname \circ \reify\)
+into lambda calculus
+is also sound. This means our syntactic equality agrees with the intended model.
+The type of reify is also informative.
+Read through Curry-Howard, it says that the normal subtyping
+relation is sound (but not necessarily complete) with respect to declarative subtyping. \[
   A \nsubty B \Longrightarrow A \subty B
 \]
 
-Evaluation, which passes from coercions to normal coercions, relies on some
-definable operators on normal coercions. This is where most of the work happens.
+The other direction amounts to a proof of completeness and is more complex.  It
+is accomplished by the evaluation function, which turns a declarative coercion
+into a normal coercion of the same type. It relies on two definable operators on
+normal coercions.
 \[
   \mkid{A} : A \nsubty A \qquad \mkcomp : A \nsubty B \times B \nsubty C \to A \nsubty C
 \]
@@ -682,10 +699,7 @@ which will ultimately allow us to show a stronger result: implicit coercions in
 both theories behave the same.
 
 The identity and composition operators permit a structurally recursive
-definition of \(\eval\), which is otherwise defined in terms of constructors.
-From an algebraic point of view, we are exhibiting an algebraic structure on
-normal coercions that then induces the interpretation \(\eval\) from the free
-algebra---coercions---into normal coercions.
+definition of \(\evalname\), which is otherwise defined in terms of constructors.
 \begin{align*}
   \eval{\cid{A}} &= \mkid{A} \\
   \eval{(\ccomp{c_1}{c_2})} &= \mkcomp\ (\eval{c_1})\ (\eval{c_2}) \\
@@ -712,9 +726,8 @@ coercion. The available fmap constructor in the grammar for \(\na\) only puts
 fmaps on the right, so we need to push the fmap ``through'' the second argument,
 all the way to the end, and adjust the coercion to fit.
 
-More precisely, we are defining an operation that composes an arrow coercion
-\(\na\) with an fmap on the left. We do not actually care what this does to the
-term as long as it acts like the coercion \(\ccomp{\cfmap}{\reify\ \na}\).
+At a higher level, we are defining an operation that composes an arrow coercion
+\(\na\) with an fmap on the left.
 It has the type
 \(\nfmapl : \F A, \F B \nsubty U, V \to A, B \nsubty U, V\)
 and is defined by only two clauses.
@@ -727,10 +740,10 @@ with an fmap on the left, it must have \(\F\) types in its domain(s). If it has
 the form \(\naarr\ n_1'\ n_2'\), the only way the sub-coercions \(n_1'\) and
 \(n_2'\) can be well-typed is by beginning with \(\nmono\).  This procedure,
 which pushes an fmap through a term by ``demoting'' \(\nmono\) coercions,
-will be justified by the special fmap law.
+can be justified by the special fmap law.
 
-Let us return to our original task: defining composition for normal coercions.
-This can now be carried out by a simple structural recursion.
+With that obstacle cleared, we can define composition for normal coercions by a
+straightforward recursion.
 \begin{align*}
   \mkcomp\ n_1\ \nid &= n_1 \\
   \mkcomp\ \nid\ n_2 &= n_2\\
@@ -740,25 +753,32 @@ This can now be carried out by a simple structural recursion.
   \mkcompna\  \na_1\ (\nfmap{\na_2})&= \nfmap{(\mkcompna\ \na_1\ \na_2)} \\
   \mkcompna\ (\nfmap{\na_1})\ \na_2 &= \mkcompna\ \na_1\ (\nfmapl\ \na_2)
 \end{align*}
-We have now fully defined the evaluation function \(\eval\).  It respects equivalence by virtue of preserving the types of its arguments.
+We have now fully defined the evaluation function \(\evalname\).
+We record some immediate observations about its definition.  First, it has the
+type it was claimed to have: it really does send proofs of \(A \subty B\) to
+proofs of \(A \nsubty B\). This makes normal subtyping complete with respect to
+declarative subtyping. This permits us to conclude evaluation respects equivalence.
 \begin{proposition}[\agdachk{eval-sound}]
   For all \(c_1, c_2 : A \subty B\),
   if \(c_1 \coeeq c_2\) then \(\eval{c_1} = \eval{c_2}\).
 \end{proposition}
 \begin{proof}
-  Since \(\eval{c_1}, \eval{c_2} : A \nsubty B\), this follows from
-  uniqueness (Proposition ~\ref{thm:uniqueness}).
+  Since \(\eval{c_1}, \eval{c_2} : A \nsubty B\), this follows from the
+  uniqueness of normal coercions at a given type (Proposition ~\ref{thm:uniqueness}).
 \end{proof}
 
 \subsection{Reification inverts evaluation}
-We now hew close to the path laid by normalization by evaluation and prove that
-\(\reify\) is a left inverse to \(\mathsf{eval}\). This makes the normalization
-function \(\reify \circ \mathsf{eval}\) sound. The proof of this lemma exercises
-all the rules of the equivalence relation \(\coeeq\) on coercions,
-including the special fmap rule.
+Following the path blazed by normalization by evaluation, we will now prove that
+\(\reify\) is a left inverse to \(\mathsf{eval}\). This makes \(\evalname\)
+injective up to equivalence and will allow us to lift uniqueness for normal
+coercions up to a proof of coherence for declarative coercions.  The proof of
+this lemma exercises all the rules of the equivalence relation \(\coeeq\) on
+coercions including the special fmap rule.
 
-The first order of business in this proof is to establish that \(\reify\) is a
-homomorphism for the algebra on normal coercions.
+The first order of business is to establish that \(\reify\) is a homomorphism.
+This means checking that each of the operations we defined on normal coercions
+in the course of defining eval is sent to its counterpart in declarative
+coercions. These results only hold up to equivalence.
 \begin{proposition}[\agdachk{reify-mkid}]\label{reify-mkid}
   For all \(A\), \(\reify\ \mkid{A} \coeeq \cid{A}\).
 \end{proposition}
@@ -983,7 +1003,7 @@ Allais~et~al.~\cite{allais2025frex} describe Frex, a suite of tools for working
 with single-sorted algebraic theories using normalization by evaluation.  An
 extension of Frex to multi-sorted algebraic theories, as was proposed by Allais
 and an overlapping set of authors at one point~\cite{allais2023}, would subsume
-our development and make it easier to add new (non-overlapping) coercions and
+our development and make it easier to add new non-overlapping coercions and
 types to the system without tedious reproving and refactoring.
 
 \section{Conclusion}
