@@ -120,7 +120,7 @@
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
-  Programming with typeclass-defined combinators like fmap allows programs a
+Programming with typeclass-defined combinators like fmap allows programs a
 great deal of generality and concision, but programmers have to explicitly
 invoke combinators in the right places in order to get their programs to type
 check. In this paper, we propose inferring these operations using a coercive
@@ -157,67 +157,91 @@ Typeclass abstractions like Functor, Applicative, and Monad are essential to
 modern functional programming.
 %
 The liberal application of type class combinators allows
-concise programming even in the presence of 
+concise generic programming even in the presence of
 complex effects and data structures.
 %
 For example, consider writing a Haskell program that increments integers wrapped
 in a \verb|Maybe| type.
 \begin{Verbatim}
-incrMaybe : Maybe Int -> Maybe Int
+incrMaybe :: Maybe Int -> Maybe Int
 incrMaybe (Just x) = Just (succ x)
 incrMaybe Nothing  = Nothing
 \end{Verbatim}
 This naive definition of \verb|incrMaybe| has to unwrap its argument with
 a pattern match and then wrap its output back up.
 A more idiomatic definition uses \verb|<$>|, the fmap combinator, which
-handles the unwrapping and wrapping.
+handles the unwrapping and wrapping. This has the added benefit of being
+polymorphic, as it will work for any other instance of the Functor typeclass.
 \begin{Verbatim}
+incrMaybe :: Maybe Int -> Maybe Int
 incrMaybe x = succ <$> x
 \end{Verbatim}
-This program has the added benefit of being generic. If the program switches
-from the Maybe functor to something else, this program will still work.
-This kind of stability in the presence of modification is part of why
-these combinators are so popular in functional programming.  In the presence of
-sufficient type information, we are interested in further reducing the
-boilerplate involved by making fmap completely implicit. This would permit
-implementing \verb|incrMaybe| just as one would want to write it, with no use of
-fmap at all.
+In the presence of sufficient type information, we are interested in further
+reducing the boilerplate involved by making fmap completely implicit. This would
+permit implementing \verb|incrMaybe| just as one would want to write it, with no
+use of fmap at all.
 \begin{Verbatim}
+incrMaybe :: Maybe Int -> Maybe Int
 incrMaybe x = succ x
 \end{Verbatim}
-It seems as if there is only one canonical way to make this program
-make sense, and automatically lifting functions to operate on arrays and other
-data structures is already prevalent both in programming languages and
-informal mathematical notation.
+Given the declared type, there is really only one way to make this program make
+sense.  It does not typecheck otherwise, so what would be the harm in inserting
+an fmap? Automatically lifting functions to operate on arrays and other data
+structures is already prevalent both in programming languages and informal
+mathematical notation. If programming with functors can be handled in this way
+then implicit programming with more powerful abstractions like applicative
+functors~\cite{mcbride2008applicative} and monads could also become tractable.
 
-This could also ease certain software engineering burdens. Programs often rely
-on monadic effects for features like state and exceptions.
-As a program is developed, it may go from needing no effects at all to needing a
-whole zoo of effects. At each step in this process, old computations must be
-updated to deal with the new effects by lifting them using typeclass combinators.
-If a system of subtyping could render those lifts implicit, adding new effects
-to part of a program would lead the typechecker to insert appropriate lifts at
-boundaries with the rest of the program, permitting an easier transition from
-one set of effects to another.
+To insert missing fmaps where they are needed, we propose a discipline of
+implicit coercions, which are meant to be inserted during a combined type
+inference and elaboration pass. An implementation would walk the provided term,
+send a collection of subtyping constraints to a solver, and then use the
+solver's response to decide where to put coercions.
 
 In this paper, we address the problem of inserting implicit typeclass operations
-for the Functor typeclass. This allows applying pure functions to data stored in
-functors without having to insert calls to fmap. Our approach is based on the
-theory of \emph{coercive subtyping}, which inserts implicit coercions (in this case, calls to fmap)
-into terms while typechecking them. We describe a combined coercion and subtyping judgment \[
+for the Functor typeclass.
+This allows applying pure functions to data stored in
+functors without having to insert calls to fmap. We describe a combined
+coercion and subtyping judgment \[
   c : A \leq B
 \]
 where the coercion \(c\) is drawn from a simple combinator calculus. The
 coercions elaborate into terms in a functional programming language, but come
 from a much simpler combinator calculus. We add a special coercion \[
-  \cfmap : A \to B \leq \F A \to \F B
+  \cfmap : A \to B \subty \F A \to \F B
 \]
-which in general may do something quite complicated to its argument.
-In order to get some assurance that this system of coercions is safe, we give a
-proof of its coherence. Coherence is a metatheoretic property that prevents
-coercions from changing the meaning of programs in an unpredictable way.
-In passing, our proof of coherence also yields an algorithmic subtyping
-judgment together with proofs that it admits transitivity and reflexivity rules.
+which lifts its argument into the functor. The other coercions are standard
+and include, for instance, the mixed-variance coercion \[
+  \carr\ c_1\ c_2 : A \to B \subty U \to V
+\]
+that turns two coercions \(c_1 : U \subty A\) and \(c_2 : B \subty V\)
+into a coercion between the appropriate arrow types.
+
+The system of coercions is declarative, in the sense that it is a good
+specification of what coercions ought to be available in the system, but its
+derivations are nondeterministic. This presents two problems: a nondeterministic
+subtyping judgment is not suitable for implementation and the coercions inserted
+by two different determinizations may end up doing different things to the
+program.
+
+We solve both problems. First, we define an algorithmic subtyping system with
+unique derivations. It is proved sound and complete with respect to the
+declarative subtyping system.  Second, in order to get some assurance that this
+system of coercions is safe, we give a proof of its coherence. Coherence,
+in this context, says that any two coercions \(c_1, c_2 : A \subty B\)
+are semantically equivalent, in a sense to be made precise later.
+Our proof of coherence exploits the theory of normalization by evaluation,
+in which a complicated equivalence is analyzed by identifying canonical forms
+for its equivalence classes. In this case, the canonical forms are precisely the
+coercions from the algorithmic subtyping judgment.
+
+Our paper makes the following contributions.
+\begin{itemize}
+  \item Declarative and algorithmic coercive subtyping judgments for inferring missing uses of \(\cfmap\) in functional programs.
+  \item An equivalence-preserving translation of coercion combinators into lambda calculus.
+  \item A proof of soundness, completeness, and uniqueness for algorithmic coercions.
+  \item A proof of coherence for declarative subtyping based on normalization by evaluation.
+\end{itemize}
 
 \section{Overview}
 Under a coercive subtyping discipline, type inference becomes an elaboration
