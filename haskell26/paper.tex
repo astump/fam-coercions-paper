@@ -535,12 +535,15 @@ equal to itself. The special fmap law implies the last pair of ambiguous derivat
 in Section~\ref{sec:overview} is coherent.
 
 \subsection{Compiling coercions correctly}
-In order to justify the equational theory, especially the new fmap law, and show
-that these coercion combinators can be soundly compiled to a programming
-language, we provide a translation into typed lambda calculus equipped with an
-abstract functor \texttt{F}.  Then we prove that the translation preserves
-equivalence, which is given by the equational theory in the source language and
-by \(\beta\eta\)-equivalence, function extensionality, and fmap laws in the target.\\
+We provide a translation from coercions to simply typed lambda calculus in order
+to show that our coercions are realizable and their equational theory is
+accurate. The target lambda calculus includes a type of booleans \texttt{bool}
+and a functor on types \texttt{F}. For concreteness, we take the congruence
+\(\approx\) in the target language to be contextual equivalence extended with
+fmap laws, but it could be any relation that incorporates
+\(\beta\eta\)-equivalence, extensionality, and the fmap laws.  We then prove
+that our coercion translation sends equivalent coercions to congruent typed
+terms.\\
 \begin{minipage}{0.5\textwidth}
 \begin{align*}
   \cc\tbool &= \ltbool \\
@@ -558,13 +561,13 @@ by \(\beta\eta\)-equivalence, function extensionality, and fmap laws in the targ
 \end{align*}
 \end{minipage}
 
-\begin{proposition}[\agdachk{interp-sound}]
+\begin{proposition}[\agdachk{interp-sound}]\label{interp-sound}
   For all \(c_1, c_2 : A \subty B\), \[
-    c_1 \coeeq c_2 \Longrightarrow \cc{c_1} \equiv_{\beta\eta\ltf} \cc{c_2}
+    c_1 \coeeq c_2 \Longrightarrow \cc{c_1} \approx \cc{c_2}
   \]
 \end{proposition}
 \begin{proof}
-  By induction on \(c_1 \coeeq c_2\). Extensionality appears necessary in the case for the special fmap law.
+  By induction on \(c_1 \coeeq c_2\). Extensionality appears necessary in the case for the special fmap law due to it relating composite terms of function type.
 \end{proof}
 
 \section{Algorithmic judgment and normal coercions}
@@ -872,6 +875,15 @@ we would otherwise have to prove impossible were actually automatically dispatch
 by the pattern matching coverage algorithm.  In inductive proofs, this makes a
 big difference in the usability of the system and the efficiency of formalizing
 metatheory.
+
+Rather than compile the coercion calculus to a shallowly embedded syntax of
+lambda terms, we interpret them directly as Agda types and terms. The
+interpretation is parameterized by a functor \texttt{F~:~Set~→~Set} that obeys
+identity and composition laws. This means that the Agda proof of
+Proposition~\ref{interp-sound} is actually carried out in terms of Agda's
+propositional equality, not some kind of contextual equivalence. As noted in the
+pen-and-paper proof, it does seem necessary to assume function extensionality in
+order to prove the special functor law.
 
 While reasoning about coercions, we rely on a user-defined equivalence relation
 instead of Agda's propositional equality. While Agda has special ``rewrite
