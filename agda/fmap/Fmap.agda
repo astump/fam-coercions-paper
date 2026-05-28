@@ -22,12 +22,13 @@ record Functor (F : Set → Set) : Set₁ where
                    (fmap f ⨾ fmap g) ≡ fmap (f ⨾ g)
 
 -----------
--- TYPES --emacs
+-- TYPES --
 -----------
 data ty : Set where
   base : ty
   f : ty → ty
   _⇒_ : ty → ty → ty
+
 
 ---------------
 -- COERCIONS --
@@ -135,6 +136,7 @@ module interp {B : Set} {F : Set → Set} {FM : Functor F} where
 ------------------
 -- NORMAL FORMS --
 ------------------
+
 data ncoe : ty → ty → Set
 data ncoe-arr : ty → ty → ty → ty → Set
 data ncoe where
@@ -422,3 +424,7 @@ norm-complete : {a b : ty} (c1 c2 : coe a b) →
 norm-complete c1 c2 neq =
   c-trans (c-sym (reify-eval c1))
     (c-trans (≡-to-≃ neq) (reify-eval c2))
+
+------------------------------
+-- truly algorithmic typing --
+------------------------------
