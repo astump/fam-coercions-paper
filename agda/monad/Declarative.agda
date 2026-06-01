@@ -54,7 +54,7 @@ Normalized boolean types
 Tp! collapses all applications of L to one boolean flag.
 
   false !N   means N
-  true  !N   means L⁺ N  (represented canonically as L N)
+  true  !N   means L⁺ N
 
   false ! A ⇒ B  means A ⇒ B
   true  ! A ⇒ B  means L⁺ (A ⇒ B)
@@ -99,10 +99,20 @@ data _<:!_ : Tp! → Tp! → Set where
   {- Function rule
 
   if q = false, this is the ordinary function rule.
-  We assume A' <: A and B <: B', so we know F <: G.
-  Therefore the outer flags must satify layerOK b b' to prevent L F <: G.
+  Input
+    A' <: A
+    B  <: B'
+  Output
+    b! A ⇒ B <: b'! A' ⇒ B'
+    so long as  ¬(b ≡ T ∧ b' ≡ F)
 
   If q = true, this is a Seq-shaped rule.
+  Input
+    A'  <: L A
+    L B <: B'
+  Output
+    b! A ⇒ B <: b'! A' ⇒ B'
+    For all b b'
   -}
   Fun<! : ∀ {q b b' : Bool}
            {A B A' B' : Tp!} →
@@ -227,3 +237,133 @@ mutual
   norm<raw (T ⇒ U) =
     Fun (raw<norm T)
         (norm<raw U)
+
+-- completeness for pure
+pure! : ∀ {A : Tp!} → A <:! ↑ A
+pure! {false !N} = Nat<! refl
+pure! {true  !N} = Nat<! refl
+pure! {false ! A ⇒ B} =
+  Fun<! {q = false} refl <:!-refl <:!-refl
+pure! {true ! A ⇒ B} =
+  Fun<! {q = false} refl <:!-refl <:!-refl
+
+-- completeness for join
+join! : ∀ {A : Tp!} → ↑ (↑ A) <:! ↑ A
+join! {false !N} = Nat<! refl
+join! {true  !N} = Nat<! refl
+join! {false ! A ⇒ B} =
+  Fun<! {q = false} refl <:!-refl <:!-refl
+join! {true ! A ⇒ B} =
+  Fun<! {q = false} refl <:!-refl <:!-refl
+
+-- completeness for cov
+cov! : ∀ {A B : Tp!} → A <:! B → ↑ A <:! ↑ B
+cov! (Nat<! ok) =
+  Nat<! refl
+cov! (Fun<! {q = true} ok dom cod) =
+  Fun<! {q = true} refl dom cod
+cov! (Fun<! {q = false} ok dom cod) =
+  Fun<! {q = false} refl dom cod
+
+-- completeness for Seq
+seq! : ∀ {A B : Tp!} →
+       (true ! A ⇒ B) <:! (false ! ↑ A ⇒ ↑ B)
+seq! =
+  Fun<! {q = true}
+        refl
+        <:!-refl
+        <:!-refl
+
+-- Completeness for Trans
+
+layerOK-trans : ∀ (b₁ b₂ b₃ : Bool) →
+                layerOK b₁ b₂ ≡ true →
+                layerOK b₂ b₃ ≡ true →
+                layerOK b₁ b₃ ≡ true
+layerOK-trans false b₂    b₃    p q = refl
+layerOK-trans true  false b₃    ()
+layerOK-trans true  true  false p ()
+layerOK-trans true  true  true  p q = refl
+
+{-# TERMINATING #-}
+trans! : ∀ {A B C : Tp!} →
+         A <:! B →
+         B <:! C →
+         A <:! C
+-- Atomic case.
+trans!
+  (Nat<! {b = b₁} {b' = b₂} ok₁)
+  (Nat<! {b = .b₂} {b' = b₃} ok₂) =
+  Nat<! (layerOK-trans b₁ b₂ b₃ ok₁ ok₂)
+
+-- Ordinary followed by ordinary.
+trans!
+  (Fun<! {q = false}
+         {b = b₁} {b' = b₂}
+         {A = A₁} {B = B₁}
+         {A' = A₂} {B' = B₂}
+         ok₁ dom₁ cod₁)
+  (Fun<! {q = false}
+         {b = .b₂} {b' = b₃}
+         {A = .A₂} {B = .B₂}
+         {A' = A₃} {B' = B₃}
+         ok₂ dom₂ cod₂) =
+  Fun<! {q = false}
+        {b = b₁} {b' = b₃}
+        {A = A₁} {B = B₁}
+        {A' = A₃} {B' = B₃}
+        (layerOK-trans b₁ b₂ b₃ ok₁ ok₂)
+        (trans! dom₂ dom₁)
+        (trans! cod₁ cod₂)
+
+-- Ordinary followed by Seq-shaped.
+trans!
+  (Fun<! {q = false} ok₁ dom₁ cod₁)
+  (Fun<! {q = true} ok₂ dom₂ cod₂) =
+  Fun<! {q = true}
+    refl
+    (trans! dom₂ ((cov! dom₁)))
+    (trans! ((cov! cod₁)) cod₂)
+
+-- Seq-shaped followed by ordinary.
+trans!
+  (Fun<! {q = true} ok₁ dom₁ cod₁)
+  (Fun<! {q = false} ok₂ dom₂ cod₂) =
+  Fun<! {q = true}
+    refl
+    (trans! dom₂ dom₁)
+    (trans! cod₁ cod₂)
+
+-- Seq-shaped followed by Seq-shaped.
+trans!
+  (Fun<! {q = true} ok₁ dom₁ cod₁)
+  (Fun<! {q = true} ok₂ dom₂ cod₂) =
+  Fun<! {q = true}
+    refl
+    (trans! dom₂ (trans! (cov! dom₁) join! ))
+    (trans! (trans! cod₁ pure!) cod₂)
+
+
+-- Full Completeness
+complete! : ∀ {A B : Tp} → A <: B → ⌈ A ⌉ <:! ⌈ B ⌉
+complete! NatRefl =
+  Nat<! refl
+
+complete! (Fun dom cod) =
+  Fun<! {q = false} refl
+        (complete! dom)
+        (complete! cod)
+
+complete! Seq =
+  seq!
+
+complete! Pure =
+  pure!
+
+complete! (Cov p) =
+  cov! (complete! p)
+
+complete! Join =
+  join!
+
+complete! (Trans p q) = trans! (complete! p) (complete! q)
