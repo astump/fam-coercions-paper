@@ -1,16 +1,7 @@
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open import Data.Bool using (Bool; true; false)
-
 module Declarative where
 
--- Raw type syntax
-
-infixr 20 _⇒_
-
-data Tp : Set where
-  N : Tp
-  L : Tp → Tp
-  _⇒_ : Tp → Tp → Tp
+open import lib
+open import Tp
 
 -- Declarative relation on Tp
 
@@ -48,57 +39,38 @@ refl-raw {N}      = NatRefl
 refl-raw {L T}    = Cov refl-raw
 refl-raw {T ⇒ T'} = Fun refl-raw refl-raw
 
-{-
-Normalized boolean types
-
-Tp! collapses all applications of L to one boolean flag.
-
-  false !N   means N
-  true  !N   means L⁺ N
-
-  false ! A ⇒ B  means A ⇒ B
-  true  ! A ⇒ B  means L⁺ (A ⇒ B)
--}
-
-infix 10 _!N
-infixr 9 _!_⇒_
-
-data Tp! : Set where
-  _!N   : Bool → Tp!
-  _!_⇒_ : Bool → Tp! → Tp! → Tp!
-
 -- ↑T = L T
 infix 30 ↑_
 ↑_ : Tp! → Tp!
-↑ (_ !N)      = true !N
-↑ (_ ! A ⇒ B) = true ! A ⇒ B
+↑ (_ !N)      = tt !N
+↑ (_ ! A ⇒ B) = tt ! A ⇒ B
 
--- If true, force a positive L
-bump! : Bool → Tp! → Tp!
-bump! false A = A
-bump! true  A = ↑ A
+-- If tt, force a positive L
+bump! : 𝔹 → Tp! → Tp!
+bump! ff A = A
+bump! tt  A = ↑ A
 
 -- the only impossible coersion is L T <: T
-layerOK : Bool → Bool → Bool
-layerOK true false = false
-layerOK _ _ = true
+layerOK : 𝔹 → 𝔹 → 𝔹
+layerOK tt ff = ff
+layerOK _ _ = tt
 
 -- function-rule outer condidtion
-funOK : Bool → Bool → Bool → Bool
-funOK false b b' = layerOK b b'
-funOK true  b b' = true
+funOK : 𝔹 → 𝔹 → 𝔹 → 𝔹
+funOK ff b b' = layerOK b b'
+funOK tt  b b' = tt
 
 -- New relation on Tp!
 infix 5 _<:!_
 
 data _<:!_ : Tp! → Tp! → Set where
-  Nat<! : ∀ {b b' : Bool} →
-          layerOK b b' ≡ true →
+  Nat<! : ∀ {b b' : 𝔹} →
+          layerOK b b' ≡ tt →
           (b !N) <:! (b' !N)
 
   {- Function rule
 
-  if q = false, this is the ordinary function rule.
+  if q = ff, this is the ordinary function rule.
   Input
     A' <: A
     B  <: B'
@@ -106,7 +78,7 @@ data _<:!_ : Tp! → Tp! → Set where
     b! A ⇒ B <: b'! A' ⇒ B'
     so long as  ¬(b ≡ T ∧ b' ≡ F)
 
-  If q = true, this is a Seq-shaped rule.
+  If q = tt, this is a Seq-shaped rule.
   Input
     A'  <: L A
     L B <: B'
@@ -114,78 +86,78 @@ data _<:!_ : Tp! → Tp! → Set where
     b! A ⇒ B <: b'! A' ⇒ B'
     For all b b'
   -}
-  Fun<! : ∀ {q b b' : Bool}
+  Fun<! : ∀ {q b b' : 𝔹}
            {A B A' B' : Tp!} →
-          funOK q b b' ≡ true →
+          funOK q b b' ≡ tt →
           A' <:! bump! q A →
           bump! q B <:! B' →
           (b ! A ⇒ B) <:! (b' ! A' ⇒ B')
 
 -- Reflexivity is admissible
 <:!-refl : ∀ {A : Tp!} → A <:! A
-<:!-refl {false !N} = Nat<! refl
-<:!-refl {true  !N} = Nat<! refl
-<:!-refl {false ! A ⇒ B} =
-  Fun<! {q = false} refl <:!-refl (<:!-refl {A = B})
-<:!-refl {true  ! A ⇒ B} =
-  Fun<! {q = false} refl <:!-refl (<:!-refl {A = B})
+<:!-refl {ff !N} = Nat<! refl
+<:!-refl {tt  !N} = Nat<! refl
+<:!-refl {ff ! A ⇒ B} =
+  Fun<! {q = ff} refl <:!-refl (<:!-refl {A = B})
+<:!-refl {tt  ! A ⇒ B} =
+  Fun<! {q = ff} refl <:!-refl (<:!-refl {A = B})
 
 -- interpret a Tp! as a Tp (Denotation)
 infix 100 ⟦_⟧
 
 ⟦_⟧ : Tp! → Tp
-⟦ false !N ⟧ = N
-⟦ true  !N ⟧ = L N
-⟦ false ! A ⇒ B ⟧ = ⟦ A ⟧ ⇒ ⟦ B ⟧
-⟦ true  ! A ⇒ B ⟧ = L (⟦ A ⟧ ⇒ ⟦ B ⟧)
+⟦ ff !N ⟧ = N
+⟦ tt  !N ⟧ = L N
+⟦ ff ! A ⇒ B ⟧ = ⟦ A ⟧ ⇒ ⟦ B ⟧
+⟦ tt  ! A ⇒ B ⟧ = L (⟦ A ⟧ ⇒ ⟦ B ⟧)
 
 -- normalize a Tp as a Tp!
 infix 100 ⌈_⌉
 
 ⌈_⌉ : Tp → Tp!
-⌈ N ⌉       = false !N
+⌈ N ⌉       = ff !N
 ⌈ L T ⌉     = ↑ ⌈ T ⌉
-⌈ T ⇒ T' ⌉  = false ! ⌈ T ⌉ ⇒ ⌈ T' ⌉
+⌈ T ⇒ T' ⌉  = ff ! ⌈ T ⌉ ⇒ ⌈ T' ⌉
 
 -- Soundness
 
-nat-sound : ∀ {b b' : Bool} →
-            layerOK b b' ≡ true →
+nat-sound : ∀ {b b' : 𝔹} →
+            layerOK b b' ≡ tt →
             ⟦ b !N ⟧ <: ⟦ b' !N ⟧
-nat-sound {false} {false} refl = refl-raw
-nat-sound {false} {true} refl = Pure
-nat-sound {true} {true} refl = refl-raw
-nat-sound {true} {false} ()
+nat-sound {ff} {ff} refl = refl-raw
+nat-sound {ff} {tt} refl = Pure
+nat-sound {tt} {tt} refl = refl-raw
+nat-sound {tt} {ff} ()
 
 -- ⟦ ↑ A⟧ <: L ⟦ A ⟧
 ↑<L⟦⟧ : ∀ (A : Tp!) → ⟦ ↑ A ⟧ <: L ⟦ A ⟧
-↑<L⟦⟧ (false !N) = refl-raw
-↑<L⟦⟧ (true  !N) = Pure
-↑<L⟦⟧ (false ! A ⇒ B) = refl-raw
-↑<L⟦⟧ (true !  A ⇒ B) = Pure
+↑<L⟦⟧ (ff !N) = refl-raw
+↑<L⟦⟧ (tt  !N) = Pure
+↑<L⟦⟧ (ff ! A ⇒ B) = refl-raw
+↑<L⟦⟧ (tt !  A ⇒ B) = Pure
 
 -- L ⟦ A ⟧ <: ⟦ ↑ A ⟧
 L⟦⟧<↑ : ∀ (A : Tp!) → L ⟦ A ⟧ <: ⟦ ↑ A ⟧
-L⟦⟧<↑ (false !N) = refl-raw
-L⟦⟧<↑ (true  !N) = Join
-L⟦⟧<↑ (false ! A ⇒ B) = refl-raw
-L⟦⟧<↑ (true  ! A ⇒ B) = Join
+L⟦⟧<↑ (ff !N) = refl-raw
+L⟦⟧<↑ (tt  !N) = Join
+L⟦⟧<↑ (ff ! A ⇒ B) = refl-raw
+L⟦⟧<↑ (tt  ! A ⇒ B) = Join
 
 -- Soundness for ordinary function rule (not seq shaped)
-funOrd-sound : ∀ {b b' : Bool} {A B A' B' : Tp!} →
-               layerOK b b' ≡ true →
+funOrd-sound : ∀ {b b' : 𝔹} {A B A' B' : Tp!} →
+               layerOK b b' ≡ tt →
                ⟦ A' ⟧ <: ⟦ A ⟧ →
                ⟦ B  ⟧ <: ⟦ B' ⟧ →
                ⟦ b ! A ⇒ B ⟧ <: ⟦ b' ! A' ⇒ B' ⟧
-funOrd-sound {false} {false} ok dom cod =
+funOrd-sound {ff} {ff} ok dom cod =
   Fun dom cod
-funOrd-sound {false} {true} ok dom cod =
+funOrd-sound {ff} {tt} ok dom cod =
   Trans (Fun dom cod) Pure
-funOrd-sound {true} {false} () dom cod
-funOrd-sound {true} {true} ok dom cod =
+funOrd-sound {tt} {ff} () dom cod
+funOrd-sound {tt} {tt} ok dom cod =
   Cov (Fun dom cod)
 
--- Soundness for Seq-shaped function rule where b, b' = false
+-- Soundness for Seq-shaped function rule where b, b' = ff
 seq-core-sound : ∀ {A B A' B' : Tp!} →
                  ⟦ A' ⟧ <: ⟦ ↑ A ⟧ →
                  ⟦ ↑ B ⟧ <: ⟦ B' ⟧ →
@@ -196,26 +168,26 @@ seq-core-sound {A} {B} dom cod =
          (Trans (L⟦⟧<↑ B) cod))
 
 -- Soundness for the full Seq-shaped fun rule
-funSeq-sound : ∀ {b b' : Bool} {A B A' B' : Tp!} →
+funSeq-sound : ∀ {b b' : 𝔹} {A B A' B' : Tp!} →
                ⟦ A' ⟧ <: ⟦ ↑ A ⟧ →
                ⟦ ↑ B ⟧ <: ⟦ B' ⟧ →
                ⟦ b ! A ⇒ B ⟧ <: ⟦ b' ! A' ⇒ B' ⟧
-funSeq-sound {false} {false} dom cod =
+funSeq-sound {ff} {ff} dom cod =
   Trans Pure (seq-core-sound dom cod)
-funSeq-sound {false} {true} dom cod =
+funSeq-sound {ff} {tt} dom cod =
   Trans (Trans Pure (seq-core-sound dom cod)) Pure
-funSeq-sound {true} {false} dom cod =
+funSeq-sound {tt} {ff} dom cod =
   seq-core-sound dom cod
-funSeq-sound {true} {true} dom cod =
+funSeq-sound {tt} {tt} dom cod =
   Trans (seq-core-sound dom cod) Pure
 
 -- Main soundness theorem
 sound! : ∀ {A B : Tp!} → A <:! B → ⟦ A ⟧ <: ⟦ B ⟧
 sound! (Nat<! ok) =
   nat-sound ok
-sound! (Fun<! {q = false} ok dom cod) =
+sound! (Fun<! {q = ff} ok dom cod) =
   funOrd-sound ok (sound! dom) (sound! cod)
-sound! (Fun<! {q = true} ok dom cod) =
+sound! (Fun<! {q = tt} ok dom cod) =
   funSeq-sound (sound! dom) (sound! cod)
 
 -- T =: ⟦ ⌈ T ⌉ ⟧
@@ -240,50 +212,50 @@ mutual
 
 -- completeness for pure
 pure! : ∀ {A : Tp!} → A <:! ↑ A
-pure! {false !N} = Nat<! refl
-pure! {true  !N} = Nat<! refl
-pure! {false ! A ⇒ B} =
-  Fun<! {q = false} refl <:!-refl <:!-refl
-pure! {true ! A ⇒ B} =
-  Fun<! {q = false} refl <:!-refl <:!-refl
+pure! {ff !N} = Nat<! refl
+pure! {tt  !N} = Nat<! refl
+pure! {ff ! A ⇒ B} =
+  Fun<! {q = ff} refl <:!-refl <:!-refl
+pure! {tt ! A ⇒ B} =
+  Fun<! {q = ff} refl <:!-refl <:!-refl
 
 -- completeness for join
 join! : ∀ {A : Tp!} → ↑ (↑ A) <:! ↑ A
-join! {false !N} = Nat<! refl
-join! {true  !N} = Nat<! refl
-join! {false ! A ⇒ B} =
-  Fun<! {q = false} refl <:!-refl <:!-refl
-join! {true ! A ⇒ B} =
-  Fun<! {q = false} refl <:!-refl <:!-refl
+join! {ff !N} = Nat<! refl
+join! {tt  !N} = Nat<! refl
+join! {ff ! A ⇒ B} =
+  Fun<! {q = ff} refl <:!-refl <:!-refl
+join! {tt ! A ⇒ B} =
+  Fun<! {q = ff} refl <:!-refl <:!-refl
 
 -- completeness for cov
 cov! : ∀ {A B : Tp!} → A <:! B → ↑ A <:! ↑ B
 cov! (Nat<! ok) =
   Nat<! refl
-cov! (Fun<! {q = true} ok dom cod) =
-  Fun<! {q = true} refl dom cod
-cov! (Fun<! {q = false} ok dom cod) =
-  Fun<! {q = false} refl dom cod
+cov! (Fun<! {q = tt} ok dom cod) =
+  Fun<! {q = tt} refl dom cod
+cov! (Fun<! {q = ff} ok dom cod) =
+  Fun<! {q = ff} refl dom cod
 
 -- completeness for Seq
 seq! : ∀ {A B : Tp!} →
-       (true ! A ⇒ B) <:! (false ! ↑ A ⇒ ↑ B)
+       (tt ! A ⇒ B) <:! (ff ! ↑ A ⇒ ↑ B)
 seq! =
-  Fun<! {q = true}
+  Fun<! {q = tt}
         refl
         <:!-refl
         <:!-refl
 
 -- Completeness for Trans
 
-layerOK-trans : ∀ (b₁ b₂ b₃ : Bool) →
-                layerOK b₁ b₂ ≡ true →
-                layerOK b₂ b₃ ≡ true →
-                layerOK b₁ b₃ ≡ true
-layerOK-trans false b₂    b₃    p q = refl
-layerOK-trans true  false b₃    ()
-layerOK-trans true  true  false p ()
-layerOK-trans true  true  true  p q = refl
+layerOK-trans : ∀ (b₁ b₂ b₃ : 𝔹) →
+                layerOK b₁ b₂ ≡ tt →
+                layerOK b₂ b₃ ≡ tt →
+                layerOK b₁ b₃ ≡ tt
+layerOK-trans ff b₂    b₃    p q = refl
+layerOK-trans tt  ff b₃    ()
+layerOK-trans tt  tt  ff p ()
+layerOK-trans tt  tt  tt  p q = refl
 
 {-# TERMINATING #-}
 trans! : ∀ {A B C : Tp!} →
@@ -298,17 +270,17 @@ trans!
 
 -- Ordinary followed by ordinary.
 trans!
-  (Fun<! {q = false}
+  (Fun<! {q = ff}
          {b = b₁} {b' = b₂}
          {A = A₁} {B = B₁}
          {A' = A₂} {B' = B₂}
          ok₁ dom₁ cod₁)
-  (Fun<! {q = false}
+  (Fun<! {q = ff}
          {b = .b₂} {b' = b₃}
          {A = .A₂} {B = .B₂}
          {A' = A₃} {B' = B₃}
          ok₂ dom₂ cod₂) =
-  Fun<! {q = false}
+  Fun<! {q = ff}
         {b = b₁} {b' = b₃}
         {A = A₁} {B = B₁}
         {A' = A₃} {B' = B₃}
@@ -318,27 +290,27 @@ trans!
 
 -- Ordinary followed by Seq-shaped.
 trans!
-  (Fun<! {q = false} ok₁ dom₁ cod₁)
-  (Fun<! {q = true} ok₂ dom₂ cod₂) =
-  Fun<! {q = true}
+  (Fun<! {q = ff} ok₁ dom₁ cod₁)
+  (Fun<! {q = tt} ok₂ dom₂ cod₂) =
+  Fun<! {q = tt}
     refl
     (trans! dom₂ ((cov! dom₁)))
     (trans! ((cov! cod₁)) cod₂)
 
 -- Seq-shaped followed by ordinary.
 trans!
-  (Fun<! {q = true} ok₁ dom₁ cod₁)
-  (Fun<! {q = false} ok₂ dom₂ cod₂) =
-  Fun<! {q = true}
+  (Fun<! {q = tt} ok₁ dom₁ cod₁)
+  (Fun<! {q = ff} ok₂ dom₂ cod₂) =
+  Fun<! {q = tt}
     refl
     (trans! dom₂ dom₁)
     (trans! cod₁ cod₂)
 
 -- Seq-shaped followed by Seq-shaped.
 trans!
-  (Fun<! {q = true} ok₁ dom₁ cod₁)
-  (Fun<! {q = true} ok₂ dom₂ cod₂) =
-  Fun<! {q = true}
+  (Fun<! {q = tt} ok₁ dom₁ cod₁)
+  (Fun<! {q = tt} ok₂ dom₂ cod₂) =
+  Fun<! {q = tt}
     refl
     (trans! dom₂ (trans! (cov! dom₁) join! ))
     (trans! (trans! cod₁ pure!) cod₂)
@@ -350,7 +322,7 @@ complete! NatRefl =
   Nat<! refl
 
 complete! (Fun dom cod) =
-  Fun<! {q = false} refl
+  Fun<! {q = ff} refl
         (complete! dom)
         (complete! cod)
 
