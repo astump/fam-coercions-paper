@@ -60,6 +60,11 @@ funOK : 𝔹 → 𝔹 → 𝔹 → 𝔹
 funOK ff b b' = layerOK b b'
 funOK tt  b b' = tt
 
+funOK-tt-tt : ∀{q b : 𝔹} → funOK q b tt ≡ tt 
+funOK-tt-tt {tt} {b} = refl
+funOK-tt-tt {ff} {tt} = refl
+funOK-tt-tt {ff} {ff} = refl
+
 -- New relation on Tp!
 infix 5 _<:!_
 
@@ -237,6 +242,18 @@ cov! (Fun<! {q = tt} ok dom cod) =
 cov! (Fun<! {q = ff} ok dom cod) =
   Fun<! {q = ff} refl dom cod
 
+↑lem1 : ∀{A' A : Tp!} →
+       A' <:! ↑ A →
+       ↑ A' <:! ↑ A
+↑lem1 {x !N} {x₁ !N} (Nat<! x₂) = Nat<! refl
+↑lem1 {x ! A' ⇒ A''} {x₁ ! A ⇒ A₁} (Fun<!{q} x₂ d d₁) = Fun<!{q} (funOK-tt-tt{q}{tt}) d d₁
+
+↑lem2 : ∀{A' A : Tp!} →
+        ↑ A <:! A' →
+        ↑ A <:! ↑ A'
+↑lem2 {x !N} {x₁ !N} (Nat<! x₂) = Nat<! refl
+↑lem2 {x ! A ⇒ A₁} {x₁ ! A' ⇒ A''} (Fun<!{q} x₂ d d₁) = Fun<!{q} (funOK-tt-tt{q}{tt}) d d₁
+
 -- completeness for Seq
 seq! : ∀ {A B : Tp!} →
        (tt ! A ⇒ B) <:! (ff ! ↑ A ⇒ ↑ B)
@@ -245,6 +262,10 @@ seq! =
         refl
         <:!-refl
         <:!-refl
+
+size : ∀{T T' : Tp!} → T <:! T' → ℕ
+size (Nat<! x) = 0
+size (Fun<! x d d₁) = suc (size d) + (size d₁)
 
 -- Completeness for Trans
 
@@ -258,18 +279,19 @@ layerOK-trans tt  tt  ff p ()
 layerOK-trans tt  tt  tt  p q = refl
 
 {-# TERMINATING #-}
-trans! : ∀ {A B C : Tp!} →
-         A <:! B →
-         B <:! C →
+trans! : ∀ {n : ℕ}{A B C : Tp!} →
+         (d : A <:! B) →
+         (d' : B <:! C) →
+         size d + size d' ≤ n ≡ tt → 
          A <:! C
 -- Atomic case.
 trans!
   (Nat<! {b = b₁} {b' = b₂} ok₁)
-  (Nat<! {b = .b₂} {b' = b₃} ok₂) =
+  (Nat<! {b = .b₂} {b' = b₃} ok₂) _ =
   Nat<! (layerOK-trans b₁ b₂ b₃ ok₁ ok₂)
 
 -- Ordinary followed by ordinary.
-trans!
+trans!{suc n}
   (Fun<! {q = ff}
          {b = b₁} {b' = b₂}
          {A = A₁} {B = B₁}
@@ -279,41 +301,45 @@ trans!
          {b = .b₂} {b' = b₃}
          {A = .A₂} {B = .B₂}
          {A' = A₃} {B' = B₃}
-         ok₂ dom₂ cod₂) =
+         ok₂ dom₂ cod₂)
+  u =
   Fun<! {q = ff}
         {b = b₁} {b' = b₃}
         {A = A₁} {B = B₁}
         {A' = A₃} {B' = B₃}
         (layerOK-trans b₁ b₂ b₃ ok₁ ok₂)
-        (trans! dom₂ dom₁)
-        (trans! cod₁ cod₂)
+        (trans!{n} dom₂ dom₁ {!!})
+        (trans!{n} cod₁ cod₂ {!!})
 
 -- Ordinary followed by Seq-shaped.
-trans!
+trans!{suc n}
   (Fun<! {q = ff} ok₁ dom₁ cod₁)
-  (Fun<! {q = tt} ok₂ dom₂ cod₂) =
+  (Fun<! {q = tt} ok₂ dom₂ cod₂)
+  u =
   Fun<! {q = tt}
     refl
-    (trans! dom₂ ((cov! dom₁)))
-    (trans! ((cov! cod₁)) cod₂)
+    (trans!{n} dom₂ (cov! dom₁) {!!})
+    (trans!{n} (cov! cod₁) cod₂ {!!})
 
 -- Seq-shaped followed by ordinary.
-trans!
+trans!{suc n}
   (Fun<! {q = tt} ok₁ dom₁ cod₁)
-  (Fun<! {q = ff} ok₂ dom₂ cod₂) =
+  (Fun<! {q = ff} ok₂ dom₂ cod₂)
+  u =
   Fun<! {q = tt}
     refl
-    (trans! dom₂ dom₁)
-    (trans! cod₁ cod₂)
+    (trans!{n} dom₂ dom₁ {!!})
+    (trans!{n} cod₁ cod₂ {!!})
 
 -- Seq-shaped followed by Seq-shaped.
-trans!
+trans!{suc n}
   (Fun<! {q = tt} ok₁ dom₁ cod₁)
-  (Fun<! {q = tt} ok₂ dom₂ cod₂) =
+  (Fun<! {q = tt} ok₂ dom₂ cod₂)
+  u =
   Fun<! {q = tt}
     refl
-    (trans! dom₂ (trans! (cov! dom₁) join! ))
-    (trans! (trans! cod₁ pure!) cod₂)
+    (trans!{n} dom₂ (↑lem1 dom₁) {!!}) 
+    (trans!{n} (↑lem2 cod₁) cod₂ {!!}) 
 
 
 -- Full Completeness
@@ -338,4 +364,5 @@ complete! (Cov p) =
 complete! Join =
   join!
 
-complete! (Trans p q) = trans! (complete! p) (complete! q)
+complete! (Trans p q) = trans!{size (complete! p) + size (complete! q)} (complete! p) (complete! q)
+                            (≤-refl (size (complete! p) + size (complete! q)))
