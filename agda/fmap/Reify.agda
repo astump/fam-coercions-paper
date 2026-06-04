@@ -8,6 +8,10 @@ open import fmap.TypeIso
 
 -- reification for the algebraic system relative to the normal system
 
+lift-arr : {a b u v : D.ty} → N.coe-arr (a , b) (u , v) → N.coe-arr (D.f a , D.f b) (D.f u , D.f v)
+lift-arr (N.ca-arr c d) = N.ca-arr (N.c-mono c) (N.c-mono d)
+lift-arr (N.ca-fmap c) = N.ca-fmap (lift-arr c)
+
 -----------
 -- reify --
 -----------
@@ -21,7 +25,13 @@ reify-F (A.c-F-mono c) = N.c-mono (reify-F c)
 reify-F (A.c-F-noF c) = N.c-mono (reify-noF c)
 reify-noF A.c-noF-id = N.c-id
 reify-noF (A.c-noF-arr c) = N.c-arr (reify-arr c)
-reify-arr c = {!!}
+reify-arr (A.c-arr-fmap-l c) = N.ca-fmap (reify-arr c)
+reify-arr (A.c-arr-fmap-r c) = N.ca-fmap (reify-arr c)
+reify-arr (A.c-arr-fmap-arr c) = N.ca-fmap (reify-arr c)
+reify-arr (A.c-arr-mono c) =  lift-arr (reify-arr c)
+reify-arr (A.c-arr-l c d) = N.ca-arr (reify-F c) (reify-noF d)
+reify-arr (A.c-arr-r c d) = N.ca-arr (reify-noF c) (reify-F d)
+reify-arr (A.c-arr-arr c d) =  N.ca-arr (reify-noF c) (reify-noF d)
 
 eval : {a b : D.ty} → N.coe a b → A.coe (eval-ty a) (eval-ty b)
 eval-F : {a b : D.ty} → N.coe a b → A.coe-F (eval-ty-F a) (eval-ty-F b)
@@ -31,7 +41,6 @@ eval-arr : {a b u v : D.ty} →
 eval N.c-id = A.c-ty-noF A.c-noF-id
 eval (N.c-mono c) = A.c-ty-F (eval-F c)
 eval (N.c-arr c) = A.c-ty-noF (A.c-noF-arr (eval-arr c))
-eval-arr {D.f a} {D.f b} {D.f u} {D.f v} (N.ca-arr c d) = {!!}
-eval-arr {a} {b} {u} {v} (N.ca-arr c d) = {!!}
+eval-arr (N.ca-arr c d) = {!!}
 eval-arr (N.ca-fmap c) = {!!}
-eval-F c = {!!}
+eval-F  c = {!!}
