@@ -91,27 +91,27 @@ mk-arr : {a b u v : D.ty} →
   A.coe (eval-ty b) (eval-ty v) →
   A.coe-arr (eval-ty-arr a b) (eval-ty-arr u v)
 
+mk-arr {D.f a} {D.f b} {D.f u} {D.f v} (A.c-ty-F c) (A.c-ty-F d) = mk-arr-lift c d
 mk-arr {D.base} {D.base} {D.base} {D.base} c d = A.c-arr-arr A.c-noF-id A.c-noF-id
+mk-arr {D.f a} {D.base} {D.f u} {D.base} (A.c-ty-F c) (A.c-ty-noF c₁) = A.c-arr-l c c₁
+mk-arr {D.f a} {D.base} {D.f u} {v D.⇒ v₁} (A.c-ty-F c) (A.c-ty-noF c₁) = A.c-arr-l c c₁
+mk-arr {D.f a} {b D.⇒ b₁} {D.f u} {D.base} (A.c-ty-F c) (A.c-ty-noF c₁) = A.c-arr-l c c₁
+mk-arr {D.f a} {b D.⇒ b₁} {D.f u} {v D.⇒ v₁} (A.c-ty-F c) (A.c-ty-noF c₁) = A.c-arr-l c c₁
+mk-arr {D.base} {D.f b} {D.base} {D.f v} (A.c-ty-noF c) (A.c-ty-F c₁) = A.c-arr-r c c₁
+mk-arr {D.base} {D.f b} {u D.⇒ u₁} {D.f v} (A.c-ty-noF c) (A.c-ty-F c₁) = A.c-arr-r c c₁
+mk-arr {a D.⇒ a₁} {D.f b} {D.base} {D.f v} (A.c-ty-noF c) (A.c-ty-F c₁) = A.c-arr-r c c₁
+mk-arr {a D.⇒ a₁} {D.f b} {u D.⇒ u₁} {D.f v} (A.c-ty-noF c) (A.c-ty-F c₁) = A.c-arr-r c c₁
 mk-arr {D.base} {D.base} {D.base} {v D.⇒ v₁} (A.c-ty-noF c) (A.c-ty-noF c₁) = A.c-arr-arr c c₁
 mk-arr {D.base} {D.base} {u D.⇒ u₁} {D.base} (A.c-ty-noF c) (A.c-ty-noF c₁) = A.c-arr-arr c c₁
 mk-arr {D.base} {D.base} {u D.⇒ u₁} {v D.⇒ v₁} (A.c-ty-noF c) (A.c-ty-noF c₁) = A.c-arr-arr c c₁
-mk-arr {D.base} {D.f b} {D.base} {D.f v} (A.c-ty-noF c) (A.c-ty-F c₁) = A.c-arr-r c c₁
-mk-arr {D.base} {D.f b} {u D.⇒ u₁} {D.f v} (A.c-ty-noF c) (A.c-ty-F c₁) = A.c-arr-r c c₁
 mk-arr {D.base} {b D.⇒ b₁} {D.base} {D.base} (A.c-ty-noF c) (A.c-ty-noF c₁) = A.c-arr-arr c c₁
 mk-arr {D.base} {b D.⇒ b₁} {D.base} {v D.⇒ v₁} (A.c-ty-noF c) (A.c-ty-noF c₁) = A.c-arr-arr c c₁
 mk-arr {D.base} {b D.⇒ b₁} {u D.⇒ u₁} {D.base} (A.c-ty-noF c) (A.c-ty-noF c₁) = A.c-arr-arr c c₁
 mk-arr {D.base} {b D.⇒ b₁} {u D.⇒ u₁} {v D.⇒ v₁} (A.c-ty-noF c) (A.c-ty-noF c₁) = A.c-arr-arr c c₁
-mk-arr {D.f a} {D.base} {D.f u} {D.base} (A.c-ty-F c) (A.c-ty-noF c₁) = A.c-arr-l c c₁
-mk-arr {D.f a} {D.base} {D.f u} {v D.⇒ v₁} (A.c-ty-F c) (A.c-ty-noF c₁) = A.c-arr-l c c₁
-mk-arr {D.f a} {D.f b} {D.f u} {D.f v} (A.c-ty-F c) (A.c-ty-F d) = mk-arr-lift c d
-mk-arr {D.f a} {b D.⇒ b₁} {D.f u} {D.base} (A.c-ty-F c) (A.c-ty-noF c₁) = A.c-arr-l c c₁
-mk-arr {D.f a} {b D.⇒ b₁} {D.f u} {v D.⇒ v₁} (A.c-ty-F c) (A.c-ty-noF c₁) = A.c-arr-l c c₁
 mk-arr {a D.⇒ a₁} {D.base} {D.base} {D.base} (A.c-ty-noF c) (A.c-ty-noF c₁) = A.c-arr-arr c c₁
 mk-arr {a D.⇒ a₁} {D.base} {D.base} {v D.⇒ v₁} (A.c-ty-noF c) (A.c-ty-noF c₁) = A.c-arr-arr c c₁
 mk-arr {a D.⇒ a₁} {D.base} {u D.⇒ u₁} {D.base} (A.c-ty-noF c) (A.c-ty-noF c₁) = A.c-arr-arr c c₁
 mk-arr {a D.⇒ a₁} {D.base} {u D.⇒ u₁} {v D.⇒ v₁} (A.c-ty-noF c) (A.c-ty-noF c₁) = A.c-arr-arr c c₁
-mk-arr {a D.⇒ a₁} {D.f b} {D.base} {D.f v} (A.c-ty-noF c) (A.c-ty-F c₁) = A.c-arr-r c c₁
-mk-arr {a D.⇒ a₁} {D.f b} {u D.⇒ u₁} {D.f v} (A.c-ty-noF c) (A.c-ty-F c₁) = A.c-arr-r c c₁
 mk-arr {a D.⇒ a₁} {b D.⇒ b₁} {D.base} {D.base} (A.c-ty-noF c) (A.c-ty-noF c₁) = A.c-arr-arr c c₁
 mk-arr {a D.⇒ a₁} {b D.⇒ b₁} {D.base} {v D.⇒ v₁} (A.c-ty-noF c) (A.c-ty-noF c₁) = A.c-arr-arr c c₁
 mk-arr {a D.⇒ a₁} {b D.⇒ b₁} {u D.⇒ u₁} {D.base} (A.c-ty-noF c) (A.c-ty-noF c₁) = A.c-arr-arr c c₁
@@ -120,20 +120,14 @@ mk-arr {a D.⇒ a₁} {b D.⇒ b₁} {u D.⇒ u₁} {v D.⇒ v₁} (A.c-ty-noF c
 mk-fmap : {a b : D.ty} {u : A.ty-arr} →
   A.coe-arr (eval-ty-arr a b) u →
   A.coe-arr (eval-ty-arr a b) (A.ty-arr-lift u)
-mk-fmap {D.base} {D.base} {u} c = A.c-arr-fmap-arr c
-mk-fmap {D.base} {D.f b} {u} (A.c-arr-fmap-r c) = A.c-arr-fmap-r (A.c-arr-fmap-r c)
-mk-fmap {D.base} {D.f b} {u} (A.c-arr-r x x₁) = A.c-arr-fmap-r (A.c-arr-r x x₁)
-mk-fmap {D.base} {b D.⇒ b₁} {u} (A.c-arr-fmap-arr c) = A.c-arr-fmap-arr (A.c-arr-fmap-arr c)
-mk-fmap {D.base} {b D.⇒ b₁} {u} (A.c-arr-arr x x₁) = A.c-arr-fmap-arr (A.c-arr-arr x x₁)
-mk-fmap {D.f a} {D.base} {u} (A.c-arr-fmap-l c) = A.c-arr-fmap-l (A.c-arr-fmap-l c)
-mk-fmap {D.f a} {D.base} {u} (A.c-arr-l x x₁) = A.c-arr-fmap-l (A.c-arr-l x x₁)
 mk-fmap {D.f a} {D.f b} {u} (A.c-arr-mono c) = A.c-arr-mono (mk-fmap c)
-mk-fmap {D.f a} {b D.⇒ b₁} {u} (A.c-arr-fmap-l c) = A.c-arr-fmap-l (A.c-arr-fmap-l c)
-mk-fmap {D.f a} {b D.⇒ b₁} {u} (A.c-arr-l x x₁) = A.c-arr-fmap-l (A.c-arr-l x x₁)
-mk-fmap {a D.⇒ a₁} {D.base} {u} (A.c-arr-fmap-arr c) = A.c-arr-fmap-arr (A.c-arr-fmap-arr c)
-mk-fmap {a D.⇒ a₁} {D.base} {u} (A.c-arr-arr x x₁) = A.c-arr-fmap-arr (A.c-arr-arr x x₁)
-mk-fmap {a D.⇒ a₁} {D.f b} {u} (A.c-arr-fmap-r c) = A.c-arr-fmap-r (A.c-arr-fmap-r c)
-mk-fmap {a D.⇒ a₁} {D.f b} {u} (A.c-arr-r x x₁) = A.c-arr-fmap-r (A.c-arr-r x x₁)
+mk-fmap {D.f a} {D.base} {u} c = A.c-arr-fmap-l c
+mk-fmap {D.f a} {b D.⇒ b₁} {u} c = A.c-arr-fmap-l c
+mk-fmap {D.base} {D.f b} {u} c = A.c-arr-fmap-r c
+mk-fmap {a D.⇒ a₁} {D.f b} {u} c = A.c-arr-fmap-r c
+mk-fmap {D.base} {D.base} {u} c = A.c-arr-fmap-arr c
+mk-fmap {D.base} {b D.⇒ b₁} {u} c = A.c-arr-fmap-arr c
+mk-fmap {a D.⇒ a₁} {D.base} {u} c = A.c-arr-fmap-arr c
 mk-fmap {a D.⇒ a₁} {b D.⇒ b₁} {u} c = A.c-arr-fmap-arr c
 
 eval : {a b : D.ty} → N.coe a b → A.coe (eval-ty a) (eval-ty b)
