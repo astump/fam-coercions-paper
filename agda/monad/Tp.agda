@@ -15,10 +15,10 @@ Normalized boolean types
 Tp! collapses all applications of L to one boolean flag.
 
   ff !N   means N
-  tt  !N   means L⁺ N
+  tt !N   means L⁺ N
 
   ff ! A ⇒ B  means A ⇒ B
-  tt  ! A ⇒ B  means L⁺ (A ⇒ B)
+  tt ! A ⇒ B  means L⁺ (A ⇒ B)
 -}
 
 data Tp! : Set where
@@ -27,3 +27,14 @@ data Tp! : Set where
 
 infixr 9 _!_⇒_
 infixr 10 _!N
+
+-- Force the layer bit to tt
+infix 30 ↑_
+↑_ : Tp! → Tp!
+↑ (_ !N)      = tt !N
+↑ (_ ! A ⇒ B) = tt ! A ⇒ B
+
+-- If tt, force a positive layer
+bump! : 𝔹 → Tp! → Tp!
+bump! ff A = A
+bump! tt A = ↑ A
