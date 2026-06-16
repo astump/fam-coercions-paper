@@ -52,7 +52,8 @@ funSeq-sound {tt} {ff} dom cod =
 funSeq-sound {tt} {tt} dom cod =
   Trans (seq-core-sound dom cod) Pure
 
--- Main soundness theorem
+-- See 10.5.4 of verified functional programing in Agda
+-- -- Main soundness theorem
 sound! : ∀ {A B : Tp!} → A <:! B → ⟦ A ⟧ <: ⟦ B ⟧
 sound! (Nat<! ok) =
   nat-sound ok
@@ -60,3 +61,6 @@ sound! (Fun<! {q = ff} ok dom cod) =
   funOrd-sound ok (sound! dom) (sound! cod)
 sound! (Fun<! {q = tt} ok dom cod) =
   funSeq-sound (sound! dom) (sound! cod)
+
+sound!' : ∀ {A B : Tp} → ⌈ A ⌉ <:! ⌈ B ⌉ → A <: B
+sound!' {A} {B} d = Trans (raw<norm A) (Trans (sound! d) (norm<raw B))
