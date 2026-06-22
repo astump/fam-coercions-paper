@@ -72,17 +72,37 @@ reify-arr (A.c-arr-l c d) = N.ca-arr (reify-F c) (reify-noF d)
 reify-arr (A.c-arr-r c d) = N.ca-arr (reify-noF c) (reify-F d)
 reify-arr (A.c-arr-arr c d) =  N.ca-arr (reify-noF c) (reify-noF d)
 
+repr-ty-arr-inj : ∀ {a b} {ab ab'} →
+  repr-ty-arr ab a b →
+  repr-ty-arr ab' a b →
+  ab ≡ ab'
 repr-ty-noF-inj₁ : ∀ {u} {a b} →
   repr-ty-noF a u →
   repr-ty-noF b u →
   a ≡ b
-repr-ty-noF-inj₁ r-a r-b = {!!}
-
 repr-ty-F-inj₁ : ∀ {u} {a b} →
   repr-ty-F a u →
   repr-ty-F b u →
   a ≡ b
-repr-ty-F-inj₁ r-a r-b = {!!}
+repr-ty-arr-inj (repr-ty-arr-lift r-ab) (repr-ty-arr-lift r-ab') rewrite repr-ty-arr-inj r-ab r-ab' = refl
+repr-ty-arr-inj (repr-ty-arr-l r-a r-b) (repr-ty-arr-l r-a' r-b')
+  rewrite repr-ty-F-inj₁ r-a r-a'
+        | repr-ty-noF-inj₁ r-b r-b'
+  = refl
+repr-ty-arr-inj (repr-ty-arr-r r-a r-b) (repr-ty-arr-r r-a' r-b')
+  rewrite repr-ty-noF-inj₁ r-a r-a'
+        | repr-ty-F-inj₁ r-b r-b'
+  = refl
+repr-ty-arr-inj (repr-ty-arr-arr r-a r-b) (repr-ty-arr-arr r-a' r-b')
+  rewrite repr-ty-noF-inj₁ r-a r-a'
+        | repr-ty-noF-inj₁ r-b r-b'
+  = refl
+
+repr-ty-noF-inj₁ repr-ty-noF-bool repr-ty-noF-bool = refl
+repr-ty-noF-inj₁ (repr-ty-noF-arr r-a) (repr-ty-noF-arr r-b) rewrite repr-ty-arr-inj r-a r-b = refl
+
+repr-ty-F-inj₁ (repr-ty-F-F r-a) (repr-ty-F-F r-b) rewrite repr-ty-F-inj₁ r-a r-b = refl
+repr-ty-F-inj₁ (repr-ty-F-noF r-a) (repr-ty-F-noF r-b) rewrite repr-ty-noF-inj₁ r-a r-b = refl
 
 repr-mk-ty-arr : ∀ {ab} {a b} {a' b'} →
   repr-ty-arr ab a b →
