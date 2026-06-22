@@ -152,3 +152,40 @@ reify-eval-arr-F-F (A.ty-arr-r a b)
 reify-eval-arr-F-F (A.ty-arr-arr a b)
   rewrite reify-eval-ty-F-noF a
         | reify-eval-ty-F-noF b = refl
+
+
+-- A relational formulation of the isomorphism.
+-- TODO: prove that this relation is the graph of reify-ty.
+data repr-ty : A.ty → D.ty → Set
+data repr-ty-F : A.ty-F → D.ty → Set
+data repr-ty-noF : A.ty-noF → D.ty → Set
+data repr-ty-arr : A.ty-arr → D.ty → D.ty → Set
+
+data repr-ty where
+  repr-ty-ty-F : ∀ {a d} → repr-ty-F a d → repr-ty (A.ty-ty-F a) (D.f d)
+  repr-ty-ty-noF : ∀ {a d} → repr-ty-noF a d → repr-ty (A.ty-ty-noF a) d
+
+data repr-ty-F where
+  repr-ty-F-F : ∀ {a d} → repr-ty-F a d → repr-ty-F (A.ty-F-F a) (D.f d)
+  repr-ty-F-noF : ∀ {a d} → repr-ty-noF a d → repr-ty-F (A.ty-F-noF a) d
+
+data repr-ty-noF where
+  repr-ty-noF-bool : repr-ty-noF A.nt-bool D.base
+  repr-ty-noF-arr : ∀ {a d₁ d₂} → repr-ty-arr a d₁ d₂ → repr-ty-noF (A.nt-arr a) (d₁ D.⇒ d₂)
+
+data repr-ty-arr where
+  repr-ty-arr-lift : ∀ {a d₁ d₂} →
+    repr-ty-arr a d₁ d₂ →
+    repr-ty-arr (A.ty-arr-lift a) (D.f d₁) (D.f d₂)
+  repr-ty-arr-l : ∀ {a₁ a₂ d₁ d₂} →
+    repr-ty-F a₁ d₁ →
+    repr-ty-noF a₂ d₂ →
+    repr-ty-arr (A.ty-arr-l a₁ a₂) (D.f d₁) d₂
+  repr-ty-arr-r : ∀ {a₁ a₂ d₁ d₂} →
+    repr-ty-noF a₁ d₁ →
+    repr-ty-F a₂ d₂ →
+    repr-ty-arr (A.ty-arr-r a₁ a₂) d₁ (D.f d₂)
+  repr-ty-arr-arr : ∀ {a₁ a₂ d₁ d₂} →
+    repr-ty-noF a₁ d₁ →
+    repr-ty-noF a₂ d₂ →
+    repr-ty-arr (A.ty-arr-arr a₁ a₂) d₁ d₂

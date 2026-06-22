@@ -11,4 +11,6 @@ data coe where
   c-arr : ∀ {a b u v} → coe-arr (a , b) (u , v) → coe (a D.⇒ b) (u D.⇒ v)
 data coe-arr where
   ca-arr : ∀ {a b u v} → coe u a → coe b v → coe-arr (a , b) (u , v)
-  ca-fmap : ∀ {a b u v} → coe-arr (a , b) (u , v) → coe-arr (a , b) (D.f u , D.f v)
+  ca-fmap : ∀ {a b u v} →
+    coe-arr (a , b) (u , v) →
+    coe-arr (a , b) (D.f u , D.f v)
