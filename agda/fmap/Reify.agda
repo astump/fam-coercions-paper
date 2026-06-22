@@ -12,6 +12,15 @@ lift-arr : {a b u v : D.ty} → N.coe-arr (a , b) (u , v) → N.coe-arr (D.f a ,
 lift-arr (N.ca-arr c d) = N.ca-arr (N.c-mono c) (N.c-mono d)
 lift-arr (N.ca-fmap c) = N.ca-fmap (lift-arr c)
 
+mk-fmap : {a b : A.ty-arr} → A.coe-arr a b → A.coe-arr a (A.ty-arr-lift b)
+mk-fmap (A.c-arr-fmap-l c) = A.c-arr-fmap-l (mk-fmap c)
+mk-fmap (A.c-arr-fmap-r c) = A.c-arr-fmap-r (mk-fmap c)
+mk-fmap (A.c-arr-fmap-arr c) = A.c-arr-fmap-arr (mk-fmap c)
+mk-fmap (A.c-arr-mono c) = A.c-arr-mono (mk-fmap c)
+mk-fmap (A.c-arr-l c d) = A.c-arr-fmap-l (A.c-arr-l c d)
+mk-fmap (A.c-arr-r c d) = A.c-arr-fmap-r (A.c-arr-r c d)
+mk-fmap (A.c-arr-arr c d) = A.c-arr-fmap-arr (A.c-arr-arr c d)
+
 mk-f : A.ty → A.ty
 mk-f (A.ty-ty-F t) = A.ty-ty-F (A.ty-F-F t)
 mk-f (A.ty-ty-noF t) = A.ty-ty-F (A.ty-F-noF t)
@@ -63,6 +72,70 @@ reify-arr (A.c-arr-l c d) = N.ca-arr (reify-F c) (reify-noF d)
 reify-arr (A.c-arr-r c d) = N.ca-arr (reify-noF c) (reify-F d)
 reify-arr (A.c-arr-arr c d) =  N.ca-arr (reify-noF c) (reify-noF d)
 
+repr-ty-noF-inj₁ : ∀ {u} {a b} →
+  repr-ty-noF a u →
+  repr-ty-noF b u →
+  a ≡ b
+repr-ty-noF-inj₁ r-a r-b = {!!}
+
+repr-ty-F-inj₁ : ∀ {u} {a b} →
+  repr-ty-F a u →
+  repr-ty-F b u →
+  a ≡ b
+repr-ty-F-inj₁ r-a r-b = {!!}
+
+repr-mk-ty-arr : ∀ {ab} {a b} {a' b'} →
+  repr-ty-arr ab a b →
+  repr-ty a' a →
+  repr-ty b' b →
+  ab ≡ mk-ty-arr a' b'
+repr-mk-ty-arr-F : ∀ {ab} {a b} {a' b'} →
+  repr-ty-arr ab a b →
+  repr-ty-F a' a →
+  repr-ty-F b' b →
+  ab ≡ mk-ty-arr-F-F a' b'
+repr-mk-ty-arr (repr-ty-arr-lift r-ab) (repr-ty-ty-F r-a) (repr-ty-ty-F r-b)
+  rewrite repr-mk-ty-arr-F r-ab r-a r-b = refl
+repr-mk-ty-arr (repr-ty-arr-l r-a' r-b') (repr-ty-ty-F r-a) (repr-ty-ty-noF r-b)
+  rewrite repr-ty-noF-inj₁ r-b r-b'
+        | repr-ty-F-inj₁ r-a r-a' = refl
+repr-mk-ty-arr (repr-ty-arr-r r-a' r-b') (repr-ty-ty-noF r-a) (repr-ty-ty-F r-b)
+  rewrite repr-ty-noF-inj₁ r-a r-a'
+        | repr-ty-F-inj₁ r-b r-b' = refl
+repr-mk-ty-arr (repr-ty-arr-arr r-a' r-b') (repr-ty-ty-noF r-a) (repr-ty-ty-noF r-b)
+  rewrite repr-ty-noF-inj₁ r-a r-a'
+        | repr-ty-noF-inj₁ r-b r-b' = refl
+repr-mk-ty-arr-F (repr-ty-arr-lift r-ab) (repr-ty-F-F r-a) (repr-ty-F-F r-b)
+  rewrite repr-mk-ty-arr-F r-ab r-a r-b = refl
+repr-mk-ty-arr-F (repr-ty-arr-l r-a' r-b') (repr-ty-F-F r-a) (repr-ty-F-noF r-b)
+  rewrite repr-ty-noF-inj₁ r-b r-b'
+        | repr-ty-F-inj₁ r-a r-a' = refl
+repr-mk-ty-arr-F (repr-ty-arr-r r-a' r-b') (repr-ty-F-noF r-a) (repr-ty-F-F r-b)
+  rewrite repr-ty-noF-inj₁ r-a r-a'
+        | repr-ty-F-inj₁ r-b r-b' = refl
+repr-mk-ty-arr-F (repr-ty-arr-arr r-a' r-b') (repr-ty-F-noF r-a) (repr-ty-F-noF r-b)
+  rewrite repr-ty-noF-inj₁ r-a r-a'
+        | repr-ty-noF-inj₁ r-b r-b' = refl
+
+mk-arr' : ∀ {a b u v} →
+  A.coe u a →
+  A.coe b v →
+  A.coe-arr (mk-ty-arr a b) (mk-ty-arr u v)
+mk-arr-F' : ∀ {a b u v} →
+  A.coe-F u a →
+  A.coe-F b v →
+  A.coe-arr (mk-ty-arr-F-F a b) (mk-ty-arr-F-F u v)
+mk-arr' {A.ty-ty-F a} {A.ty-ty-F b} {A.ty-ty-F u} {A.ty-ty-F v}
+  (A.c-ty-F c) (A.c-ty-F d) = A.c-arr-mono (mk-arr-F' c d)
+mk-arr' (A.c-ty-F c) (A.c-ty-noF d) = A.c-arr-l c d
+mk-arr' (A.c-ty-noF c) (A.c-ty-F d) = A.c-arr-r c d
+mk-arr' (A.c-ty-noF c) (A.c-ty-noF d) = A.c-arr-arr c d
+mk-arr-F' {A.ty-F-F a} {A.ty-F-F b} {A.ty-F-F u} {A.ty-F-F v}
+  (A.c-F-mono c) (A.c-F-mono d) = A.c-arr-mono (mk-arr-F' c d)
+mk-arr-F' {a} {b} {u} {v} (A.c-F-mono c) (A.c-F-noF d) = A.c-arr-l c d
+mk-arr-F' {a} {b} {u} {v} (A.c-F-noF c) (A.c-F-mono d) = A.c-arr-r c d
+mk-arr-F' {a} {b} {u} {v} (A.c-F-noF c) (A.c-F-noF d) = A.c-arr-arr c d
+
 mk-arr : ∀ {a b u v} {a' b' u' v'} {ab uv} →
   repr-ty-arr ab a b →
   repr-ty-arr uv u v →
@@ -73,70 +146,9 @@ mk-arr : ∀ {a b u v} {a' b' u' v'} {ab uv} →
   A.coe u' a' →
   A.coe b' v' →
   A.coe-arr ab uv
-mk-arr-F-F : ∀ {a b u v} {a' b' u' v'} {ab uv} →
-  repr-ty-arr ab a b →
-  repr-ty-arr uv u v →
-  repr-ty-F a' a →
-  repr-ty-F b' b →
-  repr-ty-F u' u →
-  repr-ty-F v' v →
-  A.coe-F u' a' →
-  A.coe-F b' v' →
-  A.coe-arr ab uv
-mk-arr-noF-noF : ∀ {a b u v} {a' b' u' v'} {ab uv} →
-  repr-ty-arr ab a b →
-  repr-ty-arr uv u v →
-  repr-ty-noF a' a →
-  repr-ty-noF b' b →
-  repr-ty-noF u' u →
-  repr-ty-noF v' v →
-  A.coe-noF u' a' →
-  A.coe-noF b' v' →
-  A.coe-arr ab uv
-mk-arr-F-noF : ∀ {a b u v} {a' b' u' v'} {ab uv} →
-  repr-ty-arr ab (D.f a) b →
-  repr-ty-arr uv (D.f u) v →
-  repr-ty-F a' a →
-  repr-ty-noF b' b →
-  repr-ty-F u' u →
-  repr-ty-noF v' v →
-  A.coe-F u' a' →
-  A.coe-noF b' v' →
-  A.coe-arr ab uv
-mk-arr-noF-F : ∀ {a b u v} {a' b' u' v'} {ab uv} →
-  repr-ty-arr ab a (D.f b) →
-  repr-ty-arr uv u (D.f v) →
-  repr-ty-noF a' a →
-  repr-ty-F b' b →
-  repr-ty-noF u' u →
-  repr-ty-F v' v →
-  A.coe-noF u' a' →
-  A.coe-F b' v' →
-  A.coe-arr ab uv
-mk-arr-F-F (repr-ty-arr-lift r-ab) (repr-ty-arr-lift r-uv) (repr-ty-F-F r-a) (repr-ty-F-F r-b) (repr-ty-F-F r-u) (repr-ty-F-F r-v) (A.c-F-mono c) (A.c-F-mono d) = {!!}
-mk-arr-F-F (repr-ty-arr-lift r-ab) (repr-ty-arr-l r-uv) (repr-ty-F-F r-a) (repr-ty-F-F r-b) (repr-ty-F-F r-u) (repr-ty-F-F r-v) (A.c-F-mono c) (A.c-F-mono d) = {!!}
-mk-arr-F-F r-ab r-uv r-a r-b r-u r-v (A.c-F-mono c) (A.c-F-noF d) = {!!}
-mk-arr-F-F r-ab r-uv r-a r-b r-u r-v (A.c-F-noF c) (A.c-F-mono d) = {!!}
-mk-arr-F-F r-ab r-uv r-a r-b r-u r-v (A.c-F-noF c) (A.c-F-noF d) = {!!}
-mk-arr-noF-noF r-ab r-uv r-a r-b r-u r-v c d = {!!}
-mk-arr-F-noF r-ab r-uv r-a r-b r-u r-v c d = {!!}
-mk-arr-noF-F r-ab r-uv r-a r-b r-u r-v c d = {!!}
-mk-arr (repr-ty-arr-lift r-ab) (repr-ty-arr-lift r-uv)
-  (repr-ty-ty-F r-a)
-  (repr-ty-ty-F r-b)
-  (repr-ty-ty-F r-u)
-  (repr-ty-ty-F r-v)
-  (A.c-ty-F c) (A.c-ty-F d) = A.c-arr-mono (mk-arr-F-F r-ab r-uv r-a r-b r-u r-v c d)
-mk-arr r-ab r-uv (repr-ty-ty-F r-a) (repr-ty-ty-noF r-b) (repr-ty-ty-F r-u) (repr-ty-ty-noF r-v)
-  (A.c-ty-F c) (A.c-ty-noF d) = mk-arr-F-noF r-ab r-uv r-a r-b r-u r-v c d
-mk-arr r-ab r-uv (repr-ty-ty-noF r-a) (repr-ty-ty-F r-b) (repr-ty-ty-noF r-u) (repr-ty-ty-F r-v)
-  (A.c-ty-noF c) (A.c-ty-F d) = mk-arr-noF-F r-ab r-uv r-a r-b r-u r-v c d
-mk-arr r-ab r-uv (repr-ty-ty-noF r-a)
-                 (repr-ty-ty-noF r-b)
-                 (repr-ty-ty-noF r-u)
-                 (repr-ty-ty-noF r-v)
-                 (A.c-ty-noF c)
-                 (A.c-ty-noF d) = mk-arr-noF-noF r-ab r-uv r-a r-b r-u r-v c d
+mk-arr r-ab r-uv r-a r-b r-u r-v c d
+  rewrite repr-mk-ty-arr r-ab r-a r-b
+        | repr-mk-ty-arr r-uv r-u r-v = mk-arr' c d
 
 mk-F : {a b : D.ty} →
   A.coe (eval-ty a) (eval-ty b) →
@@ -180,6 +192,7 @@ eval-F (repr-ty-F-noF repr-ty-noF-bool) (repr-ty-F-noF repr-ty-noF-bool) N.c-id 
 eval-F (repr-ty-F-F r-a) (repr-ty-F-F r-b) (N.c-mono c) = A.c-F-mono (eval-F r-a r-b c)
 eval-F (repr-ty-F-noF (repr-ty-noF-arr r-a)) (repr-ty-F-noF (repr-ty-noF-arr r-b)) (N.c-arr c) =
   A.c-F-noF (A.c-noF-arr (eval-arr r-a r-b c))
+
 eval-arr r-ab r-uv (N.ca-arr c d) =
   let a' , r-a' = repr-ty-arr-inv-l r-ab in
   let b' , r-b' = repr-ty-arr-inv-r r-ab in
@@ -187,10 +200,5 @@ eval-arr r-ab r-uv (N.ca-arr c d) =
   let v' , r-v' = repr-ty-arr-inv-r r-uv in
   let x = eval r-u' r-a' c in
   let y = eval r-b' r-v' d in
-  {!!}
-  --{!mk-arr ? ? !}
-
-eval-arr (repr-ty-arr-lift r-ab) (repr-ty-arr-lift r-uv) (N.ca-fmap c') = {!!}
-eval-arr (repr-ty-arr-l c d) (repr-ty-arr-lift r-uv) (N.ca-fmap c') = A.c-arr-fmap-l (eval-arr (repr-ty-arr-l c d) r-uv c')
-eval-arr (repr-ty-arr-r c d) (repr-ty-arr-lift r-uv) (N.ca-fmap c') = A.c-arr-fmap-r (eval-arr (repr-ty-arr-r c d) r-uv c')
-eval-arr (repr-ty-arr-arr c d) (repr-ty-arr-lift r-uv) (N.ca-fmap c') = A.c-arr-fmap-arr (eval-arr (repr-ty-arr-arr c d) r-uv c')
+  mk-arr r-ab r-uv r-a' r-b' r-u' r-v' x y
+eval-arr r-ab (repr-ty-arr-lift r-uv) (N.ca-fmap c') = mk-fmap (eval-arr r-ab r-uv c')
