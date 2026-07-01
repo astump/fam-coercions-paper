@@ -9,23 +9,11 @@ open import Semantics
 open import Completeness
 open import Soundness
 
--- Equivalence of declarative coercions modulo monad laws
---
--- Two derivations d₁ d₂ : A <: B are equivalent, written d₁ ≃ d₂, if they
--- are equal up to the laws of a monad (which laws?)
---
+-- Equivalence of declarative coercions, modulo the monad laws
 -- See fmap/Decl.agda
--- Do these need to be justified somehow?
---
--- Note that these rules do not need to be complete, they just need
--- to be sufficient to prove the lemmas below.
---
 infix 4 _≃_
-
 data _≃_ : {A B : Tp} → A <: B → A <: B → Set where
-
-  -- Equivalence relation rules
-
+  -- Equivalence-relation rules.
   ≃-refl  : ∀ {A B} (d : A <: B) → d ≃ d
 
   ≃-sym   : ∀ {A B} {d₁ d₂ : A <: B}
@@ -36,8 +24,7 @@ data _≃_ : {A B : Tp} → A <: B → A <: B → Set where
             → d₁ ≃ d₂ → d₂ ≃ d₃
             → d₁ ≃ d₃
 
-  -- Congruence for each constructor that has sub-derivations as arguments
-
+  -- Congruence for each constructor with sub-derivations.
   ≃-cong-Fun   : ∀ {T1 T2 T1' T2'}
                  {d₁ d₁' : T1' <: T1} {d₂ d₂' : T2 <: T2'}
                  → d₁ ≃ d₁' → d₂ ≃ d₂'
@@ -52,26 +39,40 @@ data _≃_ : {A B : Tp} → A <: B → A <: B → Set where
                  → d₁ ≃ d₁' → d₂ ≃ d₂'
                  → Trans d₁ d₂ ≃ Trans d₁' d₂'
 
-  -- Monad Laws (what laws exactly?)
+  ≃-unitL : ∀ {A B} {d : A <: B} → Trans refl-raw d ≃ d
+  ≃-unitR : ∀ {A B} {d : A <: B} → Trans d refl-raw ≃ d
 
-  -- x >>= f =
-  -- Left identity:
-  -- return a >>= h = h a
-  --
-  -- is this join (Pure a) = a
-  -- ≃-monad-unit-l : ∀ {A} → {!!}
+  -- Trans is associative.
+  ≃-assoc : ∀ {A B C D} {d₁ : A <: B} {d₂ : B <: C} {d₃ : C <: D}
+            → Trans (Trans d₁ d₂) d₃ ≃ Trans d₁ (Trans d₂ d₃)
 
-  -- Right identity:
-  -- m >>= return = m 
-  -- ≃-monad-unit-r : ∀ {A} → {!!}
+  -- Naturality of Pure
+  ≃-Pure-nat : ∀ {A B} {d : A <: B} → Trans d Pure ≃ Trans Pure (Cov d)
 
-  -- Associativity:
-  -- (m >>= g) >>= h = m >>= (λ x → g x >>= h)
-  -- ≃-monad-assoc  : ∀ {A} → {!!}
+  ≃-Pure-Join-Cov : ∀ {A} → Trans (Pure {L A}) (Join {A}) ≃ Cov (refl-raw {A})
+  -- TODO: Add the remaining monad/applicative/functor laws
 
-  -- TODO : Add monad laws and applicative laws
+-- Congruence for nat-sound
+nat-cong : ∀ {b b' : 𝔹} (ok₁ ok₂ : layerOK b b' ≡ tt)
+           → nat-sound ok₁ ≃ nat-sound ok₂
+nat-cong {ff} {ff} refl refl = ≃-refl _
+nat-cong {ff} {tt} refl refl = ≃-refl _
+nat-cong {tt} {tt} refl refl = ≃-refl _
+nat-cong {tt} {ff} () _
 
--- Helper for sound!-unique: congruence for seq-core-sound
+-- Congruence for funOrd-sound
+funOrd-cong : ∀ {b b' : 𝔹} {A B A' B' : Tp!}
+              (ok₁ ok₂ : layerOK b b' ≡ tt)
+              {dom₁ dom₂ : ⟦ A' ⟧ <: ⟦ A ⟧}
+              {cod₁ cod₂ : ⟦ B ⟧ <: ⟦ B' ⟧}
+              → dom₁ ≃ dom₂ → cod₁ ≃ cod₂
+              → funOrd-sound ok₁ dom₁ cod₁ ≃ funOrd-sound ok₂ dom₂ cod₂
+funOrd-cong {ff} {ff} ok₁ ok₂ domeq codeq = ≃-cong-Fun domeq codeq
+funOrd-cong {ff} {tt} ok₁ ok₂ domeq codeq = ≃-cong-Trans (≃-cong-Fun domeq codeq) (≃-refl _)
+funOrd-cong {tt} {ff} () _ domeq codeq
+funOrd-cong {tt} {tt} ok₁ ok₂ domeq codeq = ≃-cong-Cov (≃-cong-Fun domeq codeq)
+
+-- Congruence for seq-core-sound
 seq-core-cong : ∀ {A B A' B' : Tp!}
                 {dom₁ dom₂ : ⟦ A' ⟧ <: ⟦ ↑ A ⟧}
                 {cod₁ cod₂ : ⟦ ↑ B ⟧ <: ⟦ B' ⟧}
@@ -82,145 +83,262 @@ seq-core-cong domeq codeq =
     (≃-cong-Fun (≃-cong-Trans domeq (≃-refl _))
                 (≃-cong-Trans (≃-refl _) codeq))
 
-sound!-trans : ∀ {n : ℕ} {A B C : Tp!}
-               (d₁ : A <:! B) (d₂ : B <:! C)
-               (ok : size d₁ + size d₂ ≤ n ≡ tt)
-               → sound! (trans! d₁ d₂ ok) ≃ Trans (sound! d₁) (sound! d₂)
-sound!-trans d₁ d₂ ok = {!!}
+-- Congruence for funSeq-sound
+funSeq-cong : ∀ {b b' : 𝔹} {A B A' B' : Tp!}
+              {dom₁ dom₂ : ⟦ A' ⟧ <: ⟦ ↑ A ⟧}
+              {cod₁ cod₂ : ⟦ ↑ B ⟧ <: ⟦ B' ⟧}
+              → dom₁ ≃ dom₂ → cod₁ ≃ cod₂
+              → funSeq-sound {b} {b'} {A} {B} dom₁ cod₁ ≃ funSeq-sound {b} {b'} dom₂ cod₂
+funSeq-cong {ff} {ff} domeq codeq = ≃-cong-Trans (≃-refl _) (seq-core-cong domeq codeq)
+funSeq-cong {ff} {tt} domeq codeq =
+  ≃-cong-Trans (≃-cong-Trans (≃-refl _) (seq-core-cong domeq codeq)) (≃-refl _)
+funSeq-cong {tt} {ff} domeq codeq = seq-core-cong domeq codeq
+funSeq-cong {tt} {tt} domeq codeq = ≃-cong-Trans (seq-core-cong domeq codeq) (≃-refl _)
 
--- Helper for sound!-unique: the ordinary and seq-shaped function rules are equivalent.
---
--- funOrd-sound or funSeq-sound take arguments of DIFFERENT types:
---
---   funOrd-sound ok  (dom  : ⟦ A' ⟧ <: ⟦ A  ⟧)  (cod  : ⟦ B  ⟧ <: ⟦ B' ⟧)
---   funSeq-sound     (dom' : ⟦ A' ⟧ <: ⟦ ↑ A ⟧)  (cod' : ⟦ ↑ B ⟧ <: ⟦ B' ⟧)
---
--- They are related by pure! : A <:! ↑ A, whose soundness gives
---   sound! (pure! {A}) : ⟦ A ⟧ <: ⟦ ↑ A ⟧
--- Proof sketch:
---   - case split on b and b' to reduce funOrd-sound and funSeq-sound
---   - substitute with hyp-cod and hyp-dom
---   - close with monad laws (probably add some)
+-- sound! of reflexivity is ≃ the declarative reflexivity
+sound!-refl : ∀ {A : Tp!} → sound! (refl! {A}) ≃ refl-raw {⟦ A ⟧}
+sound!-refl {ff !N}      = ≃-refl _
+sound!-refl {tt !N}      = ≃-refl _
+sound!-refl {ff ! A ⇒ B} = ≃-cong-Fun sound!-refl sound!-refl
+sound!-refl {tt ! A ⇒ B} = ≃-cong-Cov (≃-cong-Fun sound!-refl sound!-refl)
+
+-- reused lemma
+sound-pure-arr : ∀ {A B : Tp!} → sound! (pure! {ff ! A ⇒ B}) ≃ Pure
+sound-pure-arr =
+  ≃-trans (≃-cong-Trans (≃-cong-Fun sound!-refl sound!-refl) (≃-refl _)) ≃-unitL
+
+-- another usefull lemma
+sound-pure-arrL : ∀ {A B : Tp!} → sound! (pure! {tt ! A ⇒ B}) ≃ refl-raw {⟦ tt ! A ⇒ B ⟧}
+sound-pure-arrL = ≃-cong-Cov (≃-cong-Fun sound!-refl sound!-refl)
+
+-- helper for fun-pure-seq
+pure-↑<L : ∀ {A : Tp!} → Trans (sound! (pure! {A})) (↑<L⟦⟧ A) ≃ Pure
+pure-↑<L {tt !N} = ≃-unitL
+pure-↑<L {ff !N} = ≃-unitR
+pure-↑<L {tt ! A ⇒ A₁} =
+  ≃-trans (≃-cong-Trans sound-pure-arrL (≃-refl _)) ≃-unitL
+pure-↑<L {ff ! A ⇒ A₁} =
+  ≃-trans (≃-cong-Trans sound-pure-arr (≃-refl _)) ≃-unitR
+
+-- helper for fun-pure-seq
+pure-L⟦⟧<↑ : ∀ {B : Tp!} → Trans Pure (L⟦⟧<↑ B) ≃ sound! (pure! {B})
+-- Trans Pure Join ≃ Cov NatRefl
+pure-L⟦⟧<↑ {tt !N} = ≃-Pure-Join-Cov
+pure-L⟦⟧<↑ {ff !N} = ≃-unitR
+pure-L⟦⟧<↑ {tt ! B ⇒ B₁} =
+  ≃-trans ≃-Pure-Join-Cov (≃-sym sound-pure-arrL)
+pure-L⟦⟧<↑ {ff ! B ⇒ B₁} =
+  ≃-trans ≃-unitR (≃-sym sound-pure-arr)
+
+
+-- The ordinary and sequenced rules agree, provided their sub-coercions are related by pure!.
 fun-pure-seq : ∀ {b b' : 𝔹} {A B A' B' : Tp!}
                (ok   : layerOK b b' ≡ tt)
-               (dom  : ⟦ A' ⟧ <: ⟦ A  ⟧)  (dom' : ⟦ A' ⟧ <: ⟦ ↑ A ⟧)
-               (cod  : ⟦ B  ⟧ <: ⟦ B' ⟧)  (cod' : ⟦ ↑ B ⟧ <: ⟦ B' ⟧)
+               (dom  : ⟦ A' ⟧ <: ⟦ A ⟧)  (dom' : ⟦ A' ⟧ <: ⟦ ↑ A ⟧)
+               (cod  : ⟦ B  ⟧ <: ⟦ B' ⟧) (cod' : ⟦ ↑ B ⟧ <: ⟦ B' ⟧)
                → Trans dom (sound! (pure! {A})) ≃ dom'
                → Trans (sound! (pure! {B})) cod' ≃ cod
                → funOrd-sound ok dom cod ≃ funSeq-sound dom' cod'
-fun-pure-seq ok dom dom' cod cod' hyp-dom hyp-cod = {!!}
+-- Trans
+--   (Trans
+--     Seq
+--     (Fun
+--       (Trans
+--         (Trans
+--           dom
+--           (sound! pure!))
+--         (↑<L⟦⟧ A))
+--       (Trans (L⟦⟧<↑ B) cod')))
+--   Pure
+--  ≃
+--  Cov (Fun
+--         dom
+--         (Trans
+--           (sound! pure!)
+--           cod'))
+fun-pure-seq {tt} {tt} ok dom dom' cod cod' hyp-dom hyp-cod =
+  ≃-trans
+    (≃-cong-Cov (≃-cong-Fun (≃-refl _) (≃-sym hyp-cod)))
+    (≃-sym (≃-trans (≃-cong-Trans (seq-core-cong (≃-sym hyp-dom) (≃-refl _)) (≃-refl _))
+      {!!}))
+-- Trans
+--   Pure
+--   (Trans
+--     Seq
+--     (Fun
+--       (Trans
+--         (Trans
+--           dom
+--           (sound! pure!))
+--         (↑<L⟦⟧ A))
+--       (Trans
+--         (L⟦⟧<↑ B)
+--         cod')))
+-- ≃
+-- Fun
+--   dom
+--   (Trans
+--     (sound! pure!)
+--     cod')
+fun-pure-seq {ff} {tt} ok dom dom' cod cod' hyp-dom hyp-cod = 
+  ≃-trans
+    (≃-cong-Trans (≃-cong-Fun (≃-refl _) (≃-sym hyp-cod)) (≃-refl _))
+    (≃-sym (≃-trans
+      (≃-cong-Trans (≃-cong-Trans (≃-refl _) (seq-core-cong (≃-sym hyp-dom) (≃-refl _))) (≃-refl _))
+      (≃-cong-Trans
+        {!!}
+        (≃-refl _))))
+-- same hole as above
+fun-pure-seq {ff} {ff} ok dom dom' cod cod' hyp-dom hyp-cod = 
+  ≃-trans
+    (≃-cong-Fun (≃-refl _) (≃-sym hyp-cod))
+    (≃-sym (≃-trans
+      (≃-cong-Trans (≃-refl _) (seq-core-cong (≃-sym hyp-dom) (≃-refl _)))
+      {!!}))
+-- Helper for pure-dom-coh
+funOrd-pure : ∀ {b q : 𝔹} {A B A' B' : Tp!}
+              (ok : layerOK b q ≡ tt)
+              (dom : ⟦ A' ⟧ <: ⟦ A ⟧) (cod : ⟦ B ⟧ <: ⟦ B' ⟧)
+              → Trans (funOrd-sound ok dom cod) (sound! (pure! {q ! A' ⇒ B'}))
+                ≃ funOrd-sound {b} {tt} (layerOK-tt {b}) dom cod
+-- q = tt: pure! is the identity up to ≃, so use unitR
+funOrd-pure {tt} {tt} ok dom cod =
+  ≃-trans (≃-cong-Trans (≃-refl _) sound-pure-arrL) ≃-unitR
+-- same as above: split needed to reduce layerOK-tt
+funOrd-pure {ff} {tt} ok dom cod =
+  ≃-trans (≃-cong-Trans (≃-refl _) sound-pure-arrL) ≃-unitR
+funOrd-pure {ff} {ff} ok dom cod =
+  ≃-cong-Trans (≃-refl _) sound-pure-arr
 
--- Uniqueness:
---
--- Any two proofs of A <:! B are propositionally equal.  
+-- Helper for pure-dom-coh
+funSeq-pure : ∀ {b q : 𝔹} {A B A' B' : Tp!}
+              (dom : ⟦ A' ⟧ <: ⟦ ↑ A ⟧) (cod : ⟦ ↑ B ⟧ <: ⟦ B' ⟧)
+              → Trans (funSeq-sound dom cod) (sound! (pure! {q ! A' ⇒ B'}))
+                ≃ funSeq-sound {b} {tt} dom cod
+-- q = tt: pure! is the identity up to ≃, so use unitR
+funSeq-pure {q = tt} dom cod =
+  ≃-trans (≃-cong-Trans (≃-refl _) sound-pure-arrL) ≃-unitR
+funSeq-pure {tt} {q = ff} dom cod =
+  ≃-cong-Trans (≃-refl _) sound-pure-arr
+funSeq-pure {ff} {q = ff} dom cod =
+  ≃-cong-Trans (≃-refl _) sound-pure-arr
 
--- Counterexample
--- Fun<! {q} refl <:!-refl <:!-refl 
--- proves (ff ! tt! N ⇒ tt ! N) <:! (ff ! tt! N ⇒ tt ! N) with q =ff and q = tt
---
--- So we weaken uniqueness
+-- Helper for pure-cod-coh
+-- Like funOrd-pure, but pure! is on the left
+-- Needs ≃-Pure-nat
+pure-funOrd : ∀ {b₀ b' : 𝔹} {A B A' B' : Tp!}
+              (ok : layerOK tt b' ≡ tt)
+              (dom : ⟦ A' ⟧ <: ⟦ A ⟧) (cod : ⟦ B ⟧ <: ⟦ B' ⟧)
+              → Trans (sound! (pure! {b₀ ! A ⇒ B})) (funOrd-sound {tt} {b'} ok dom cod)
+                ≃ funOrd-sound {b₀} {b'} (layerOK-relax ok) dom cod
+pure-funOrd {b₀} {ff} () dom cod
+pure-funOrd {tt} {tt} ok dom cod =
+  ≃-trans (≃-cong-Trans sound-pure-arrL (≃-refl _)) ≃-unitL
+pure-funOrd {ff} {tt} ok dom cod =
+  ≃-trans (≃-cong-Trans sound-pure-arr (≃-refl _)) (≃-sym ≃-Pure-nat)
+
+-- Helper for pure-cod-coh, needs ≃-assoc.
+pure-funSeq : ∀ {b₀ b' : 𝔹} {A B A' B' : Tp!}
+              (dom : ⟦ A' ⟧ <: ⟦ ↑ A ⟧) (cod : ⟦ ↑ B ⟧ <: ⟦ B' ⟧)
+              → Trans (sound! (pure! {b₀ ! A ⇒ B})) (funSeq-sound {tt} {b'} dom cod)
+                ≃ funSeq-sound {b₀} {b'} dom cod
+pure-funSeq {tt} dom cod =
+  ≃-trans (≃-cong-Trans sound-pure-arrL (≃-refl _)) ≃-unitL
+pure-funSeq {ff} {ff} dom cod =
+  ≃-cong-Trans sound-pure-arr (≃-refl _)
+pure-funSeq {ff} {tt} dom cod =
+  ≃-trans (≃-cong-Trans sound-pure-arr (≃-refl _)) (≃-sym ≃-assoc)
+
+-- Uniqueness of algorithmic coercions (up to ≃)
+-- Any two derivations of `A <:! B` have ≃-equal soundness images.
+-- Note this can only hold up to `≃`, not `≡`, because the FunOrd/FunSeq rules overlap.
 sound!-unique : ∀ {A B : Tp!} (d₁ d₂ : A <:! B) → sound! d₁ ≃ sound! d₂
-sound!-unique (Nat<! {b = ff} {b' = ff} refl) (Nat<! refl) = ≃-refl _
-sound!-unique (Nat<! {b = ff} {b' = tt} refl) (Nat<! refl) = ≃-refl _
-sound!-unique (Nat<! {b = tt} {b' = tt} refl) (Nat<! refl) = ≃-refl _
 
--- Both Fun<! with q = f
--- we split on b and b' to reduce the funOrd-sound def, then use congruence + induction
+-- mutually recursive lemmas
+pure-dom-coh : ∀ {A' A : Tp!} (d₁ : A' <:! A) (d₂ : A' <:! ↑ A)
+               → Trans (sound! d₁) (sound! (pure! {A})) ≃ sound! d₂
+pure-cod-coh : ∀ {B B' : Tp!} (d₂ : ↑ B <:! B') (d₁ : B <:! B')
+               → Trans (sound! (pure! {B})) (sound! d₂) ≃ sound! d₁
 
--- b=ff,b'=ff
-sound!-unique (Fun<! {q = ff} {b = ff} {b' = ff} refl dom₁ cod₁) (Fun<! {q = ff} refl dom₂ cod₂) =
-  ≃-cong-Fun (sound!-unique dom₁ dom₂) (sound!-unique cod₁ cod₂)
--- b=ff,b'=tt
-sound!-unique (Fun<! {q = ff} {b = ff} {b' = tt} refl dom₁ cod₁) (Fun<! {q = ff} refl dom₂ cod₂) =
-  ≃-cong-Trans (≃-cong-Fun (sound!-unique dom₁ dom₂) (sound!-unique cod₁ cod₂)) (≃-refl _)
--- b=tt,b'=ff: impossible
-sound!-unique (Fun<! {q = ff} {b = tt} {b' = ff} () _ _) _
--- b=tt,b'=tt
-sound!-unique (Fun<! {q = ff} {b = tt} {b' = tt} refl dom₁ cod₁) (Fun<! {q = ff} refl dom₂ cod₂) =
-  ≃-cong-Cov (≃-cong-Fun (sound!-unique dom₁ dom₂) (sound!-unique cod₁ cod₂))
-
--- Both Fun<! with q = tt
--- split on b and b' to reduce funSeq-sound, then use seq-core-cong + induction.
-
--- b=ff,b'=ff
-sound!-unique (Fun<! {q = tt} {b = ff} {b' = ff} refl dom₁ cod₁) (Fun<! {q = tt} refl dom₂ cod₂) =
-  ≃-cong-Trans (≃-refl _) (seq-core-cong (sound!-unique dom₁ dom₂) (sound!-unique cod₁ cod₂))
--- b=ff,b'=tt
-sound!-unique (Fun<! {q = tt} {b = ff} {b' = tt} refl dom₁ cod₁) (Fun<! {q = tt} refl dom₂ cod₂) =
-  ≃-cong-Trans
-    (≃-cong-Trans (≃-refl _) (seq-core-cong (sound!-unique dom₁ dom₂) (sound!-unique cod₁ cod₂)))
-    (≃-refl _)
--- b=tt,b'=ff
-sound!-unique (Fun<! {q = tt} {b = tt} {b' = ff} refl dom₁ cod₁) (Fun<! {q = tt} refl dom₂ cod₂) =
-  seq-core-cong (sound!-unique dom₁ dom₂) (sound!-unique cod₁ cod₂)
--- b=tt,b'=tt
-sound!-unique (Fun<! {q = tt} {b = tt} {b' = tt} refl dom₁ cod₁) (Fun<! {q = tt} refl dom₂ cod₂) =
-  ≃-cong-Trans (seq-core-cong (sound!-unique dom₁ dom₂) (sound!-unique cod₁ cod₂)) (≃-refl _)
-
--- Mixed cases: q=ff vs q=tt at the same type (b ! A ⇒ B) <:! (b' ! A' ⇒ B').
---
--- Unfolding sound! gives:
---   funOrd-sound ok₁ (sound! dom₁) (sound! cod₁)  ≃  funSeq-sound (sound! dom₂) (sound! cod₂)
--- where  dom₁ : A' <:! A,  dom₂ : A' <:! ↑A,  cod₁ : B <:! B',  cod₂ : ↑B <:! B'.
-
--- Only b=tt,b'=ff is impossible (funOK ff tt ff = ff ≠ tt).
-sound!-unique (Fun<! {q = ff} {b = tt} {b' = ff} () _ _) (Fun<! {q = tt} _ _ _)
-
-sound!-unique (Fun<! {q = ff} {A = A} {B = B} ok₁ dom₁ cod₁) (Fun<! {q = tt} ok₂ dom₂ cod₂) =
+-- Both Nat!
+sound!-unique (Nat! ok₁) (Nat! ok₂) = nat-cong ok₁ ok₂
+-- Both FunOrd!
+sound!-unique (FunOrd! ok₁ dom₁ cod₁) (FunOrd! ok₂ dom₂ cod₂) =
+  funOrd-cong ok₁ ok₂ (sound!-unique dom₁ dom₂) (sound!-unique cod₁ cod₂)
+-- Both FunSeq!
+sound!-unique (FunSeq! dom₁ cod₁) (FunSeq! dom₂ cod₂) =
+  funSeq-cong (sound!-unique dom₁ dom₂) (sound!-unique cod₁ cod₂)
+-- Mixed: ordinary vs sequenced (b = tt, b' = ff is impossible).
+sound!-unique (FunOrd! {b = tt} {b' = ff} () _ _) (FunSeq! _ _)
+sound!-unique (FunOrd! {A = A} {B = B} ok₁ dom₁ cod₁) (FunSeq! dom₂ cod₂) =
   fun-pure-seq ok₁ (sound! dom₁) (sound! dom₂) (sound! cod₁) (sound! cod₂)
-    -- we prove: Trans (sound! dom₁) (sound! (pure! {A})) ≃ sound! dom₂
-    -- trans! dom₁ (pure! {A}) has type A' <:! ↑A, same as dom₂,
-    -- so sound!-unique gives sound!(trans! dom₁ pure!) ≃ sound! dom₂.
-    -- and sound!-trans gives sound!(trans! dom₁ pure!) ≃ Trans (sound! dom₁) (sound! (pure! {A})).
-    (≃-trans (≃-sym (sound!-trans dom₁ (pure! {A}) (≤-refl _)))
-       (sound!-unique (trans! dom₁ (pure! {A}) (≤-refl _)) dom₂))
-    -- We prove: Trans (sound! (pure! {B})) (sound! cod₂) ≃ sound! cod₁
-    -- trans! (pure! {B}) cod₂ and cod₁ have the same type B <:! B',
-    -- giving Trans (sound! (pure! {B})) (sound! cod₂) ≃ sound! cod₁ by the same route as above.
-    (≃-trans (≃-sym (sound!-trans (pure! {B}) cod₂ (≤-refl _)))
-             (sound!-unique (trans! (pure! {B}) cod₂ (≤-refl _)) cod₁))
+               (pure-dom-coh dom₁ dom₂)
+               (pure-cod-coh cod₂ cod₁)
+-- Mixed: sequenced vs ordinary — the symmetric image of the above.
+sound!-unique (FunSeq! _ _) (FunOrd! {b = tt} {b' = ff} () _ _)
+sound!-unique (FunSeq! dom₁ cod₁) (FunOrd! {A = A} {B = B} ok₂ dom₂ cod₂) =
+  ≃-sym (fun-pure-seq ok₂ (sound! dom₂) (sound! dom₁) (sound! cod₂) (sound! cod₁)
+                      (pure-dom-coh dom₂ dom₁)
+                      (pure-cod-coh cod₁ cod₂))
 
--- Symmetric case: ≃-sym of above
-sound!-unique (Fun<! {q = tt} _ _ _) (Fun<! {q = ff} {b = tt} {b' = ff} () _ _)
-sound!-unique (Fun<! {q = tt} ok₁ dom₁ cod₁) (Fun<! {q = ff} ok₂ dom₂ cod₂) =
-  ≃-sym (sound!-unique (Fun<! {q = ff} ok₂ dom₂ cod₂) (Fun<! {q = tt} ok₁ dom₁ cod₁))
+pure-dom-coh (Nat! {b = ff} {b' = ff} refl) (Nat! refl) = ≃-unitL
+pure-dom-coh (Nat! {b = ff} {b' = tt} refl) (Nat! refl) = ≃-unitR
+pure-dom-coh (Nat! {b = tt} {b' = tt} refl) (Nat! refl) = ≃-unitL
+pure-dom-coh (FunOrd! x d₁ d₃) (FunOrd! x₁ d₂ d₄) =
+  ≃-trans
+    (funOrd-pure x (sound! d₁) (sound! d₃))
+    (funOrd-cong layerOK-tt x₁ (sound!-unique d₁ d₂) (sound!-unique d₃ d₄))
+pure-dom-coh (FunSeq! d₁ d₃) (FunSeq! d₂ d₄) =
+  ≃-trans
+    (funSeq-pure (sound! d₁) (sound! d₃))
+    (funSeq-cong (sound!-unique d₁ d₂) (sound!-unique d₃ d₄))
+pure-dom-coh (FunOrd! x d₁ d₃) (FunSeq! d₂ d₄) = 
+  ≃-trans
+    (funOrd-pure x (sound! d₁) (sound! d₃))
+    (fun-pure-seq layerOK-tt (sound! d₁) (sound! d₂) (sound! d₃) (sound! d₄)
+      (pure-dom-coh d₁ d₂) (pure-cod-coh d₄ d₃))
+pure-dom-coh (FunSeq! d₁ d₃) (FunOrd! x d₂ d₄) = 
+  ≃-trans
+    (funSeq-pure (sound! d₁) (sound! d₃))
+    (≃-sym (fun-pure-seq x (sound! d₂) (sound! d₁) (sound! d₄) (sound! d₃)
+      (pure-dom-coh d₂ d₁) (pure-cod-coh d₃ d₄)))
 
--- use sound!' rather than sound!
--- sound!' d = Trans (raw<norm A) (Trans (sound! d) (norm<raw B)),
-sound!'-unique : ∀ {A B : Tp} (d₁ d₂ : ⌈ A ⌉ <:! ⌈ B ⌉) → sound!' d₁ ≃ sound!' d₂
+pure-cod-coh (Nat! refl) (Nat! {b = ff} {b' = tt} refl) = ≃-unitR
+pure-cod-coh (Nat! refl) (Nat! {b = tt} {b' = tt} refl) = ≃-unitL
+pure-cod-coh (FunOrd! x₁ d₂ d₄) (FunOrd! x d₁ d₃) =
+  ≃-trans
+    (pure-funOrd x₁ (sound! d₂) (sound! d₄))
+    (funOrd-cong (layerOK-relax x₁) x (sound!-unique d₂ d₁) (sound!-unique d₄ d₃))
+pure-cod-coh (FunSeq! d₂ d₄) (FunSeq! d₁ d₃) =
+  ≃-trans
+    (pure-funSeq (sound! d₂) (sound! d₄))
+    (funSeq-cong (sound!-unique d₂ d₁) (sound!-unique d₄ d₃))
+pure-cod-coh (FunSeq! d₂ d₄) (FunOrd! x d₁ d₃) =
+  ≃-trans
+    (pure-funSeq (sound! d₂) (sound! d₄))
+    (≃-sym (fun-pure-seq x (sound! d₁) (sound! d₂) (sound! d₃) (sound! d₄)
+      (pure-dom-coh d₁ d₂) (pure-cod-coh d₄ d₃)))
+pure-cod-coh (FunOrd! x d₂ d₄) (FunSeq! d₁ d₃) =
+  ≃-trans
+    (pure-funOrd x (sound! d₂) (sound! d₄))
+    (fun-pure-seq (layerOK-relax x) (sound! d₂) (sound! d₁) (sound! d₄) (sound! d₃)
+      (pure-dom-coh d₂ d₁) (pure-cod-coh d₃ d₄))
+
+-- Uniqueness lifted to source types via `sound!'`.
+-- sound!' d = Trans (raw<norm A) (Trans (sound! d) (norm<raw B)).
+sound!'-unique : ∀ {A B : Tp} (d₁ d₂ : ⌈ A ⌉ <:! ⌈ B ⌉) → sound!' {A} {B} d₁ ≃ sound!' {A} {B} d₂
 sound!'-unique d₁ d₂ =
   ≃-cong-Trans (≃-refl _)
     (≃-cong-Trans (sound!-unique d₁ d₂) (≃-refl _))
 
--- Round-trip equivalence
--- 
--- Running a declarative derivation through completeness then through soundness
--- gives a derivation equivalent to the original.
---
--- See reify-eval in agda/fmap/Fmap.agda.
-
+-- Running a declarative derivation through completeness and back through
+-- soundness yields a ≃-equivalent derivation.
+-- See reify-eval in agda/fmap/Fmap.agda
 round-trip : ∀ {A B : Tp} (d : A <: B) → d ≃ sound!' (complete! d)
-round-trip NatRefl = {!!}
-round-trip (Fun dom cod) = {!!}
-round-trip Seq = {!!}
-round-trip Pure = {!!}
-round-trip (Cov p) = {!!}
-round-trip Join = {!!}
-round-trip (Trans p q) = {!!}
-
--- Coherence
---
--- Any two declarative derivations of type A <: B are
--- equivalent modulo the monad laws.
---
---   d₁ ≃ sound!' (complete! d₁)     by round-trip
---      = sound!' (complete! d₂)     because unique! gives complete! d₁ ≡ complete! d₂
---   d₂ ≃ sound!' (complete! d₂)     by round-trip
---   Therefore d₁ ≃ d₂ by transitivity of ≃
+round-trip d = {!!}
 
 coherence : ∀ {A B : Tp} (d₁ d₂ : A <: B) → d₁ ≃ d₂
 coherence d₁ d₂ =
   ≃-trans (round-trip d₁)
   (≃-trans (sound!'-unique (complete! d₁) (complete! d₂))
            (≃-sym (round-trip d₂)))
-
