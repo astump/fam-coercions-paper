@@ -1,0 +1,39 @@
+\documentclass{article}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{url}
+\usepackage{proof}
+\usepackage{stmaryrd}
+\usepackage{parskip}
+\usepackage{fullpage}
+
+\begin{document}
+
+\newcommand{\interp}[1]{\llbracket #1 \rrbracket} 
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{definition}[theorem]{Definition}
+
+\title{Solving Constraints in a Theory of Subsequences}
+
+\author{Jonah Hamer and Aaron Stump}
+
+\maketitle
+
+\section{Rules}
+
+\[
+\begin{array}{lll}
+
+  e_1 \cdot e_2 \le x   &   \Longrightarrow  &  \exists\ x_a\ x_b.\ x = x_a \cdot x_b\ \wedge \\
+  \ & \ & e_1 \le x_a\ \wedge\ e_2 \le x_b \\
+
+\end{array}
+\]
+  
+
+%\bibliographystyle{plain}
+%\bibliography{paper}
+%\nocite{AGM92}
+
+\end{document}
