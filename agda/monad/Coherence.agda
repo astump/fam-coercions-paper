@@ -10,6 +10,7 @@ open import Completeness
 open import Soundness
 
 -- Equivalence of declarative coercions, modulo the monad laws
+
 -- See fmap/Decl.agda
 infix 4 _≃_
 data _≃_ : {A B : Tp} → A <: B → A <: B → Set where
@@ -39,6 +40,7 @@ data _≃_ : {A B : Tp} → A <: B → A <: B → Set where
                  → d₁ ≃ d₁' → d₂ ≃ d₂'
                  → Trans d₁ d₂ ≃ Trans d₁' d₂'
 
+  -- Trans + id
   ≃-unitL : ∀ {A B} {d : A <: B} → Trans refl-raw d ≃ d
   ≃-unitR : ∀ {A B} {d : A <: B} → Trans d refl-raw ≃ d
 
@@ -49,6 +51,7 @@ data _≃_ : {A B : Tp} → A <: B → A <: B → Set where
   -- Naturality of Pure
   ≃-Pure-nat : ∀ {A B} {d : A <: B} → Trans d Pure ≃ Trans Pure (Cov d)
 
+  -- TODO: Better name for this one
   ≃-Pure-Join-Cov : ∀ {A} → Trans (Pure {L A}) (Join {A}) ≃ Cov (refl-raw {A})
   -- TODO: Add the remaining monad/applicative/functor laws
 
@@ -195,6 +198,7 @@ fun-pure-seq {ff} {ff} ok dom dom' cod cod' hyp-dom hyp-cod =
     (≃-sym (≃-trans
       (≃-cong-Trans (≃-refl _) (seq-core-cong (≃-sym hyp-dom) (≃-refl _)))
       {!!}))
+
 -- Helper for pure-dom-coh
 funOrd-pure : ∀ {b q : 𝔹} {A B A' B' : Tp!}
               (ok : layerOK b q ≡ tt)
@@ -274,7 +278,7 @@ sound!-unique (FunOrd! {A = A} {B = B} ok₁ dom₁ cod₁) (FunSeq! dom₂ cod�
   fun-pure-seq ok₁ (sound! dom₁) (sound! dom₂) (sound! cod₁) (sound! cod₂)
                (pure-dom-coh dom₁ dom₂)
                (pure-cod-coh cod₂ cod₁)
--- Mixed: sequenced vs ordinary — the symmetric image of the above.
+-- Mixed: sequenced vs ordinary — the symmetric case of the above.
 sound!-unique (FunSeq! _ _) (FunOrd! {b = tt} {b' = ff} () _ _)
 sound!-unique (FunSeq! dom₁ cod₁) (FunOrd! {A = A} {B = B} ok₂ dom₂ cod₂) =
   ≃-sym (fun-pure-seq ok₂ (sound! dom₂) (sound! dom₁) (sound! cod₂) (sound! cod₁)
