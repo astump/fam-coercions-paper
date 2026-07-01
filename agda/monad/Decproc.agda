@@ -8,6 +8,15 @@ layerOK : 𝔹 → 𝔹 → 𝔹
 layerOK tt ff = ff
 layerOK _  _  = tt
 
+layerOK-tt : ∀ {b : 𝔹} → layerOK b tt ≡ tt
+layerOK-tt {ff} = refl
+layerOK-tt {tt} = refl
+
+-- Used in the statement of pure-funOrd in Coherence.agda
+layerOK-relax : ∀ {b₀ b' : 𝔹} → layerOK tt b' ≡ tt → layerOK b₀ b' ≡ tt
+layerOK-relax {b₀} {tt} ok = layerOK-tt {b₀}
+layerOK-relax {b₀} {ff} ()
+
 -- The algorithmic coersion relation on normalized types
 infix 5 _<:!_
 data _<:!_ : Tp! → Tp! → Set where
