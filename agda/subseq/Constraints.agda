@@ -30,28 +30,35 @@ Seq = 𝕃 Const
 -- the n'th item in the list is the value for variable n
 Valuation : Set
 Valuation = 𝕃 Seq
+-- remove the Consts in the first Seq from the second if possible, removing
+-- extraneous Consts
+subll : Seq → Seq → maybe Seq
+subll [] ys = return ys
+subll (x :: u) [] = nothing  -- failure case
+subll (x :: u) (y :: v) with x =ℕ y
+subll (x :: u) (y :: v) | tt = subll u v
+subll (x :: u) (y :: v) | ff = subll (x :: u) v
 
-
-
-
-
-
--- remove the Consts in the first Seq from the second if possible, leaving all
--- other Consts in place.
-subl : Seq → Seq → maybe Seq
-subl [] ys = return ys
-subl (x :: u) [] = nothing  -- failure case
-subl (x :: u) (y :: v) with x =ℕ y
-subl (x :: u) (y :: v) | tt = subl u v
-subl (x :: u) (y :: v) | ff = subl (x :: u) v
+sub-flip : (Seq → Seq → maybe Seq) → Seq → Seq → maybe Seq
+sub-flip f xs ys =
+  do
+    r ← f (nreverse ys) (nreverse xs)
+    return (nreverse r)
 
 -- like subl, but remove the Consts in the right from the left,
 -- working from right to left in the sequences
-subr : Seq → Seq → maybe Seq
-subr xs ys =
-  do
-    r ← subl (reverse ys) (reverse xs)
-    return (reverse r)
+sublr : Seq → Seq → maybe Seq
+sublr = sub-flip subll
+
+subrl : Seq → Seq → maybe Seq
+subrl [] ys = return ys
+subrl (x :: xs) [] = return []
+subrl (x :: xs) (y :: ys) with x =ℕ y 
+subrl (x :: xs) (y :: ys) | tt = subrl xs ys
+subrl (x :: xs) (y :: ys) | ff = subrl xs (y :: ys)
+
+subrr : Seq → Seq → maybe Seq
+subrr = sub-flip subrl
 
 ⟦_⟧ : Expr → Valuation → maybe Seq
 ⟦ V n ⟧ v = nth n v
@@ -69,12 +76,12 @@ subr xs ys =
   do
     r ← ⟦ e ⟧ v
     r₁ ← ⟦ e₁ ⟧ v
-    subl r r₁
+    subll r r₁
 ⟦ e \\ e₁ ⟧ v =
   do
     r ← ⟦ e ⟧ v
     r₁ ← ⟦ e₁ ⟧ v
-    subr r r₁
+    sublr r r₁
 
 infix 5 _≪_
 
@@ -91,13 +98,18 @@ v ⊨ e ≪ e' with ⟦ e // e' ⟧ v
 v ⊨ e ≪ e' | just _ = tt
 v ⊨ e ≪ e' | nothing = ff
     
-subl++ : ∀{s1 s2 s : Seq} →
-          (subl (s1 ++ s2) s) ≡ (subl s1 s) >>= (subl s2)
-subl++ {[]} {s2} {s} = refl
-subl++ {x :: s1} {s2} {[]} = refl
-subl++ {x :: s1} {s2} {y :: s} with x =ℕ y 
-subl++ {x :: s1} {s2} {y :: s} | tt = subl++{s1}{s2}{s}
-subl++ {x :: s1} {s2} {y :: s} | ff = subl++{x :: s1}{s2}{s}
+subll++ : ∀{s1 s2 s : Seq} →
+          (subll (s1 ++ s2) s) ≡ (subll s1 s) >>= (subll s2)
+subll++ {[]} {s2} {s} = refl
+subll++ {x :: s1} {s2} {[]} = refl
+subll++ {x :: s1} {s2} {y :: s} with x =ℕ y 
+subll++ {x :: s1} {s2} {y :: s} | tt = subll++{s1}{s2}{s}
+subll++ {x :: s1} {s2} {y :: s} | ff = subll++{x :: s1}{s2}{s}
+
+sublr++ : ∀{s1 s2 s : Seq} →
+          (sublr s (s1 ++ s2)) ≡ (sublr s s2) >>= (sublr s1)
+sublr++{s1}{s2}{s} rewrite nreverse-++ s1 s2 | subll++ {nreverse s2} {nreverse s1} {nreverse s} with subll (nreverse s2) (nreverse s) | (λ (r : Seq) → just (nreverse r))
+sublr++{s1}{s2}{s} | p | q = {!!}
 
 splitLem : ∀{e1 e2 e' : Expr}{v : Valuation} →
            v ⊨ e1 ∘ e2 ≪ e' ≡ tt →

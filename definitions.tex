@@ -92,3 +92,12 @@
 \newcommand{\tl}[0]{\mathsf{L}}
 \newcommand{\tn}[0]{\mathsf{N}}
 \newcommand{\subt}[4]{(#1)\ #2 <:^{#3} #4}
+
+\newcommand{\rlrefl}[0]{\infer[\textit{refl}]{\subt{0}{\tn}{a}{\tn}}{\ }}
+\newcommand{\rlfun}[0]{\infer[\textit{fun}]{\subt{i}{T_1\to T_2}{a}{T_1'\to T_2'}}{\subt{j}{T_1'}{\tau}{T_1} & \subt{k}{T_2}{a}{T_2'} & i \le j \le k}}
+\newcommand{\rlseqdom}[0]{\infer[\textit{seq-dom}]{\subt{k+1}{\tl\ T}{\tau}{T'} }{\subt{k}{T}{\tau}{T'} }}
+\newcommand{\rlreset}[0]{\infer[\textit{reset}]{\subt{0}{T}{\tau}{T'}}{\subt{0}{T}{a}{T'}}}
+\newcommand{\rlseqcod}[0]{\infer[\textit{seq-cod}]{\subt{k}{\tl\ T}{a}{T'} }{\subt{k+1}{T}{a}{T'} }}
+\newcommand{\rlcov}[0]{\infer[\textit{cov}]{\subt{k}{\tl\ T}{\theta}{\tl\ T'}}{\subt{k}{T}{\theta}{T'}}}
+\newcommand{\rlpure}[0]{\infer[\textit{pure}]{\subt{0}{T}{a}{\tl\ T'}}{\subt{0}{T}{a}{T'}}}
+\newcommand{\rlpull}[0]{\infer[\textit{pull}]{\subt{k+1}{T}{a}{\tl\ T'}}{\subt{k}{T}{a}{T'}}}
