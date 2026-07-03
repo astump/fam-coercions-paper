@@ -111,3 +111,11 @@ reify-eval-ty : (t : D.ty) → reify-ty (eval-ty t) ≡ t
 reify-eval-ty t with eval-ty-r t
 ...                | a , ra with reify-ty-r a
 ...                            | b , rb = ty-rep-inj₁ rb ra
+
+
+reify' : ∀ {a b : ty'} {s t : D.ty} → ty-rep' s a → ty-rep' t b → coe' a b → D.coe s t
+reify! : ∀ {a b : ty!} {s t : D.ty} → ty-rep s a → ty-rep t b → coe! a b → D.coe s t
+reify' r-base r-base c-base = D.c-id D.base
+reify' (ra r-⇒ rb) (ru r-⇒ rv) (c-⇒ k eqj eqi c d) rewrite sym eqi | sym eqj =
+  {!!}
+reify! ra rb c = {!!}
