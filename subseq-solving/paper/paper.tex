@@ -27,7 +27,35 @@
 
   e_1 \cdot e_2 \le x   &   \Longrightarrow  &  \exists\ x_a\ x_b.\ x = x_a \cdot x_b\ \wedge \\
   \ & \ & e_1 \le x_a\ \wedge\ e_2 \le x_b \\
-
+  
+  \ & \ & \ \\
+  
+  e_1 \cdot e_2 \le C   &   \Longrightarrow  &  e_1 \le C\ \wedge\ e_2 \le \epsilon\ \vee \\
+  \ & \ & e_1 \le \epsilon\ \ \wedge\ e_2 \le C \\
+  
+  \ & \ & \ \\
+  
+  e_1 \cdot e_2 \le e_1^\prime \cdot e_2^\prime   &   \Longrightarrow  &  (\exists\ u\ v.\ e_1^\prime = u \cdot v\ \wedge \\
+  \ & \ & e_1 \le u\ \wedge\ e_2 \le v \cdot e_2^\prime)\ \vee \\
+  \ & \ & (\exists\ u\ v.\ e_2^\prime = u \cdot v\ \wedge \\
+  \ & \ & e_1 \le e_1^\prime \cdot u\ \wedge\ e_2 \le v) \\
+  
+  \ & \ & \ \\
+  
+  x \le e_1 \cdot e_2   &   \Longrightarrow  &  \exists\ x_a\ x_b.\ x = x_a \cdot x_b\ \wedge \\
+  \ & \ & x_a \le e_1\ \wedge\ x_b \le e_2 \\
+  
+  \ & \ & \ \\
+  
+  C \le e_1 \cdot e_2   &   \Longrightarrow  &  C \le e_1\ \vee\ C \le e_2 \\
+  
+  \ & \ & \ \\
+  
+  x \le C   &   \Longrightarrow  &  x = \epsilon\ \vee\ x = C \\
+  
+  \ & \ & \ \\
+  
+  C \le x   &   \Longrightarrow  &  \exists\ x_a\ x_b.\ x = x_a \cdot C \cdot x_b \\
 \end{array}
 \]
   
