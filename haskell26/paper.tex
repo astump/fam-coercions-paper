@@ -199,13 +199,13 @@ be made clear and predictable if they are to become an acceptable part of
 functional programming practice. In other words, we need to do some metatheory.
 
 First, we point out that these missing combinators ought to be viewed as
-implicit coercions between types. Implicit conversions are special functions
+implicit coercions between types. Implicit coercions are special functions
 that are inserted during type inference in order to make a program type check.
 They are usually drawn from a restricted grammar.
 Traditionally, coercions are used to permit programs to gloss over details like
 numerical conversions, which are both tedious and predictable. Our systems of
 typeclass combinators are more abstract, but (provided they are drawn from
-lawful Functor instances) they ought to be predictable enought to be baked in to
+lawful Functor instances) they ought to be predictable enough to be baked in to
 the type checking process. Besides standard lemmas about type inference such as
 completeness and principal typing, the chief metatheoretic property of interest
 for coercive subtyping is \emph{coherence}: this says that whatever coercions
@@ -268,7 +268,7 @@ To summarize, our paper makes the following contributions.
   \end{minipage}%
   \begin{minipage}{0.75\textwidth}
   \begin{flushleft}
-    \fbox{\(A \nsubty B\)}
+    \fbox{\(A \subty B\)}
   \end{flushleft}
   \begin{mathpar}
     \inferrule*[Left=Refl]{ }{A \subty A}
@@ -284,6 +284,53 @@ To summarize, our paper makes the following contributions.
   \end{minipage}
   \caption{Types and subtype relationships for a calculus with implicit fmap.}\label{fig:calculus}
 \end{figure}
+
+\begin{figure}
+  \begin{flushleft}
+    \fbox{\(c : A \subty B\)}
+  \end{flushleft}
+  \begin{mathpar}
+    \inferrule*[Left=CId]{ }{\cid{A} : A \nsubty A}
+
+    \inferrule*[Left=CComp]
+      {c_1 : A \subty B \\ c_2 : B \subty C}
+      {\ccomp{c_1}{c_2} : A \subty C}
+  \\
+    \inferrule*[Left=CArr]
+      {c_1 : U \subty A \\ c_2 : B \subty V}{\carr\ c_1\ c_2 : A \to B \subty U \to V}
+ \\
+    \inferrule*[Left=CMono]{c : A \subty B}{\cmono\ c : \F A \subty \F B}
+
+    \inferrule*[Left=CFmap]{ }{\cfmap : A \to B \subty \F A \to \F B}
+  \end{mathpar}
+  \caption{Declarative coercions.}\label{fig:coe}
+\end{figure}
+
+
+
+\begin{figure}
+  \begin{flushleft}
+    \fbox{\(n : A \nsubty B\)}\quad\fbox{\(\mathit{na} : A,B  \nasubty U, V\)}
+  \end{flushleft}
+  \begin{mathpar}
+    \\
+    \inferrule*[Left=NId]{ }{\nid : \tbool \nsubty \tbool}
+
+    \inferrule*[Left=NMono]{n : A \nsubty B}{\nmono\ n : \F A \nsubty \F B}
+    \\
+    \inferrule*[Left=NArr]
+      {\mathit{na} : A, B \nasubty U, V}{\narr\ \mathit{na} : A \to B \nsubty U \to V}
+
+    \inferrule*[Left=NAFmap]
+      {\mathit{na} : A, B \nasubty U, V}{\nfmap{\mathit{na}} : A, B \nasubty \F U, \F V}
+      \\
+
+    \inferrule*[Left=NAArr]
+      {n_1 : U \nsubty A \\ n_2 : B \nsubty V}{\naarr\ n_1\ n_2 : A, B \nasubty U, V}
+  \end{mathpar}
+  \caption{Normalized coercions.}\label{fig:ncalculus}
+\end{figure}
+
 
 The types and subtyping rules at issue are shown in Figure~\ref{fig:calculus},
 which shows a base type, arrow types, and functor types, along with the usual
@@ -344,27 +391,6 @@ The second uses \(\cfmap\) before \(\carr\):
   }{\ccomp{\cfmap}{\carr\ (\cmono\ c_1)\ (\cmono\ c_2)} : A \to B \leq \F U \to \F V}
 \end{mathpar}
 
-\begin{figure}
-  \begin{flushleft}
-    \fbox{\(c : A \subty B\)}
-  \end{flushleft}
-  \begin{mathpar}
-    \inferrule*[Left=CId]{ }{\cid{A} : A \nsubty A}
-
-    \inferrule*[Left=CComp]
-      {c_1 : A \subty B \\ c_2 : B \subty C}
-      {\ccomp{c_1}{c_2} : A \subty C}
-  \\
-    \inferrule*[Left=CArr]
-      {c_1 : U \subty A \\ c_2 : B \subty V}{\carr\ c_1\ c_2 : A \to B \subty U \to V}
- \\
-    \inferrule*[Left=CMono]{c : A \subty B}{\cmono\ c : \F A \subty \F B}
-
-    \inferrule*[Left=CFmap]{ }{\cfmap : A \to B \subty \F A \to \F B}
-  \end{mathpar}
-  \caption{Declarative coercions.}\label{fig:coe}
-\end{figure}
-
 
 Keeping these examples in mind, we now discuss the implications of ambiguity in
 subtyping derivations.
@@ -398,8 +424,7 @@ coherent when all coercions \(c : A \subty B\) between the same types are
 semantically equivalent.  This means that every path in the ``coercion graph''
 is equivalent or, to borrow a category-theoretic slogan, ``all diagrams
 commute.'' The elaboration judgment is coherent when all \(e'\) with
-\(\Gamma \vdash e \rightsquigarrow e' : B\) are semantically equivalent and
-furthermore \(e\) is semantically equivalent to \(e'\).
+\(\Gamma \vdash e \rightsquigarrow e' : B\) are semantically equivalent.
 Of course, nobody ever runs code that was elaborated by a declarative type
 system. Instead, implementations of type inference will hew closely to an
 algorithmic type system including a system of coercions \(c_a : A \asubty B\).
@@ -408,7 +433,7 @@ algorithmic, this system will have unique coercions and emit unique elaborated
 terms.  It enjoys subtyping coherence automatically because its coercions and
 elaborated terms are not merely equivalent, but equal.
 
-This is not a shortcut to solving the coherence problem.  However expedient it may be to
+This is not a shortcut to solving the coherence problem.  
 determinize everything in sight, it will end up costing more in the long term.
 Here is a hypothetical situation. Suppose you have committed to a particular
 algorithmic subtyping judgment. There are many perfectly reasonable
@@ -444,7 +469,7 @@ the style of abstract algebra, and will not appeal to the translation
 \(\ccname\) of coercions into expressions. In order to justify the equivalence
 relation, we check that the translation \(\ccname\) is sound:
 \[
-  c_1 \simeq c_2 \Longrightarrow
+  c_1 \coeeq c_2 \Longrightarrow
   \ccname(c_1) \approx \ccname(c_2)
 \]
 
@@ -475,7 +500,7 @@ pair of functions
   \reify_{\mathsf{a}} &: A \asubty B \to A \subty B,
 \end{align*}
 This time around, the equivalence
-\(\reify_{\mathsf{a}}\ (\evalname_{\mathsf{a}}\ c) \equiv c\) follows from the
+\(\reify_{\mathsf{a}}\ (\evalname_{\mathsf{a}}\ c) \coeeq c\) follows from the
 coherence result that was already proved.  It does have to be checked that
 \(\cca{c_a} \approx \cc{\reify_{\mathsf{a}}{c_a}}\), but this can always be
 taken as a definition of \(\cca{c_a}\).
@@ -526,7 +551,7 @@ reflexivity, transitivity, and symmetry rules, which make it an equivalence rela
 \end{definition}
 In order, the laws say that coercions form a category, \(\cmono\) is a functor
 on that category, and \(\carr\) is a bifunctor on that category.  The final law,
-which we refer to as the \emph{special fmap law}, is unusual becuase \(\cfmap\)
+which we refer to as the \emph{special fmap law}, is unusual because \(\cfmap\)
 is not a functor on coercions but instead a functor on types. In the equational
 theory of coercions, all that can be said about \(\cfmap{}\) is how it interacts
 with other coercions on arrow types. No rule is needed to describe how it
@@ -554,8 +579,8 @@ terms.\\
 \begin{minipage}{0.5\textwidth}
 \begin{align*}
   \cc{\cid{A}} &= \lambda x : \cc{A}.\, x \\
-  \cc{\ccomp{c_1}{c_2}} &= \lambda x.\,\cc{c_2}\ (c_1\ x) \\
-  \cc{\carr\ c_1\ c_2} &= \lambda f\, x.\,c_2\ (f\ (c_1\ x)) \\
+  \cc{\ccomp{c_1}{c_2}} &= \lambda x.\,\cc{c_2}\ (\cc{c_1}\ x) \\
+  \cc{\carr\ c_1\ c_2} &= \lambda f\, x.\,\cc{c_2}\ (f\ (\cc{c_1}\ x)) \\
   \cc{\cmono\ c} &= \ltfmap\ \cc{c} \\
   \cc{\cfmap} &= \ltfmap
 \end{align*}
@@ -583,29 +608,6 @@ rule for each type former. The arrow coercions include \(\naarr\), which
 performs ordinary mixed-variance arrow subtyping by appealing to two normal coercions,
 and \(\mathsf{nfmap}\), which extends an arrow coercion with one use of fmap on the right.
 
-\begin{figure}
-  \begin{flushleft}
-    \fbox{\(n : A \nsubty B\)}\quad\fbox{\(\mathit{na} : A,B  \nasubty U, V\)}
-  \end{flushleft}
-  \begin{mathpar}
-    \\
-    \inferrule*[Left=NId]{ }{\nid : \tbool \nsubty \tbool}
-
-    \inferrule*[Left=NMono]{n : A \nsubty B}{\nmono\ n : \F A \nsubty \F B}
-    \\
-    \inferrule*[Left=NArr]
-      {\mathit{na} : A, B \nasubty U, V}{\narr\ \mathit{na} : A \to B \nsubty U \to V}
-
-    \inferrule*[Left=NAFmap]
-      {\mathit{na} : A, B \nasubty U, V}{\nfmap{\mathit{na}} : A, B \nasubty \F U, \F V}
-      \\
-
-    \inferrule*[Left=NAArr]
-      {n_1 : U \nsubty A \\ n_2 : B \nsubty V}{\naarr\ n_1\ n_2 : A, B \nasubty U, V}
-  \end{mathpar}
-  \caption{Normalized coercions.}\label{fig:ncalculus}
-\end{figure}
-
 \subsection{Uniqueness of normal coercions}
 It is not immediately clear that normal coercions have \(n_1 = n_2\) for any
 \(n_1, n_2 : A \nsubty B\).  The proof of this ought to look like an induction
@@ -625,7 +627,8 @@ peel number is preserved by normal subtyping and increased by arrow subtyping.
   Let \(A, B, U\), and \(V\) be types.
   \begin{enumerate}
     \item If \(A \nsubty B\) then \(\peel A = \peel B\).
-    \item If \(A, B \nsubty U, V\) then \(\peel A + k = \peel U\) and \(\peel B + k = \peel V\) for some \(k\).
+    \item If \(A, B \nasubty U, V\) then \(\peel A + k = \peel U\) and \(\peel
+      B + k = \peel V\) for some nonnegative integer \(k\).
   \end{enumerate}
 \end{proposition}
 \begin{proof}
@@ -682,6 +685,8 @@ choosing between cons lists and snoc lists. Putting \(\cfmap\) at the front
 would affect the ``bias'' of subsequent proofs but all the top-level theorems
 would say the same things.
 \begin{align*}
+  \reify &: A \nsubty B \to A \subty B \\
+  \reifyna &: A, B \nasubty U, V \to (A \to B) \subty (U \to V) \\
   \reify\ \nid &= \cid{\tbool} \\
   \reify\ (\nmono\ n) &= \cmono\ (\reify\ n) \\
   \reify\ (\narr\ \na) &= \reifyna \na \\
@@ -689,16 +694,8 @@ would say the same things.
   \reifyna\ (\nfmap{\na}) &= \ccomp{\reifyna \na}{\cfmap}
 \end{align*}
 
-Reification is sound because all functions preserve equality. By composition,
-the induced translation
-\(\ccname \circ \reify\)
-into lambda calculus
-is also sound. This means our syntactic equality agrees with the intended model.
-The type of reify is also informative.
-Read through Curry-Howard, it says that the normal subtyping
-relation is sound (but not necessarily complete) with respect to declarative subtyping. \[
-  A \nsubty B \Longrightarrow A \subty B
-\]
+Read through Curry-Howard, the type of \(\reify\) says that the normal subtyping
+relation is sound with respect to declarative subtyping.
 
 The other direction amounts to a proof of completeness and is more complex.  It
 is accomplished by the evaluation function, which turns a declarative coercion
@@ -749,7 +746,7 @@ It has the type
 \(\nfmapl : \F A, \F B \nsubty U, V \to A, B \nsubty U, V\)
 and is defined by only two clauses.
 \begin{align*}
-\nfmapl\ (\nfmap{\na}) &= \nfmap{(\nfmapl{\na})} \\
+\nfmapl\ (\nfmap{\na}) &= \nfmap{(\nfmapl\ \na)} \\
 \nfmapl\ (\naarr\ (\nmono\ n_1)\ (\nmono\ n_2)) &= \nfmap{(\naarr\ n_1\ n_2)}
 \end{align*}
 These rules are exhaustive. The trick here is that if \(\na\) is safe to compose
@@ -764,8 +761,8 @@ straightforward recursion.
 \begin{align*}
   \mkcomp\ n_1\ \nid &= n_1 \\
   \mkcomp\ \nid\ n_2 &= n_2\\
-  \mkcomp\ (\nmono\ n_1)\ (\nmono\ n_2) &= \nmono\ (\mkcomp\ n_1 n_2) \\
-  \mkcomp\ (\narr\ \na_1)\ (\narr \na_2) &= \narr\ (\mkcompna\ \na_1\ \na_2) \\
+  \mkcomp\ (\nmono\ n_1)\ (\nmono\ n_2) &= \nmono\ (\mkcomp\ n_1\ n_2) \\
+  \mkcomp\ (\narr\ \na_1)\ (\narr\ \na_2) &= \narr\ (\mkcompna\ \na_1\ \na_2) \\
   \mkcompna\ (\naarr\ n_1\ n_2)\ (\naarr\ n_3\ n_4) &= \naarr\ (\mkcomp\ n_3\ n_1)\ (\mkcomp\ n_2\ n_4) \\
   \mkcompna\  \na_1\ (\nfmap{\na_2})&= \nfmap{(\mkcompna\ \na_1\ \na_2)} \\
   \mkcompna\ (\nfmap{\na_1})\ \na_2 &= \mkcompna\ \na_1\ (\nfmapl\ \na_2)
@@ -822,7 +819,7 @@ Now we can prove that reify inverts evaluation. The interesting case, which
 shows that \(\cfmap\) is equivalent to the round-trip \(\reify\ (\eval{\cfmap})\),
 has to appeal to the special fmap law.
 \begin{lemma}[\agdachk{reify-eval}]\label{reify-eval}
-  If \(c : A \subty B\), then \(\reify\ \eval{c} \coeeq c\).
+  If \(c : A \subty B\), then \(\reify\ (\eval{c}) \coeeq c\).
 \end{lemma}
 \begin{proof}
   By induction on \(c\).
@@ -995,10 +992,10 @@ while still providing a sound model of the rest of the type system. This is an
 unusual requirement, to say the least, and will require further research.
 
 
-\section{Related Work}
+\section{Related work}
 Promoting fmap to a coercion has some similarity with work on effect systems,
 where programs are permitted to run in an effect bounded below by the
-effects they actually require. Effect systems may exhibit coherence if liftings
+effects they actually require. Effect systems may exhibit incoherence if liftings
 between effects do not commute. This issue has been addressed by Biernacki and
 Polesiuk~\cite{DBLP:journals/lmcs/BiernackiP18}, who use a step-indexed logical
 relation atop an operational semantics to establish the equivalence of terms
