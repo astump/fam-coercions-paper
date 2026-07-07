@@ -124,18 +124,16 @@ Programming with typeclass-defined combinators like fmap allows programs a
 great deal of generality and concision, but programmers have to explicitly
 invoke combinators in the right places in order to get their programs to type
 check. In this paper, we propose inferring these operations using a coercive
-subtyping discipline. It infers where to insert operations by looking for
-points in the program where types do not yet agree but can be made to line up
-by adding coercions. For functors, we promote the fmap combinator
-\(\ltfmap : (A \to B) \to \F A \to \F B \) to a coercion
-\(\cfmap : A \to B \subty \F A \to \F B\). We incorporate it into a monomorphic
-system of coercions for base types, arrow types, and functor types. We
-prove that the resulting system of coercions is coherent, meaning that all
-possible choices of coercions from \(A\) to \(B\) end up equivalent. The proof
-of the theorem is based on coherence by normalization, an approach to
-coherence proofs based on the well-known technique of normalization by
-evaluation.  All definitions and theorems in the paper are checked in Agda,
-which played a valuable role in the design of the system.
+subtyping discipline and study the metatheory of the resulting algebra of
+coercions. For functors, we promote the fmap combinator \(\ltfmap : (A \to B)
+  \to \F A \to \F B \) to a coercion \(\cfmap : A \to B \subty \F A \to \F B\).
+We incorporate it into a monomorphic system of coercions for base types, arrow
+types, and functor types. We prove that the resulting system of coercions is
+coherent, meaning that all possible choices of coercions from \(A\) to \(B\) end
+up equivalent. The proof of the theorem is based on coherence by evaluation,
+an approach to coherence proofs based on the well-known technique of
+normalization by evaluation.  All definitions and theorems in the paper are
+checked in Agda, which played a valuable role in the design of the system.
 \end{abstract}
 
 \keywords{subtyping, functors, normalization by evaluation}
@@ -200,22 +198,25 @@ functional programming practice. In other words, we need to do some metatheory.
 
 First, we point out that these missing combinators ought to be viewed as
 implicit coercions between types. Implicit coercions are special functions
-that are inserted during type inference in order to make a program type check.
-They are usually drawn from a restricted grammar.
-Traditionally, coercions are used to permit programs to gloss over details like
+that are inserted during an elaboration phase in order to make a program type
+check. They are usually drawn from a restricted grammar. Traditionally,
+coercions are used to permit programs to gloss over details like
 numerical conversions, which are both tedious and predictable. Our systems of
 typeclass combinators are more abstract, but (provided they are drawn from
 lawful Functor instances) they ought to be predictable enough to be baked in to
 the type checking process. Besides standard lemmas about type inference such as
 completeness and principal typing, the chief metatheoretic property of interest
-for coercive subtyping is \emph{coherence}: this says that whatever coercions
-are inserted during type inference leave program meaning unchanged.
+for coercive subtyping is \emph{elaboration coherence}: for a given input
+program, all possible results of elaboration are equivalent.
+Proofs of elaboration coherence rely on \emph{coercion coherence}: for any
+types \(A\) and \(B\), all coercions from \(A\) to \(B\) are equivalent.
 
 In this paper, we address the problem of inserting implicit typeclass operations
-for the Functor typeclass with a system of coercions and establish a form of
-coherence for the system.  This allows applying pure functions to values of
-functor type without having to insert calls to fmap. We describe a combined
-coercion and subtyping judgment \[
+for the Functor typeclass by defining a system of coercions and establishing
+coercion coherence.  If integrated into an algorithmic type inference and
+elaboration phase, it will allow applying pure functions to values of functor
+type without having to insert calls to fmap. We describe a combined coercion and
+subtyping judgment \[
   c : A \leq B
 \]
 where the coercion \(c\) is drawn from a simple combinator calculus. The
@@ -223,35 +224,48 @@ coercions elaborate into terms in a functional programming language, but come
 from a much simpler combinator calculus. We add a special coercion \[
   \cfmap : A \to B \subty \F A \to \F B
 \]
-which lifts its argument into the functor. The other coercions are standard
-and include, for instance, the mixed-variance coercion \(\carr\ c_1\ c_2 : A \to B \subty U \to V\)
-that turns two coercions \(c_1 : U \subty A\) and \(c_2 : B \subty V\)
-into a coercion between the appropriate arrow types.
+which lifts its argument into the functor. The other coercions are standard and
+include, for instance, the mixed-variance coercion \(\carr\ c_1\ c_2 : A \to
+B \subty U \to V\) that turns two coercions \(c_1 : U \subty A\) and \(c_2
+: B \subty V\) into a coercion between the appropriate arrow types.
 
 The system of coercions is declarative, in the sense that it is a good
-specification of what coercions ought to be available in the system, but its
-derivations are nondeterministic. This presents two problems: a nondeterministic
-subtyping judgment is not suitable for implementation and the coercions inserted
-by two different determinizations may end up doing different things to the
-program.
+specification of what coercions ought to be available in the system, but it
+admits possibly many coercions between fixed types \(A\) and \(B\).
+This presents two problems: the rules do not define a deterministic algorithm
+that derives a coercion given \(A\) and \(B\), and two such algorithms may
+produce inequivalent coercions even though they comply with the declarative
+system.
 
 We solve both problems. First, we define an algorithmic subtyping system with
 unique derivations. It is proved sound and complete with respect to the
-declarative subtyping system.  Second, in order to get some assurance that this
-system of coercions is safe, we give a proof of its coherence. Coherence,
-in this context, says that any two coercions \(c_1, c_2 : A \subty B\)
-are semantically equivalent, in a sense to be made precise later.
-Our proof of coherence exploits the theory of normalization by evaluation,
-in which a complicated equivalence is analyzed by identifying canonical forms
-for its equivalence classes. In this case, the canonical forms are precisely the
-coercions from the algorithmic subtyping judgment.
+declarative subtyping system and has unique derivations for any given pair of
+types \(A\) and \(B\).  Second, in order to get some assurance that this system
+of coercions is safe, we give a proof of its coherence. Coherence, in this
+context, says that any two coercions \(c_1, c_2 : A \subty B\) are semantically
+equivalent, in a sense to be made precise later.
+
+Our proof uses what we term \emph{coherence by evaluation}, which is a simple
+variant of the well-known method of normalization by evaluation. 
+The method uses an isomorphism between declarative and algorithmic translations
+to reduce the problem of coherence for declarative coercions to the much simpler
+problem of uniqueness for algorithmic coercions.
+We begin with declarative coercions \(c : A \subty B\) equipped with an
+equivalence relation \(c_1 \coeeq c_2\) and algorithmic coercions \(n
+: A \nsubty B\) with unique derivations, i.e., \(n_1 = n_2\) for all \(n_1, n_2
+: A \nsubty B\). We define an evaluation function \(\eval c\) that sends
+declarative coercions \(c : A \subty B\) to a new datatype of algorithmic
+coercions \(n : A \nsubty B\). Next we define \(\reify\), which translates
+algorithmic coercions back to declarative ones, and prove that \(\reify (\eval
+c) \coeeq c\). Together with the uniqueness of algorithmic coercions, this
+property implies coercion coherence.
 
 To summarize, our paper makes the following contributions.
 \begin{itemize}
   \item Declarative and algorithmic coercive subtyping judgments for inferring missing uses of \(\cfmap\) in functional programs.
   \item An equivalence-preserving translation of coercion combinators into lambda calculus.
   \item A proof of soundness, completeness, and uniqueness for algorithmic coercions.
-  \item A proof of coherence for declarative subtyping based on normalization by evaluation.
+  \item A proof of coercion coherence for declarative subtyping based on normalization by evaluation.
   \item A mechanization of all of the above in Agda.\footnote{References to Agda definitions are rendered in \agdachk{teal}. The file is available in the supplementary material.}
 \end{itemize}
 
@@ -284,6 +298,23 @@ To summarize, our paper makes the following contributions.
   \end{minipage}
   \caption{Types and subtype relationships for a calculus with implicit fmap.}\label{fig:calculus}
 \end{figure}
+
+The types and subtyping rules at issue are shown in Figure~\ref{fig:calculus},
+which shows a base type, arrow types, and functor types, along with the usual
+subtyping rules for all of these and the new \textsc{Fmap} rule.  This is the
+declarative system.  Everything is standard except \textsc{Fmap}, which permits
+using functions \(A \to B\) at the lifted type \(\F A \to \F B\). This rule may
+be iterated, permitting the use of a function at \(\F A \to \F B\),
+\(\F \F A \to \F \F B\), and so on. These rules serve as a good specification of
+the system, but they have practical and theoretical limitations.
+
+The declarative rules are not suitable for an implementation because they are
+not deterministic: too many rules apply to possible subtyping queries.  Besides
+the fact that it is always possible to appeal to the \textsc{Trans} rule,
+queries of the form \(A \to B \subty \F U \to \F V\)  must choose between
+applying \textsc{Arr} and \textsc{Fmap}. The way the \textsc{Fmap} rule overlaps
+with the arrow rule is the chief source of technical complications in the
+sequel.
 
 \begin{figure}
   \begin{flushleft}
@@ -332,22 +363,6 @@ To summarize, our paper makes the following contributions.
 \end{figure}
 
 
-The types and subtyping rules at issue are shown in Figure~\ref{fig:calculus},
-which shows a base type, arrow types, and functor types, along with the usual
-subtyping rules for all of these and the new \textsc{Fmap} rule.  This is the
-declarative system.  Everything is standard except \textsc{Fmap}, which permits
-using functions \(A \to B\) at the lifted type \(\F A \to \F B\). This rule may
-be iterated, permitting the use of a function at \(\F A \to \F B\),
-\(\F \F A \to \F \F B\), and so on. These rules serve as a good specification of
-the system, but they have practical and theoretical limitations.
-
-The declarative rules are not suitable for an implementation because they are
-not deterministic: too many rules apply to possible subtyping queries.  Besides
-the fact that it is always possible to appeal to the \textsc{Trans} rule,
-queries of the form \(A \to B \subty \F U \to \F V\)  must choose between
-applying \textsc{Arr} and \textsc{Fmap}. The way the \textsc{Fmap} rule overlaps
-with the arrow rule is the chief source of technical complications in the
-sequel.
 
 Declarative coercions (Fig.~\ref{fig:coe}) are nothing more than proof terms for
 the declarative subtyping judgment. Playing fast and loose with Curry-Howard, we
@@ -428,35 +443,20 @@ commute.'' The elaboration judgment is coherent when all \(e'\) with
 Of course, nobody ever runs code that was elaborated by a declarative type
 system. Instead, implementations of type inference will hew closely to an
 algorithmic type system including a system of coercions \(c_a : A \asubty B\).
-By virtue of being
-algorithmic, this system will have unique coercions and emit unique elaborated
-terms.  It enjoys subtyping coherence automatically because its coercions and
-elaborated terms are not merely equivalent, but equal.
+By virtue of being algorithmic, this system will have unique coercions and emit
+unique elaborated terms.  It enjoys coercion coherence automatically because
+its coercions and elaborated terms are not merely equivalent, but equal.
 
-This is not a shortcut to solving the coherence problem.  
-determinize everything in sight, it will end up costing more in the long term.
-Here is a hypothetical situation. Suppose you have committed to a particular
-algorithmic subtyping judgment. There are many perfectly reasonable
-algorithmic typing judgments (and implementations) associated to any one
-declarative system.  When someone introduces a new algorithmic type system with
-its own idiosyncratic solution to the problem of determinizing the rules, it
-will have a new grammar of coercions \(c_b: A \bsubty B\) and a new own
-elaboration judgment. In order to show these have anything to do with the other
-coercions \(c_a : A \asubty B\), a common semantics is needed in which to compare
-them.  Without a declarative system, the only option is try and prove a
-contextual equivalence \[
-  \cca{c_a} \approx \ccb{c_b}.
-\]
-Needless to say, this is not a direct route. Since the invariants the two
-algorithmic type systems exploit in order to determinize the rules of the
-declarative system are likely to be different, the coercions they produce
-for a given query are unlikely to share much structural similarity.  On top of
-that, equational reasoning in the target language may be complex or
-underspecified when compared to equational reasoning about coercions, which
-ought to be terminating and effect-free programs.
+Of course, one could always take the algorithmic judgment as the definition,
+making coercion coherence true by fiat. This would create other problems. It is
+easy enough for an algorithmic judgment that has not been properly related to
+a corresponding declarative system to exhibit incompleteness or unsoundness.
+These defects would force the careful programmer to study the particular
+algorithmic system in use, rather than thinking in terms of the conceptually
+simpler interface provided by the declarative system.
 
-\paragraph{Coherence by normalization: a recipe}
-We propose coherence by normalization, a formulation of coherence for subtyping
+\paragraph{Coherence by evaluation: a recipe}
+We propose coherence by evaluation, a proof technique for coercion coherence 
 that can exploit the benefits of choosing a distinguished algorithmic system
 without requiring future algorithmic systems to be related directly to it.
 Rather than defining coercions only for a deterministic judgment, we begin from
@@ -489,22 +489,6 @@ By exhibiting a left inverse, we show that \(\evalname\) is injective up to
 equivalence. This implies coherence, since we know \(\eval{c_1} = \eval{c_2}\)
 from the uniqueness theorem for normal coercions.
 
-\paragraph{Extending the recipe with a new implementation}
-Consider the situation now for a future algorithmic judgment
-\(c_a :  A \asubty B\). We already know declarative coercions are coherent, so
-we just need to know that in the new system of coercions each \(c_a\) is
-equivalent to a declarative coercion \(c\). All we have to do is define another
-pair of functions
-\begin{align*}
-  \evalname_{\mathsf{a}} &: A \subty B \to A \asubty B \\
-  \reify_{\mathsf{a}} &: A \asubty B \to A \subty B,
-\end{align*}
-This time around, the equivalence
-\(\reify_{\mathsf{a}}\ (\evalname_{\mathsf{a}}\ c) \coeeq c\) follows from the
-coherence result that was already proved.  It does have to be checked that
-\(\cca{c_a} \approx \cc{\reify_{\mathsf{a}}{c_a}}\), but this can always be
-taken as a definition of \(\cca{c_a}\).
-
 \paragraph{Comparison to Reynolds' method}
 The coherence problem was studied as early as 1980 by
 Reynolds~\cite{reynolds80}, who outlined an algebraic approach to coherence of
@@ -518,7 +502,9 @@ Reynolds assumed that coercions form a preorder, that is, for every pair of
 arrows \(c_1, c_2 \in \coe(A, B)\), \(c_1 = c_2\). While this is true (up to
 equivalence) for any coherent coercive subtyping relation,
 our approach to coherence is a robust technique for establishing it in the first
-place.
+place. Reynolds goes beyond our results with a proof of full subtyping
+coherence, although the 1980 paper only treats a first-order language.
+
 
 \section{Defining and justifying the equational theory}
 The first order of business in establishing coherence is to decide on a
@@ -587,12 +573,12 @@ terms.\\
 \end{minipage}
 
 \begin{proposition}[\agdachk{interp-sound}]\label{interp-sound}
-  For all \(c_1, c_2 : A \subty B\), \[
+  For all \(c_1, c_2 : A \subty B\), \(
     c_1 \coeeq c_2 \Longrightarrow \cc{c_1} \approx \cc{c_2}
-  \]
+  \).
 \end{proposition}
 \begin{proof}
-  By induction on \(c_1 \coeeq c_2\). Extensionality appears necessary in the case for the special fmap law due to it relating composite terms of function type.
+  By induction on \(c_1 \coeeq c_2\). Function extensionality appears necessary in the case for the special fmap law due to it relating composite terms of function type.
 \end{proof}
 
 \section{Algorithmic judgment and normal coercions}
@@ -607,6 +593,14 @@ coercions \(\na : A, B \nasubty U, V\). The normal coercions have exactly one
 rule for each type former. The arrow coercions include \(\naarr\), which
 performs ordinary mixed-variance arrow subtyping by appealing to two normal coercions,
 and \(\mathsf{nfmap}\), which extends an arrow coercion with one use of fmap on the right.
+Notice that there is only an identity coercion for base types and other identity
+coercions have to be built up from the other coercion combinators.
+Like normal forms for the lambda calculus, these normal forms are not
+necessarily the simplest or most efficient programs for a given task.
+In a practical implementation, one would probably want to perform an
+optimization pass after the fact in order to keep coercions as simple as
+possible, or rely on a different algorithmic system that produces more efficient
+proof terms.
 
 \subsection{Uniqueness of normal coercions}
 It is not immediately clear that normal coercions have \(n_1 = n_2\) for any
@@ -623,7 +617,7 @@ a predictable relationship between the number of leading functors in
 the types on their left and right. To this point, define the \emph{peel number} of a
 type to be  \(\peel{\F A} = 1 + \peel A\) and \(\peel A = 0\) otherwise.  The
 peel number is preserved by normal subtyping and increased by arrow subtyping.
-\begin{proposition}[Peel invariants]\label{prop:peel}
+\begin{proposition}[\agdachk{peel-inv}]\label{prop:peel}
   Let \(A, B, U\), and \(V\) be types.
   \begin{enumerate}
     \item If \(A \nsubty B\) then \(\peel A = \peel B\).
@@ -659,7 +653,7 @@ appears in the invariant for arrow subtyping counts the number of
         By Proposition~\ref{prop:peel}, we have \(\peel{A} \leq \peel{U}\).
         If \(\na_2 = \nfmap{\na_2'}\) then the IH applies. Otherwise,
         \(\na_2 = \naarr\ n_1\ n_2\) for some coercions \(n_1 : \F U \nsubty A\)
-        and \(n_2 : B \subty F V\). Applying Proposition~\ref{prop:peel} again yields
+        and \(n_2 : B \subty \F V\). Applying Proposition~\ref{prop:peel} again yields
         \(\peel{A} = \peel{U} + 1\), a contradiction.\qedhere
 \end{itemize}
 \end{proof}
@@ -947,55 +941,54 @@ make it typecheck.
 Unfortunately, there are a few immediate technical obstacles to achieving this
 level of brevity in realistic programs while maintaining soundness,
 decidability, and coherence.
-A subtyping system for an applicative functor \(F\) should include the
-declarative coercions \(\textsf{pure} : A \subty \F A\) and
-\(\textsf{seq} : \F(A \to B) \subty \F A \to \F B\). Our normal coercions for
-plain old functors do not immediately generalize to this setting. The peel
-invariant (Proposition~\ref{prop:peel}) relied on in some proofs no longer holds
-because both of the new coercions do not preserve number of leading \(F\)s in
+A subtyping system for an applicative functor \(\F\) should include the
+declarative coercions \(\textsf{pure} : A \subty \F A\) and \(\textsf{seq}
+: \F(A \to B) \subty \F A \to \F B\). Our normal coercions for plain old
+functors do not immediately generalize to this setting. The peel invariant
+(Proposition~\ref{prop:peel}) relied on in some proofs no longer holds because
+both of the new coercions do not preserve number of leading \(\F\) symbols in
 types. By entangling the functor and arrow types, these coercions introduce many
-more pairs of coercions that can be composed, and designing a system of normal
+more
+pairs of coercions that can be composed, and designing a system of normal
 coercions that can choose a canonical form for all these compositions will
 require further research.
 
-We have not defined an algorithmic type inference judgment for our system
-or proved it coherent. We expect this to be straightforward for a monomorphic
-calculus with just fmap, but there are difficulties in extending the result to
-polymorphic types.  Consider a program that applies \texttt{head : [a] -> a} to
-a list of lists. It already typechecks and it returns the first list. But it is
-also possible to insert an fmap, which will make it return a list of the head
-elements of each list. This makes both of the following results plausible,
-even though they clearly violate coherence.
+Proving elaboration coherence will probably require more sophisticated methods
+than the ones used in this short paper. The usual approach is to deploy
+a logical relation in the style of Reynolds~\cite{reynolds00}, whose famous
+``bracketing theorem'' relates an untyped semantics where subtyping is
+interpreted by inclusion to a typed semantics where subtyping is interpreted by
+coercion maps. Here there may be a snag. In the case of functor subtyping, the
+untyped semantics has to interpret types in such a way that fmap becomes an
+inclusion \[ \llbracket A \to B \rrbracket \subseteq \llbracket \F A \to \F
+B \rrbracket \] while still providing a sound model of the rest of the type
+system. This is an unusual requirement, to say the least, and will require
+further research.
+
+
+\paragraph{Polymorphism leads to incoherence}
+We have not defined an algorithmic type inference and elaboration judgment using
+our system of coercions or proved it coherent. We expect this to be
+straightforward for a monomorphic calculus with just fmap, but there are
+difficulties in extending the result to polymorphic types.  Consider a program
+that applies \texttt{head : [a] -> a} to a list of lists. It already typechecks.
+But it is also possible to insert an fmap, which will make it return a list of
+the head elements of each list. This makes both of the following results
+plausible outcomes of elaboration.
 \begin{Verbatim}
 head [[1,2],[3,4]] = [1,2]
 head [[1,2],[3,4]] = [1,3]
 \end{Verbatim}
-Making this work in general requires incorporating a notion of principal type
-into the declarative typing judgment so that functions are only lifted when
-necessary, but formulating this notion will require further work.
-
-As far as proving the system coherent goes, we may be able to scale our method
-of coherence by normalization to whole programs. While equivalence of programs
-is undecidable in general, we only need normal forms that are sufficiently organized
-in order to put two elaborations of the same source term into one shape.
-
-The alternative is to deploy a logical relation in the style of Reynolds~\cite{reynolds00},
-whose famous ``bracketing theorem'' relates an untyped semantics where subtyping
-is interpreted by inclusion to a typed semantics where subtyping is interpreted
-by coercion maps.
-Here there
-may be a snag. In the case of functor subtyping, the untyped semantics has to
-interpret types in such a way that fmap becomes an inclusion \[
-  \llbracket A \to B \rrbracket \subseteq \llbracket \F A \to \F B \rrbracket
-\]
-while still providing a sound model of the rest of the type system. This is an
-unusual requirement, to say the least, and will require further research.
-
+This clearly violates elaboration coherence. The two expressions even have the
+same type. In some sense the second example ought to be ruled out, since it
+lifts a function that does not need lifting, but a naive declarative system will
+always permit it. We are interested in finding restricted forms of elaboration
+that can be coherent even in the presence of polymorphic functions.
 
 \section{Related work}
 Promoting fmap to a coercion has some similarity with work on effect systems,
-where programs are permitted to run in an effect bounded below by the
-effects they actually require. Effect systems may exhibit incoherence if liftings
+where programs are permitted to run in an effect bounded below by the effects
+they actually require. Effect systems may exhibit incoherence if liftings
 between effects do not commute. This issue has been addressed by Biernacki and
 Polesiuk~\cite{DBLP:journals/lmcs/BiernackiP18}, who use a step-indexed logical
 relation atop an operational semantics to establish the equivalence of terms
@@ -1025,11 +1018,14 @@ compositions (transitivity proofs) bears formal similarities to Beylin and
 Dyjber's proof.
 
 Allais~et~al.~\cite{allais2025frex} describe Frex, a suite of tools for working
-with single-sorted algebraic theories using normalization by evaluation.  An
-extension of Frex to multi-sorted algebraic theories, as proposed by Allais and
-an overlapping set of authors~\cite{allais2023}, would subsume our development
-and make it easier to add new coercions and types to the system without tedious
-reproving and refactoring.
+with single-sorted algebraic theories using normalization by evaluation
+techniques.  Our theories of coercions are multi-sorted: there is one sort \(A
+\subty B\) for every pair of types \(A\) and \(B\). This makes the machinery of
+Frex inapplicable. An extension of Frex to multi-sorted algebraic theories, as
+proposed by Allais and an overlapping set of authors~\cite{allais2023}, could
+subsume portions of our Agda development and make it easier to add new coercions
+and types to the system. Unfortunately the particular choice of algorithmic
+system is not something that can be automatically derived.
 
 \section{Conclusion}
 We have presented a subtyping judgment for statically inferring silent uses of
@@ -1038,7 +1034,7 @@ coercive subtyping, which treats fmap as a coercion that may be inserted
 wherever the types involved make it make sense. To keep program meaning stable
 in the face of this potentially intrusive and nondeterministic procedure, we
 proved coherence of subtyping derivations using a new approach we call
-\emph{coherence by normalization}.  All our definitions and proofs were checked
+\emph{coherence by evaluation}.  All our definitions and proofs were checked
 in Agda.
 
 \bibliographystyle{ACM-Reference-Format}

@@ -1,31 +1,31 @@
 # Higher level things to do
-[ ] rewrite discussion on page 5 ("This is not a shortcut...") or remove it
+[x] rewrite discussion on page 5 ("This is not a shortcut...") or remove it
     entirely. The emphasis on determinism is incorrect, what's important is
     uniqueness...
-[ ] draw a stronger distinction between general coherence and "coercion coherence"
-    [ ] discuss the problem of insertion
-[ ] point out that normalized coercions are expensive
+[x] draw a stronger distinction between general coherence and "coercion coherence"
+    [x] discuss the problem of insertion
+[x] point out that normalized coercions are expensive
 [ ] any connection to the standard theory of lambda calculus? Why not just
     normalize terms using ordinary beta-eta-equality?
-[ ] move coherence by normalization up in the paper
+[x] explain coherence by normalization earlier in the paper
 [ ] consult array programming literature
-[ ] Seriously tighten up the claims in section 7: principal type? lifting?
+[x] Seriously tighten up the claims in section 7: principal type? lifting?
     incoherence? equivalence of normal forms? put this under a heading to
     indicate what's going on.
-[ ] elaborate on multi-sorted Frex remark
+[x] elaborate on multi-sorted Frex remark
 
 # Layout and notation cleanup
-[ ] keep the contributions list on one page
+[x] keep the contributions list on one page
 [ ] don't break up inline definitions with the figures
-[ ] set F in upright sans-serif instead of italic to avoid confusion
+[x] set F in upright sans-serif instead of italic to avoid confusion
 [ ] discuss how multiple Fs does not pose a problem
 
 
 # Code tasks
-[ ] delete grayed out or unreachable bits
-[ ] rename prop 8 to reify-mkcomp
-[ ] prove a peel invariant that matches what's used in the paper
-[ ] amend paper to refer to peel invariant lemma
+[x] delete grayed out or unreachable bits
+[x] rename prop 8 to reify-mkcomp
+[x] prove a peel invariant that matches what's used in the paper
+[x] amend paper to refer to peel invariant lemma
 
 # Typos
 
