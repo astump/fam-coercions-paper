@@ -19,6 +19,9 @@ infix 100 ⌈_⌉
 ⌈ L T ⌉    = ↑ ⌈ T ⌉
 ⌈ T ⇒ T' ⌉ = ff ! ⌈ T ⌉ ⇒ ⌈ T' ⌉
 
+_≺_ : Tp! → Tp → Set
+T ≺ T' =   ⌈ T' ⌉ ≡ T
+
 ↑<L⟦⟧ : ∀ (A : Tp!) → ⟦ ↑ A ⟧ <: L ⟦ A ⟧
 ↑<L⟦⟧ (ff !N)      = refl-raw
 ↑<L⟦⟧ (tt !N)      = Pure
