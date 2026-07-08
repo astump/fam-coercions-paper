@@ -22,10 +22,10 @@ negFlag Right = Left
 negFlag Nothing = Nothing
 
 funFlagOk : 𝔹 → Flag → 𝔹 → Flag → Set
--- j = Nothing : ordinary FunOrd rule.
+-- j = Nothing : ordinary Fun rule.
 funFlagOk b f b' Nothing = natFlagOk b f b'
--- j = Right : sequenced FunSeq rule.
--- Enabled ONLY on the 3 cells FunOrd misses to prevent overlap
+-- j = Right : sequenced Fun rule.
+-- ONLY on the 3 cells FunOrd misses to prevent overlap
 --     (tt , Nothing , ff)  —  L(A⇒B) <: (A'⇒B') via Seq then Fun
 --     (_  , Left    , ff)
 funFlagOk tt Nothing ff Right = ⊤
@@ -81,7 +81,7 @@ uniqueness : ∀{A B : Tp!}{f : Flag} →
               d1 ≡ d2
 uniqueness (Nat! x) (Nat! x₁) rewrite natFlag-unique x x₁ = refl
 uniqueness (Fun! {j = Right} x a b) (Fun! {j = Right} x₁ a₁ b₁)
-  rewrite funFlag-unique x x₁ -- | uniqueness a a₁ | uniqueness b b₁
+  -- rewrite funFlag-unique x x₁ -- | uniqueness a a₁ | uniqueness b b₁
   = {!!}
 uniqueness (Fun! {j = Nothing} x a b) (Fun! {j = Right} x₁ a₁ b₁)
   -- rewrite funFlag-unique x x₁ | uniqueness a a₁ | uniqueness b b₁
