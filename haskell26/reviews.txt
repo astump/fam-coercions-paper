@@ -1,0 +1,228 @@
+Haskell 2026 Paper #23 Reviews and Comments
+===========================================================================
+Paper #23 Coercive Subtyping for Implicit Functorial Programming
+
+
+Review #23A
+===========================================================================
+
+Overall merit
+-------------
+5. Strong accept
+
+Reviewer expertise
+------------------
+3. Knowledgeable
+
+Paper summary
+-------------
+The paper is work on the path towards automatically inferring where to put `fmap` in a program to make it typecheck, alleviating the annoying effort of decorating your conceptually simple program with functor/applicative/monad combinators. In particular, it shows how to incorporate fmap into a system of subtyping coercions, seeing (A -> B) as a "subtype" of (FA -> FB), and witnessing this with a proof term (a coercion) corresponding to fmap. They show that their system of coercions is coherent (any two coercions between the same types have the same effect) using, quite cleverly, normalization by evaluation. They formalize this in Agda but explain the main insights of the proof in the paper.
+
+Comments for authors
+--------------------
+Overall, a very nice paper! An extension of this to handle multiple functors, polymorphism, and Applicative/Monad would seem very desirable for writing programs without all the annoying boilerplate and funky symbols currently required; although as you point out there are many difficulties in that direction.
+
+Because F is consistently set in italic and so appears to be a metavariable, I initially assumed your system handled any number of functors; in fact it seems F is a constant, like 𝔹, and your system has only one functor. (A) Please fix your notation. (B) Would extending to multiple functors be difficult? I would expect some discussion of this in future work (you discuss handling parametric polymorphism and applicative/monad, but not this).
+
+You entirely omit discussion of how to determine where to *put* coercions in a term language, which seems crucial to making this work in practice. Is this somehow obvious, or handled by prior work? It seems to me you’d need to couple your proofs of coercion coherence with a Reynolds-like proof that coercions commute with operations to show that it doesn’t matter where you put the coercions, is that right?
+
+Your paper also omits to discuss performance concerns entirely. Different coercions can have quite different performance. For one example, the two coercions you introduce on l137-168 correspond to (fmap (c1 . f . c2)) and (fmap c1 . fmap f . fmap c2), of which the former, "fused" version will almost always perform better. It’s not clear to me whether/when your system will generate fused fmaps vs. separate fmaps. For another, your algorithmic system always fully expands identity coercions down to base type, which is a performance hazard, eg, F𝔹 → F𝔹 ≤ F𝔹 → F𝔹 produces the wasteful (λf. fmap id . f . fmap id). Avoiding this unnecessary wrapping seems like a good use case for defining a different algorithmic system over the same declarative system while re-using your existing coherence result.
+
+Finally, I’m curious whether the induced canonical forms for declarative coercions are "natural" in any way; e.g. do they connect in some way to β-short η-long normal forms for λ-calculus?
+
+# Typos
+
+Fig 1, l99: what’s the "_n" subscript on $A \le_n B$ in the box doing there?
+
+l313-314, right column,
+a) "C(c₁ · c₂) = λx. C(c₂) (c₁ x)" should have "(C(c₁) x)" instead
+b) "C(arr c₁ c₂) = λf x. c₂ f (c₁ x)" should have "C(c₂) f (C(c₁) x)" instead
+
+l434: Missing space in "nfmap_{l}\mathit{na}", should be "nfmap_l\ \mathit{na}".
+
+l447: Missing space, RHS, "(mkcomp_na\ n_{1}n_{2})" should be "(mkcomp_na\ n_1\ n_2)".
+
+l448: Missing space, LHS, 2nd argument, "(narr \mathit{na}_2)" should be "(narr\ \mathit{na}_2})"
+
+l617: §8’s name has Every Word Capitalized, but every other section has only the leading word capitalized.
+
+l620-621 "Effect systems may exhibit coherence if liftings between effects do not commute." Should be *incoherence*, presumably?
+
+# Detailed notes
+
+## §2 Overview
+
+l137-168: It might be helpful to show the reader which term conversions these two coercion derivations correspond to, namely: given a term ((f: A → B) (x: F U)): F V and coercions (c1: U ≤ A), (c2: B ≤ V), we can elaborate this to either of
+
+1.  (fmap (c1 . f . c2)) x
+2.  (fmap c1 . fmap f . fmap c2) x
+
+which are equivalent by the functor law, (fmap (f . g)) = (fmap f . fmap g), foreshadowing your proof of cohesion. Of these, the first is preferable on performance grounds (this is fmap fusion); is this the one your system produces?
+
+l190 "and furthermore e is semantically equivalent to e’" I’m confused: e and e’ have different types (that’s the whole point); what can "semantically equivalent" mean across types?
+
+l208 "Since the invariants the two algorithmic type systems exploit in order to determinize the rules of the declarative system are likely to be different." What invariants are you thinking of? Why should determinization require invariants? If one doesn’t care about anything but determinism, it’s pretty simple to determinize a declarative system: just use a deterministic, complete search strategy (e.g. iterative deepening) to search for derivations in the declarative system and pick the first one it finds.
+
+In general I found l197-213 a bit confusing. It seems to be motivation for your approach to coherence. But it omits what I would think is the strongest motivation for coherence, namely that I, the programmer, don’t want to run the rules of your determinized system in my head to understand what my program will do. Since you are automatically introducing coercions, I should not to have to worry about the details of where you are introducing them or what they are doing; varying these details should not affect my program’s meaning. Coherence is a step along the path to this guarantee; Reynolds’ approach, showing that operations commute with conversions, addresses it more fully.
+
+l214-237 This is very compelling and clearly written. Perhaps it ought to go earlier in the paper.
+
+l238-l249: Are you assuming that this future development *hasn’t added anything* to the declarative system of coercions? If so, this seems almost useless: won’t almost any future development want to add new kinds of coercion / extend the declarative system?
+
+## §4 Algorithmic judgment and normal coercions
+
+Fig 3: It appears your algorithmic system always goes all the way down to base types, even when it could use identity. This makes establishing uniqueness much easier, but it is also a performance hazard. For instance, for F𝔹 → F𝔹 ≤ F𝔹 → F𝔹 you will get C(reify (narr (naarr (nmono nid) (nmono nid)))) = C(arr (mono id) (mono id)) = λf x. fmap id (f (fmap id x)), which is computationally wasteful. Have you given any thought to avoiding unnecessary un/rewrapping? This would be a good use case for defining a different algorithmic system over the same declarative system while re-using your existing coherence result.
+
+## §5 Coherence
+
+l377-388: You don’t give the type of reify_na, which makes this hard to understand. I’m guessing it’s reify_na: (A,B ≤na U,V) → (A → B) ≤ (U → V)?
+
+l378: "the reification of nfmap na puts fmap after the reification of na and not before. This is an arbitrary choice" Unless I’m missing something, I don’t think putting fmap before would type-check:
+
+  C(x · y) = C(y) ∘ C(x),
+  so if (x: A ≤ B) and (y: B ≤ C) then (x · y: A ≤ C)
+
+  reify   : A ≤n B → A ≤ B
+
+  reify_na: (A,B ≤na U,V) → (A → B) ≤ (U → V) ? (had to guess)
+
+  reify_na (nfmap na) = reify na · fmap
+
+  given na: A,B ≤ U,V
+  we have nfmap na: A,B ≤ FU,FV
+  and want to show (reify na · fmap) : (A → B) ≤ (FU → FV).
+
+  reify na : (A → B) ≤ (U → V)
+
+  fmap     : (X → Y) ≤ (FX → FY)   [∀X,Y]
+
+  thus (reify na · fmap) : (A → B) ≤ (FU → FV)
+  but  (fmap · reify na) does not typecheck, since (A → B) ≠ (FX → FY).
+
+l389: "Reification is sound" I don’t know what you mean by this; I don’t think you have stated it? "This means our syntactic equality agrees with the intended model" I’m also not sure what you mean by this. Do you mean, if two normal forms are equal, then their interpretations are equal? But (unlike your declarative coercions) you’ve given no equivalence relation on normal coercions, so this is trivial and not worth saying.
+
+## §7 Perspectives and future work
+
+l594-600: head [[1,2],[3,4]] vs fmap head [[1,2],[3,4]]: I wonder what array programming languages which allow implicit broadcast/upranking (~implicit fmap) do here.
+
+Are l592-616 all about the same issue, namely, giving a type inference judgment and proving it coherent (i.e. program semantics doesn’t depend on where you insert coercions or which ones you insert), in particular for polymorphism? If so this is not obvious. Consider a subsection or rewriting for disambiguity. eg. l604 "As far as proving the system coherent" *which system*? You *did* prove the system of coercions coherent, so surely not that one. So you mean the (at this point purely hypothetical) type system for a language with polymorphism?
+
+l601-602: "requires incorporating a notion of principal type [...] so that functions are lifted only when necessary" What’s the connection between principal types and lifting functions only when necessary? That we only apply coercions when a term’s principal type doesn’t match what its context expects? Are you confident that this alone guarantees coherence? It doesn’t seem so to me, e.g. take (head (Just [[1,2],[3,4]])). Here we *do* need a coercion (the principal type of ‘head’ does not match what it is applied to), but there are two available, just as in the ‘head [[1,2],[3,4]]’ case.
+
+l604-607 "[Program equivalence is undecidable, but] we only need normal forms that are sufficiently organized in order to put two elaborations of the same source term into one shape." Could you explain this more clearly or give an example? It’s unclear to me what you mean.
+
+## §8 Related Work
+
+§8, l642-645: I’d like to hear more about how multi-sorted Frex would be the same as / subsume your work - not an obvious connection to me.
+
+
+
+Review #23B
+===========================================================================
+
+Overall merit
+-------------
+3. Weak accept
+
+Reviewer expertise
+------------------
+2. Some familiarity
+
+Paper summary
+-------------
+In Haskell, typeclasses like Functor, Applicative, and Monad allow the programmer to write generic code very concisely. The authors are interested in further reducing boilerplate code, and specifically in making `fmap` calls completely implicit. Adding new implicit behaviour to a programming language affects its semantics, so it requires metatheoretic justification. The authors' main result is coherence: any 2 coercions from A to B are semantically equivalent. They prove this via an approach they call 'coherence by normalization', which is inspired by normalization by evaluation.
+
+Comments for authors
+--------------------
+## Overall comments
+I found this paper easy to read and to follow along. The approach of 'coherence by normalization', adapting normalization by evaluation into this simpler setting, seems like a neat trick that worked well for this problem. 
+
+What seems to be a bit lacking for me is a good motivation for doing this. I understand that with more implicit coercion, Haskell code will be easier to write and to understand at first glance. However, I can imagine that, for example, this would make teaching Haskell much more difficult. A lot of what would be happening under the hood that has to do with typeclass instances will be 'magically' taken care of, so it would make things pedagogically much harder. I am also not fully convinced that this is very necessary for Haskell programmers. My impression is that while techniques like using applicative chains take a while to learn and get into using, once you have them down they become second nature. 
+
+Nevertheless, the above feels to me more of a philosophical argument on whether we really need such implicit coercion or not. The authors are interested in implementing this, and I believe they do a good job of building up the metatheory necessary to support it, so I still recommend accepting the paper.
+
+## Detailed comments/typos
+- On pages 3, 4, and 7, the placement of figures is very confusing. For example on page 3 Figure 1 is placed right before the last bullet point that was on page 2. On page 7, Figure 3 is placed before the end of a sentence and I thought this was supposed to be the translation from coercions to STLC (which comes directly after) and I was very confused. I recommend placing the figures in a way that does not interrupt the flow of reading so much.
+- From what I can see Proposition 3 was not formalized (or at least part (2)). Why not? Maybe this should be mentioned in the formalization section.
+- In the formalization, there are some lines that appear greyed out, indicating unreachable or dead code, which should be fixed.
+- p.2 paragraph 2: "First, we point out that these missing combinators ought to be viewed as implicit coercions between types. Implicit conversions..." - I think these should both say "implicit coercions" or "implicit conversions" to avoid confusion.
+- p.2 paragraph 2: "enought" -> "enough"
+- p.5 paragraph 1: "determinize" - strange word, maybe explain what it means (I guess to remove non-determinism?) or use a different word/phrase.
+- p.6 paragraph 4: "becuase" -> "because"
+- p.10 - Proposition 8 is not called `reify-mkcomp` in the code
+
+
+
+Review #23C
+===========================================================================
+
+Overall merit
+-------------
+4. Accept
+
+Reviewer expertise
+------------------
+4. Expert
+
+Paper summary
+-------------
+This paper develops a theory of coercions (implicit type conversion)
+for functorial types (a unary type contstructor F equipped with fmap)
+and proves coherence, which means syntactically different coercions
+with the same source and target types have the same semantics.
+
+A new form of coercions is one from A->B to FA -> FB so that an
+explicit application of fmap can be omitted from a program but then
+coherence is less clear because it has interaction with standard
+coercions for function types.  For example, there may be a few ways to
+coerce from A -> B to FA' -> FB', given coercions from A' to A and B
+to B'.
+
+Coherence is proved by using another, algorithmic system of coercions
+where there is at most one coercion from one type to another and via
+the following two properties.
+
+* Every typing derivation in the first, declarative system can be
+  translated to an algorithmic derivation.
+* A straightforward back-translation to the declarative system gives
+  an (contextually) equivalent coercion.
+
+Since there is at most one derivation in the algorithmic system, they
+imply any two corecions of the given type are equivalent.
+
+The proofs are formalized in Agda.
+
+Comments for authors
+--------------------
+The proposed method seems to be inspired by
+normalization-by-evaluation: The two translations between the
+declarative and algorithmic systems are called eval and reify,
+respectively, as in the NbE literature.  The main difference is that
+NbE deals with lambda terms but here eval/reify deal with subtyping
+derivations encoded in term syntax.  This is an interesting
+observation (although one can say it's another instance of
+Curry-Howard...).
+
+The paper is fairly well written and pleasant to read.  It's partly
+because I have worked on coercions before, but I think this paper is
+easy to follow for many people.
+
+I think coherence usually refers to a property of a programming
+language, not just subtyping.  It matters not only what coercions to
+insert (the problem that this paper addresses) but also where to
+insert -- we expect wherever coercions are inserted to make the
+program typecheck, the semantics is preserved.  I think Reynolds' work
+focuses more on the latter issue.  It seems that the authors are aware
+of this distinction but the paper should state that this work
+addresses only the first part of the coherence problem upfront.
+
+Minor comments:
+
+* L246: \equiv should be \simeq?
+
+* L313-315: a few occurrences of c1 and c2 miss C(_) (on RHS).
+
+* L348: A, B \leq_n U, V should be \leq_{na}.  Perhaps you should note k is a positive integer?
+
+* L486: eval c should be parenthesized.
+ 

@@ -1,0 +1,64 @@
+# Higher level things to do
+[x] rewrite discussion on page 5 ("This is not a shortcut...") or remove it
+    entirely. The emphasis on determinism is incorrect, what's important is
+    uniqueness...
+[x] draw a stronger distinction between general coherence and "coercion coherence"
+    [x] discuss the problem of insertion
+[x] point out that normalized coercions are expensive
+[ ] any connection to the standard theory of lambda calculus? Why not just
+    normalize terms using ordinary beta-eta-equality?
+[x] explain coherence by normalization earlier in the paper
+[ ] consult array programming literature
+[x] Seriously tighten up the claims in section 7: principal type? lifting?
+    incoherence? equivalence of normal forms? put this under a heading to
+    indicate what's going on.
+[x] elaborate on multi-sorted Frex remark
+
+# Layout and notation cleanup
+[x] keep the contributions list on one page
+[ ] don't break up inline definitions with the figures
+[x] set F in upright sans-serif instead of italic to avoid confusion
+[ ] discuss how multiple Fs does not pose a problem
+
+
+# Code tasks
+[x] delete grayed out or unreachable bits
+[x] rename prop 8 to reify-mkcomp
+[x] prove a peel invariant that matches what's used in the paper
+[x] amend paper to refer to peel invariant lemma
+
+# Typos
+
+[x] Fig 1, l99: what’s the "_n" subscript on $A \le_n B$ in the box doing there?
+
+[x] l313-314, right column,
+    a) "C(c₁ · c₂) = λx. C(c₂) (c₁ x)" should have "(C(c₁) x)" instead
+    b) "C(arr c₁ c₂) = λf x. c₂ f (c₁ x)" should have "C(c₂) f (C(c₁) x)" instead
+
+[x] l434: Missing space in "nfmap_{l}\mathit{na}", should be "nfmap_l\ \mathit{na}".
+
+[x] l447: Missing space, RHS, "(mkcomp_na\ n_{1}n_{2})" should be "(mkcomp_na\ n_1\ n_2)".
+
+[x] l448: Missing space, LHS, 2nd argument, "(narr \mathit{na}_2)" should be "(narr\ \mathit{na}_2})"
+
+[x] l617: §8’s name has Every Word Capitalized, but every other section has only the leading word capitalized.
+
+[x] l620-621 "Effect systems may exhibit coherence if liftings between effects do not commute." Should be *incoherence*, presumably?
+
+[t] On pages 3, 4, and 7, the placement of figures is very confusing. For example on page 3 Figure 1 is placed right before the last bullet point that was on page 2. On page 7, Figure 3 is placed before the end of a sentence and I thought this was supposed to be the translation from coercions to STLC (which comes directly after) and I was very confused. I recommend placing the figures in a way that does not interrupt the flow of reading so much.
+[t] From what I can see Proposition 3 was not formalized (or at least part (2)). Why not? Maybe this should be mentioned in the formalization section.
+[t] In the formalization, there are some lines that appear greyed out, indicating unreachable or dead code, which should be fixed.
+[x] p.2 paragraph 2: "First, we point out that these missing combinators ought to be viewed as implicit coercions between types. Implicit conversions..." - I think these should both say "implicit coercions" or "implicit conversions" to avoid confusion.
+[x] p.2 paragraph 2: "enought" -> "enough"
+[t] p.5 paragraph 1: "determinize" - strange word, maybe explain what it means (I guess to remove non-determinism?) or use a different word/phrase.
+[x] p.6 paragraph 4: "becuase" -> "because"
+[t] p.10 - Proposition 8 is not called `reify-mkcomp` in the code
+
+
+[x] L246: \equiv should be \simeq?
+
+[x] L313-315: a few occurrences of c1 and c2 miss C(_) (on RHS).
+
+[x] L348: A, B \leq_n U, V should be \leq_{na}.  Perhaps you should note k is a positive integer?
+
+[x] L486: eval c should be parenthesized.
