@@ -1,3 +1,10 @@
+-- This file accompanies the paper
+--
+--   Coercive Subtyping for Implicit Functorial Programming
+--   Doenges, Parajuli, Lamparski, Wu, and Stump
+--   HASKELL 2026
+--
+-- It builds under Agda 2.8.0 with the Agda standard library.
 module Fmap where
 
 open import Data.Nat
@@ -79,12 +86,15 @@ data _≃_ : {a b : ty} → coe a b → coe a b → Set where
   c-arr-fmap : {a b u v : ty} {c1 : coe a b} {c2 : coe u v} →
     c-fmap · c-arr (c-mono c1) (c-mono c2) ≃ c-arr c1 c2 · c-fmap
 
+-- Equality implies equivalence.
 ≡-to-≃ : {a b : ty} {c1 c2 : coe a b} → c1 ≡ c2 → c1 ≃ c2
 ≡-to-≃ {a} {b} {c} refl = c-refl c
 
 postulate
   funext : {A B : Set} {f g : A → B} → ((x : A) → f x ≡ g x) → f ≡ g
 
+-- Coercions coe A B can be interpreted as Agda programs 〚A〛 → 〚B〛
+-- provided you pick a base type (B) and a lawful functor (F).
 module interp {B : Set} {F : Set → Set} {FM : Functor F} where
   open Functor
   check : {A B : Set} → (A → B) → (F A → F B)
@@ -102,6 +112,7 @@ module interp {B : Set} {F : Set → Set} {FM : Functor F} where
   interp-coe (c-mono c) = fmap FM (interp-coe c)
   interp-coe c-fmap = fmap FM
 
+  -- The interpretation respects equivalence.
   interp-sound : {a b : ty} → {c1 c2 : coe a b} → c1 ≃ c2 → interp-coe c1 ≡ interp-coe c2
   interp-sound (c-refl c) = refl
   interp-sound (c-sym pf) rewrite (interp-sound pf) = refl
@@ -123,6 +134,7 @@ module interp {B : Set} {F : Set → Set} {FM : Functor F} where
   interp-sound c-mono-comp = sym (fmap-⨾ FM)
   interp-sound c-arr-id = refl
   interp-sound c-arr-comp = refl
+  -- This is the only case that uses function extensionality.
   interp-sound (c-arr-fmap {c1 = c₁} {c2 = c₂}) = funext λ g →
     let ⟦c₁⟧ = interp-coe c₁
         ⟦c₂⟧ = interp-coe c₂
@@ -146,7 +158,7 @@ data ncoe-arr where
   na-arr : ∀ {a b u v} → ncoe u a → ncoe b v → ncoe-arr a b u v
   na-fmap : ∀ {a b u v} → ncoe-arr a b u v → ncoe-arr a b (f u) (f v)
 
--- (no laws needed since they're in normal form)
+-- (no equivalence relation needed since they're in normal form)
 
 -----------
 -- REIFY --

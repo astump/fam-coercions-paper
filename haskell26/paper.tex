@@ -93,7 +93,7 @@
 
 \author{Caden Parajuli}
 \email{parajulc@bc.edu}
-\orcid{TODO}
+\orcid{0000-0003-1069-0570}
 \affiliation{%
   \institution{Boston College}
   \city{Chestnut Hill}
@@ -471,7 +471,7 @@ this means that while there is generally a unique derivation for a fixed pair of
 initial \(e\). This means that different implementations of the same type system
 could give different semantics to the same program.
 
-\paragraph{Coherence for subtyping and elaboration}
+\paragraph{Coherence for Subtyping and Elaboration}
 To ensure the meaning of a program is stable across all possible typing
 derivations, language designers prove \emph{coherence}.  A subtyping judgment is
 coherent when all coercions \(c : A \subty B\) between the same types are
@@ -494,7 +494,7 @@ These defects would force the careful programmer to study the particular
 algorithmic system in use, rather than thinking in terms of the conceptually
 simpler interface provided by the declarative system.
 
-\paragraph{Coherence by evaluation: a recipe}
+\paragraph{Coherence by Evaluation: A Recipe}
 We propose coherence by evaluation, a proof technique for coercion coherence 
 that can exploit the benefits of choosing a distinguished algorithmic system
 without requiring future algorithmic systems to be related directly to it.
@@ -534,7 +534,7 @@ By exhibiting a left inverse, we show that \(\evalname\) is injective up to
 equivalence. This implies coherence, since we know \(\eval{c_1} = \eval{c_2}\)
 from the uniqueness theorem for normal coercions.
 
-\paragraph{Comparison to Reynolds' method}
+\paragraph{Comparison to Reynolds' Method}
 The coherence problem was studied as early as 1980 by
 Reynolds~\cite{reynolds80}, who outlined an algebraic approach to coherence of
 elaboration that complements our own. It was Reynolds who recognized that
@@ -551,7 +551,7 @@ place. Reynolds goes beyond our results with a proof of full subtyping
 coherence, although the 1980 paper only treats a first-order language.
 
 
-\section{Defining and justifying the equational theory}
+\section{Defining and Justifying the Equational Theory}
 The first order of business in establishing coherence is to decide on a
 reasonable definition of equivalence for coercions. As mentioned above, we take
 an algebraic approach and define an equivalence using a short list of axioms.
@@ -590,7 +590,7 @@ interacts with \(\cfmap{}\), since \(\cfmap \cdot \cfmap\) is, in general, only
 equal to itself. The special fmap law implies the last pair of ambiguous derivations shown
 in Section~\ref{sec:overview} is coherent.
 
-\subsection{Compiling coercions correctly}
+\subsection{Compiling Coercions Correctly}
 We provide a translation from coercions to simply typed lambda calculus in order
 to show that our coercions are realizable and their equational theory is
 accurate. The target lambda calculus includes a type of booleans \texttt{bool}
@@ -626,7 +626,7 @@ terms.\\
   By induction on \(c_1 \coeeq c_2\). Function extensionality appears necessary in the case for the special fmap law due to it relating composite terms of function type.
 \end{proof}
 
-\section{Algorithmic judgment and normal coercions}
+\section{Algorithmic Judgment and Normal Coercions}
 Using the equational theory, we now design the algorithmic system. The idea is
 to remove the \textsc{Refl} and \textsc{Trans} rules and instead devise a system
 where they are admissible. We also need to address the overlap between the fmap
@@ -647,7 +647,7 @@ optimization pass after the fact in order to keep coercions as simple as
 possible, or rely on a different algorithmic system that produces more efficient
 proof terms.
 
-\subsection{Uniqueness of normal coercions}
+\subsection{Uniqueness of Normal Coercions}
 It is not immediately clear that normal coercions have \(n_1 = n_2\) for any
 \(n_1, n_2 : A \nsubty B\).  The proof of this ought to look like an induction
 on one paired with some inversion lemmas on the other, but there are issues in
@@ -715,7 +715,7 @@ We are also, by virtue of working with a monomorphic combinator calculus,
 dealing with a simpler system than normalization by evaluation is typically
 applied to.
 
-\subsection{Reification and evaluation}
+\subsection{Reification and Evaluation}
 Normal coercions are immediately interpretable as coercions, as exhibited by the
 following straightforward definition of \(\reify\).
 Note that the reification of \(\nfmap{\na}\) puts \(\cfmap\) after the
@@ -820,7 +820,7 @@ declarative subtyping. This permits us to conclude evaluation respects equivalen
   uniqueness of normal coercions at a given type (Proposition ~\ref{thm:uniqueness}).
 \end{proof}
 
-\subsection{Reification inverts evaluation}
+\subsection{Reification Inverts Evaluation}
 Following the path blazed by normalization by evaluation, we will now prove that
 \(\reify\) is a left inverse to \(\mathsf{eval}\). This makes \(\evalname\)
 injective up to equivalence and will allow us to lift uniqueness for normal
@@ -947,7 +947,7 @@ reify-eval (c-fmap {a} {b}) =
 
 
 
-\section{Perspectives and future work}
+\section{Perspectives and Future Work}
 We have shown that coercive subtyping for functors is coherent. In the future,
 we are hoping to extend these results to simplify programming with richer
 abstractions, like applicative functors and monads.  These would permit more
@@ -1011,7 +1011,7 @@ system. This is an unusual requirement, to say the least, and will require
 further research.
 
 
-\paragraph{Polymorphism leads to incoherence}
+\paragraph{Polymorphism Leads to Incoherence}
 We have not defined an algorithmic type inference and elaboration judgment using
 our system of coercions or proved it coherent. We expect this to be
 straightforward for a monomorphic calculus with just fmap, but there are
@@ -1030,7 +1030,7 @@ lifts a function that does not need lifting, but a naive declarative system will
 always permit it. We are interested in finding restricted forms of elaboration
 that can be coherent even in the presence of polymorphic functions.
 
-\section{Related work}
+\section{Related Work}
 Promoting fmap to a coercion has some similarity with work on effect systems,
 where programs are permitted to run in an effect bounded below by the effects
 they actually require. Effect systems may exhibit incoherence if liftings
@@ -1081,6 +1081,9 @@ in the face of this potentially intrusive and nondeterministic procedure, we
 proved coherence of subtyping derivations using a new approach we call
 \emph{coherence by evaluation}.  All our definitions and proofs were checked
 in Agda.
+
+\section{Acknowledgements}
+TODO
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{paper.bib}
