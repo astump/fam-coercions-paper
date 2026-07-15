@@ -265,7 +265,7 @@ To summarize, our paper makes the following contributions.
   \item Declarative and algorithmic coercive subtyping judgments for inferring missing uses of \(\cfmap\) in functional programs.
   \item An equivalence-preserving translation of coercion combinators into lambda calculus.
   \item A proof of soundness, completeness, and uniqueness for algorithmic coercions.
-  \item A proof of coercion coherence for declarative subtyping based on normalization by evaluation.
+  \item A proof of coercion coherence for declarative subtyping using coherence by evaluation.
   \item A mechanization of all of the above in Agda.\footnote{References to Agda definitions are rendered in \agdachk{teal}. The file is available in the supplementary material.}
 \end{itemize}
 
@@ -300,9 +300,12 @@ To summarize, our paper makes the following contributions.
 \end{figure}
 
 The types and subtyping rules at issue are shown in Figure~\ref{fig:calculus},
-which shows a base type, arrow types, and functor types, along with the usual
+which shows a base type, functions, and a functor, along with the usual
 subtyping rules for all of these and the new \textsc{Fmap} rule.  This is the
-declarative system.  Everything is standard except \textsc{Fmap}, which permits
+declarative system.
+We present the results with a single functor \(\F\) for simplicity, but the
+development could be extended to work with multiple functor symbols.
+Everything is standard except \textsc{Fmap}, which permits
 using functions \(A \to B\) at the lifted type \(\F A \to \F B\). This rule may
 be iterated, permitting the use of a function at \(\F A \to \F B\),
 \(\F \F A \to \F \F B\), and so on. These rules serve as a good specification of
@@ -475,7 +478,13 @@ relation, we check that the translation \(\ccname\) is sound:
 
 We then define an algorithmic system \(n : A \nsubty B\) of \emph{normal coercions},
 so named because they will be used to put (declarative) coercions into normal form.
-These will enjoy unique derivations. In order to prove coherence, we begin by
+For each \(A\) and \(B\) there will be at most one term \(n\) of type \(A \nsubty B\).
+Ordinary normalization by evaluation only requires decidable equality for the
+interpretation of each type; this formulation requiring uniqueness is much stronger
+and is the main difference between our results and normalization theorems for,
+say, simply-typed lambda calculus, where a type \(A \to B\) may contain many
+distinct normal forms.
+In order to prove coherence, we begin by
 saying how to translate coercions into normal form and back:
 \begin{align*}
   \evalname &: A \subty B \to A \nsubty B \\
