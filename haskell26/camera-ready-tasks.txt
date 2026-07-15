@@ -18,7 +18,7 @@
 [x] keep the contributions list on one page
 [ ] don't break up inline definitions with the figures
 [x] set F in upright sans-serif instead of italic to avoid confusion
-[ ] discuss how multiple Fs does not pose a problem
+[x] discuss how multiple Fs does not pose a problem
 
 
 # Code tasks
