@@ -41,16 +41,16 @@
 
 \usepackage{multicol}
 
-\setcopyright{none}
 \copyrightyear{2026}
-\acmJournal{PACMPL}
 \acmYear{2026}
-\acmDOI{XXXXXXX.XXXXXXX}
+\setcopyright{cc}
+\setcctype{by}
+\acmConference[Haskell '26]{Proceedings of the 19th ACM SIGPLAN International Haskell Symposium}{August 24--29, 2026}{Indianapolis, IN, USA}
+\acmBooktitle{Proceedings of the 19th ACM SIGPLAN International Haskell Symposium (Haskell '26), August 24--29, 2026, Indianapolis, IN, USA}
+\acmDOI{10.1145/3830439.3831273}
+\acmISBN{979-8-4007-2869-3/2026/08}
 
-\acmVolume{1}
-\acmNumber{1}
-\acmArticle{1}
-\acmMonth{1}
+
 
 %%
 %% Submission ID.
@@ -156,20 +156,7 @@
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
-Programming with typeclass-defined combinators like fmap allows programs a
-great deal of generality and concision, but programmers have to explicitly
-invoke combinators in the right places in order to get their programs to type
-check. In this paper, we propose inferring these operations using a coercive
-subtyping discipline and study the metatheory of the resulting algebra of
-coercions. For functors, we promote the fmap combinator \(\ltfmap : (A \to B)
-  \to \F A \to \F B \) to a coercion \(\cfmap : A \to B \subty \F A \to \F B\).
-We incorporate it into a monomorphic system of coercions for base types, arrow
-types, and functor types. We prove that the resulting system of coercions is
-coherent, meaning that all possible choices of coercions from \(A\) to \(B\) end
-up equivalent. The proof of the theorem is based on coherence by evaluation,
-an approach to coherence proofs based on the well-known technique of
-normalization by evaluation.  All definitions and theorems in the paper are
-checked in Agda, which played a valuable role in the design of the system.
+Programming with typeclass-defined combinators like fmap allows programs a great deal of generality and concision, but programmers have to explicitly invoke combinators in the right places in order to get their programs to type check. In this paper, we propose inferring these operations using a coercive subtyping discipline and study the metatheory of the resulting algebra of coercions. For functors, we promote the fmap combinator of type $(A \to B) \to F A \to F B$ to a coercion $A \to B \leq F A \to F B$. We incorporate it into a monomorphic system of coercions for base types, arrow types, and functor types. We prove that the resulting system of coercions is coherent, meaning that all possible choices of coercions from $A$ to $B$ end up equivalent. The proof of the theorem is based on coherence by evaluation, an approach to coherence proofs based on the well-known technique of normalization by evaluation.  All definitions and theorems in the paper are checked in Agda, which played a valuable role in the design of the system.
 \end{abstract}
 
 \keywords{subtyping, functors, normalization by evaluation}
@@ -427,13 +414,16 @@ raises the question of associativity of composition.
   \end{mathpar}
 The ambiguity of the arrow rules leads to confusion between \(\cfmap\) and
 \(\carr\). Together with composition, this produces another pair of possibly
-inequivalent derivations. The first uses \(\cfmap\) after \(\carr\):
+inequivalent derivations.
+\clearpage
+The first uses \(\cfmap\) after \(\carr\):
 \begin{mathpar}
   \inferrule*{
     \inferrule*{c_1 : U \leq A \\ c_2 : B \leq V}{\carr\ c_1\ c_2 : A\to B \leq U \to V} \\
     \inferrule* {  }{\cfmap : U \to V \leq \F U \to \F V}
   }{\ccomp{\carr\ c_1\ c_2}{\cfmap} : A \to B \leq \F U \to \F V}
 \end{mathpar}
+
 The second uses \(\cfmap\) before \(\carr\):
 \begin{mathpar}
   \inferrule*{
