@@ -40,6 +40,10 @@ fs-comm : (n : ℕ) → (a : D.ty) → fs n (D.f a) ≡ D.f (fs n a)
 fs-comm 0 a = refl
 fs-comm (suc n) a rewrite fs-comm n a = refl
 
+fs-+ : (n m : ℕ) (a : D.ty) →
+  fs (n + m) a ≡ fs n (fs m a)
+fs-+ = {!!}
+
 r-shift : ∀ {a} {n} {s t} →
   s ≡ suc n ↑ t →
   ty-rep (D.f a) s →
@@ -113,9 +117,55 @@ reify-eval-ty t with eval-ty-r t
 ...                            | b , rb = ty-rep-inj₁ rb ra
 
 
-reify' : ∀ {a b : ty'} {s t : D.ty} → ty-rep' s a → ty-rep' t b → coe' a b → D.coe s t
+c-fmaps : {a b : D.ty} → (n : ℕ) → D.coe (a D.⇒ b) (fs n a D.⇒ fs n b)
+c-fmaps {a} {b} zero = D.c-id (a D.⇒ b)
+c-fmaps {a} {b} (suc n) = D.c-comp (c-fmaps n) D.c-fmap
+
+c-monos : {a b : D.ty} → (n : ℕ) → D.coe a b → D.coe (fs n a) (fs n b)
+c-monos zero c = c
+c-monos (suc n) c = D.c-mono (c-monos n c)
+
+ty-rep-inv-suc : (t : D.ty) (n : ℕ) (u : ty') →
+  ty-rep t (suc n ! u) →
+  Σ[ s ∈ D.ty ] t ≡ D.f s × ty-rep s (n ! u)
+ty-rep-inv-suc t n u (r-suc pf) = _ , refl , pf
+
+ty-rep-inv-+ : (t : D.ty) (n m : ℕ) (u : ty') →
+  ty-rep t ((n + m) ! u) →
+  Σ[ s ∈ D.ty ] t ≡ fs n s × ty-rep s (m ! u)
+ty-rep-inv-+ t zero m u pf = t , refl , pf
+ty-rep-inv-+ t (suc n) m u pf with ty-rep-inv-suc t (n + m) u pf
+... | s' , eqn₁ , spf with ty-rep-inv-+ s' n m u spf
+...                     | s , eqn₂ , pf' rewrite eqn₁ | eqn₂ = s , refl , pf'
+
+ty-rep-inv-! : (t : D.ty) (n : ℕ) (u : ty') →
+  ty-rep t (n ! u) →
+  Σ[ s ∈ D.ty ] t ≡ fs n s × ty-rep' s u
+ty-rep-inv-! t zero u (r-zero pf) = t , refl , pf
+ty-rep-inv-! (D.f t) (suc n) u (r-suc pf)
+  with ty-rep-inv-! t n u pf
+...  | s , eqs , reps rewrite eqs = s , refl , reps
+
 reify! : ∀ {a b : ty!} {s t : D.ty} → ty-rep s a → ty-rep t b → coe! a b → D.coe s t
+reify' : ∀ {a b : ty'} {s t : D.ty} → ty-rep' s a → ty-rep' t b → coe' a b → D.coe s t
+reify! (r-suc ra) (r-suc rb) (c-! refl c) = D.c-mono (reify! ra rb (c-! refl c))
+reify! (r-zero ra) (r-zero rb) (c-! refl c) = reify' ra rb c
 reify' r-base r-base c-base = D.c-id D.base
-reify' (ra r-⇒ rb) (ru r-⇒ rv) (c-⇒ k eqj eqi c d) rewrite sym eqi | sym eqj =
-  {!!}
-reify! ra rb c = {!!}
+reify' {(na ! a) ⇒ (nb ! b)}
+       {(nu ! u) ⇒ (nv ! v)}
+       {a' D.⇒ b'}
+       {u' D.⇒ v'}
+       (ra r-⇒ rb) (ru r-⇒ rv) (c-⇒ k eqj eqi c d)
+  rewrite sym eqi | sym eqj
+  with reify-ty'-r a | reify-ty'-r b | reify-ty'-r u | reify-ty'-r v
+...  | ao , pfao     | bo , pfbo     | uo , pfuo     | vo , pfvo
+     rewrite ty-rep-inj₁ ru (r-fs (k + na) pfuo)
+           | ty-rep-inj₁ rv (r-fs (k + nb) pfvo)
+           | ty-rep-inj₁ ra (r-fs na pfao)
+           | ty-rep-inj₁ rb (r-fs nb pfbo)
+           | fs-+ k na uo
+           | fs-+ k nb vo =
+           let cua = reify' pfuo pfao c in
+           let cbv = reify' pfbo pfvo d in
+           D.c-comp (D.c-arr (c-monos na cua) (c-monos nb cbv))
+                    (c-fmaps k)
