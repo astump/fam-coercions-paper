@@ -1,5 +1,6 @@
 module fmap.ReifyNum where
 open import Relation.Binary.PropositionalEquality
+open ≡-Reasoning
 open import Data.Nat
 open import Data.Nat.Properties
 open import Data.Product
@@ -163,14 +164,65 @@ reify-eval-ty t with eval-ty-r t
 ...                | a , ra with reify-ty-r a
 ...                            | b , rb = ty-rep-inj₁ rb ra
 
+r-fs-eq : ∀ {fa n a a'}
+  (r! : ty-rep fa (n ! a')) →
+  (r : ty-rep' a a') →
+  fa ≡ fs n a
+r-fs-eq r! r = {!!}
+
+r-fs-eq-r : ∀ {n a a'}
+  (r! : ty-rep (fs n a) (n ! a')) →
+  (r : ty-rep' a a') →
+  r! ≡ r-fs n r
+r-fs-eq-r r! r = {!!}
 
 c-fmaps : {a b : D.ty} → (n : ℕ) → D.coe (a D.⇒ b) (fs n a D.⇒ fs n b)
 c-fmaps {a} {b} zero = D.c-id (a D.⇒ b)
 c-fmaps {a} {b} (suc n) = D.c-comp (c-fmaps n) D.c-fmap
 
+c-fmaps-rep : {a b u v : D.ty} {a' b' : ty!} →
+  (n : ℕ) →
+  ty-rep a a' →
+  ty-rep b b' →
+  ty-rep u (n ↑ a') →
+  ty-rep v (n ↑ b') →
+  D.coe (a D.⇒ b) (u D.⇒ v)
+c-fmaps-rep {a} {b} {u} {v} {na ! a'} {nb ! b'} zero ra rb ru rv
+  with ty-rep-inj₁ ra ru | ty-rep-inj₁ rb rv
+...  | refl | refl = D.c-id (a D.⇒ b)
+c-fmaps-rep {a} {b} {D.f u} {D.f v} {na ! a'} {nb ! b'} (suc n) ra rb (r-suc ru) (r-suc rv) =
+  D.c-comp (c-fmaps-rep n ra rb ru rv) D.c-fmap
+
 c-monos : {a b : D.ty} → (n : ℕ) → D.coe a b → D.coe (fs n a) (fs n b)
 c-monos zero c = c
 c-monos (suc n) c = D.c-mono (c-monos n c)
+
+c-monos-rep : {a b u v : D.ty} {a' b' : ty'} →
+  (n : ℕ) →
+  ty-rep' a a' →
+  ty-rep' b b' →
+  ty-rep u (n ! a') →
+  ty-rep v (n ! b') →
+  D.coe a b →
+  D.coe u v
+c-monos-rep zero ra rb (r-zero ru) (r-zero rv) c =
+  subst₂ D.coe (ty-rep'-inj₁ ra ru) (ty-rep'-inj₁ rb rv) c
+c-monos-rep (suc n) ra rb (r-suc ru) (r-suc rv) c =
+  D.c-mono (c-monos-rep n ra rb ru rv c)
+
+c-monos-rep-id :
+  {a b u v : D.ty} {a' b' : ty'} →
+  (n : ℕ) →
+  (ra rb : ty-rep' a a') →
+  (ru rv : ty-rep u (n ! a')) →
+  (c : D.coe a a) →
+  c D.≃ D.c-id a →
+  c-monos-rep n ra ra ru ru c D.≃ D.c-id u
+c-monos-rep-id zero ra rb (r-zero ru) (r-zero rv) c pf
+  with ty-rep'-inj₁ ra ru | ty-rep'-inj₁ ra ru
+...  | refl | refl = pf
+c-monos-rep-id (suc n) ra rb (r-suc ru) (r-suc rv) c pf =
+  D.c-trans (D.c-cong-mono (c-monos-rep-id n ra ra ru rv c pf)) D.c-mono-id
 
 ty-rep-inv-suc : (t : D.ty) (n : ℕ) (u : ty') →
   ty-rep t (suc n ! u) →
@@ -202,20 +254,24 @@ reify' {(na ! a) ⇒ (nb ! b)}
        {(nu ! u) ⇒ (nv ! v)}
        {a' D.⇒ b'}
        {u' D.⇒ v'}
-       (ra r-⇒ rb) (ru r-⇒ rv) (c-⇒ k eqj eqi c d)
-  rewrite sym eqi | sym eqj
+       (ra r-⇒ rb) (ru r-⇒ rv) (c-⇒ k refl refl c d)
   with reify-ty'-r a | reify-ty'-r b | reify-ty'-r u | reify-ty'-r v
-...  | ao , pfao     | bo , pfbo     | uo , pfuo     | vo , pfvo
-     rewrite ty-rep-inj₁ ru (r-fs (k + na) pfuo)
-           | ty-rep-inj₁ rv (r-fs (k + nb) pfvo)
-           | ty-rep-inj₁ ra (r-fs na pfao)
-           | ty-rep-inj₁ rb (r-fs nb pfbo)
-           | fs-+ k na uo
-           | fs-+ k nb vo =
+...  | ao , pfao     | bo , pfbo     | uo , pfuo     | vo , pfvo =
            let cua = reify' pfuo pfao c in
            let cbv = reify' pfbo pfvo d in
-           D.c-comp (D.c-arr (c-monos na cua) (c-monos nb cbv))
-                    (c-fmaps k)
+           D.c-comp (D.c-arr
+                        (c-monos-rep na pfuo pfao (r-fs na pfuo) ra cua)
+                        (c-monos-rep nb pfbo pfvo rb (r-fs nb pfvo) cbv))
+                    (c-fmaps-rep k (r-fs na pfuo) (r-fs nb pfvo) ru rv)
+
+reify!-suc : ∀ {a b : ty'} {s t : D.ty} {n m : ℕ} →
+  (pf : n ≡ m) →
+  (pf' : suc n ≡ suc m) →
+  (ra : ty-rep s (n ! a)) →
+  (rb : ty-rep t (m ! b)) →
+  (c : coe' a b) →
+  reify! (r-suc ra) (r-suc rb) (c-! pf' c) ≡ D.c-mono (reify! ra rb (c-! pf c))
+reify!-suc refl refl ra rb c = refl
 
 c-⇒-wk : {n m i j : ℕ} {a b u v : ty'} →
     {ab uv : ty'} →
@@ -252,8 +308,8 @@ mkarr! : ∀ {a b u v} →
   coe! u a →
   coe! b v →
   coe' (a ⇒ b) (u ⇒ v)
-mkarr! {na ! a} {nb ! b} {nu ! u} {nv ! v} (c-! equa c) (c-! eqbv d)
-  rewrite equa | eqbv = c-⇒ zero refl refl c d
+mkarr! {na ! a} {nb ! b} {nu ! u} {nv ! v} (c-! equa c) (c-! eqbv d) =
+  c-⇒ zero (sym equa) eqbv c d
 
 eval! : ∀ {a b : ty!} {s t : D.ty} → ty-rep s a → ty-rep t b → D.coe s t → coe! a b
 eval' : ∀ {a b : ty'} {s t : D.ty} → ty-rep' s a → ty-rep' t b → D.coe s t → coe' a b
@@ -262,39 +318,111 @@ eval! ra rb (D.c-id _)
 eval! {na ! a} {nb ! b} {s} {t} ra rb (D.c-comp {_} {i} {_} c d) =
   let t' , ri = eval-ty-r i in
   mkcomp! (eval! ra ri c) (eval! ri rb d)
-eval! {0 ! ((na ! a) ⇒ (nb ! b))} {0 ! ((nu ! u) ⇒ (nv ! v))} {a' D.⇒ b'} {u' D.⇒ v'} (r-zero (ra r-⇒ rb)) (r-zero (ru r-⇒ rv)) (D.c-arr c d)
-    = c-! refl (eval' (ra r-⇒ rb) (ru r-⇒ rv) (D.c-arr c d))
+eval! (r-zero r) (r-zero r') (D.c-arr c d) = c-! refl (eval' r r' (D.c-arr c d))
 eval! {na ! a} {nb ! b} {s} {t} (r-suc ra) (r-suc rb) (D.c-mono c)
   with eval! ra rb c
 ...  | c-! pf c' = c-! (cong suc pf) c'
-eval! {0 ! (na₁ ! a₁) ⇒ (na₂ ! a₂)} {0 ! b} {u D.⇒ v} {D.f u D.⇒ D.f v}
-      (r-zero (ru r-⇒ rv)) (r-zero (r-suc ru' r-⇒ r-suc rv')) D.c-fmap
-      rewrite ty-rep-inj₂n ru' ru
-            | ty-rep-inj₂t ru' ru
-            | ty-rep-inj₂n rv' rv
-            | ty-rep-inj₂t rv' rv =
-      c-! refl (c-⇒ 1 refl refl (mkid' _) (mkid' _))
+eval! (r-zero r) (r-zero r') D.c-fmap =
+  c-! refl (eval' r r' D.c-fmap)
 eval' ra rb (D.c-id a) rewrite ty-rep'-inj₂ ra rb = mkid' _
 eval' ra rb (D.c-comp {a} {e} {b} c d) =
   let te , re = eval-ty'-r e (trans (sym (countf-stable c)) (countf-ty' ra)) in
   mkcomp' (eval' ra re c) (eval' re rb d)
-eval' {(na' ! a') ⇒ (nb' ! b')} {(nu' ! u') ⇒ (nv' ! v')} {a D.⇒ b} {u D.⇒ v}
-  (ra r-⇒ rb)
-  (ru r-⇒ rv)
-  (D.c-arr c d)
-  with ty-rep-inv-! _ _ _ ra
-     | ty-rep-inv-! _ _ _ rb
-     | ty-rep-inv-! _ _ _ ru
-     | ty-rep-inv-! _ _ _ rv
-...  | a0 , aeq , arep
-     | b0 , beq , brep
-     | u0 , ueq , urep
-     | v0 , veq , vrep
-     rewrite aeq | beq | ueq | veq
-  = mkarr! (eval! ru ra c) (eval! rb rv d)
+eval' (ra r-⇒ rb)
+      (ru r-⇒ rv)
+      (D.c-arr c d) = mkarr! (eval! ru ra c) (eval! rb rv d)
 eval' {u} {v} {a D.⇒ b} {D.f a D.⇒ D.f b}
   (_r-⇒_ {a} {b} {a'} {b'} ra rb)
-  (_r-⇒_ {D.f a} {D.f b} {fa'} {fb'} (r-suc rfa) (r-suc rfb)) D.c-fmap
-  rewrite sym (ty-rep-inj₂ rfa ra)
-        | sym (ty-rep-inj₂ rfb rb)
-  = c-⇒ 1 refl refl (mkid' _) (mkid' _)
+  (_r-⇒_ {D.f a} {D.f b} {na' ! fa'} {nb' ! fb'} (r-suc rfa) (r-suc rfb)) D.c-fmap
+  with ty-rep-inj₂ rfa ra | ty-rep-inj₂ rfb rb
+...  | refl               | refl =
+  c-⇒ 1 refl refl (mkid' fa') (mkid' fb')
+
+reify-mkcomp! :
+  ∀ {a e b s e' t} →
+  (ra : ty-rep s a) →
+  (rb : ty-rep t b) →
+  (re : ty-rep e' e) →
+  (c : coe! a e) →
+  (d : coe! e b) →
+  reify! ra rb (mkcomp! c d) ≡ D.c-comp (reify! ra re c) (reify! re rb d)
+reify-mkcomp' :
+  ∀ {a e b s e' t} →
+  (ra : ty-rep' s a) →
+  (rb : ty-rep' t b) →
+  (re : ty-rep' e' e) →
+  (c : coe' a e) →
+  (d : coe' e b) →
+  reify' ra rb (mkcomp' c d) ≡ D.c-comp (reify' ra re c) (reify' re rb d)
+reify-mkcomp! ra rb re c d = {!!}
+reify-mkcomp' ra rb re c d = {!!}
+
+reify-mkid! :
+  ∀ {a s} →
+  (ra rb : ty-rep s a) →
+  reify! ra rb (mkid! a) D.≃ D.c-id s
+reify-mkid' :
+  ∀ {a s} →
+  (ra rb : ty-rep' s a) →
+  reify' ra rb (mkid' a) D.≃ D.c-id s
+reify-mkid! (r-suc ra) (r-suc rb) = D.c-trans (D.c-cong-mono (reify-mkid! ra rb)) D.c-mono-id
+reify-mkid! (r-zero ra) (r-zero rb) = {!!}
+reify-mkid' ra rb = {!!}
+
+reify-eval! : ∀ {a b s t} → (ra : ty-rep s a) → (rb : ty-rep t b) → (c : D.coe s t) → reify! ra rb (eval! ra rb c) D.≃ c
+reify-eval' : ∀ {a b s t} → (ra : ty-rep' s a) → (rb : ty-rep' t b) → (c : D.coe s t) → reify' ra rb (eval' ra rb c) D.≃ c
+reify-eval! ra rb (D.c-id a) with ty-rep-inj₂ ra rb
+... | refl = reify-mkid! ra rb
+reify-eval! {na ! a} {nb ! b} {s} {t} ra rb (D.c-comp {_} {i} {_} c d) =
+  let e , re = eval-ty-r i in
+  let pf = reify-mkcomp! ra rb re (eval! ra re c) (eval! re rb d) in
+  D.c-trans (D.≡-to-≃ pf)
+            (D.c-cong-comp (reify-eval! ra re c) (reify-eval! re rb d))
+reify-eval! (r-zero r) (r-zero r') (D.c-arr c d)
+  = reify-eval' r r' (D.c-arr c d)
+reify-eval! (r-suc ra) (r-suc rb) (D.c-mono c)
+  with eval! ra rb c | reify-eval! ra rb c
+...  | c-! refl c'   | pf = D.c-cong-mono pf
+reify-eval! (r-zero r) (r-zero r') D.c-fmap = reify-eval' r r' D.c-fmap
+reify-eval' ra rb (D.c-id a) with ty-rep'-inj₂ ra rb
+... | refl = reify-mkid' ra rb
+reify-eval' ra rb (D.c-comp {a} {e} {b} c d) =
+  let te , re = eval-ty'-r e (trans (sym (countf-stable c)) (countf-ty' ra)) in
+  let pf = reify-mkcomp' ra rb re (eval' ra re c) (eval' re rb d) in
+  D.c-trans (D.≡-to-≃ pf) (D.c-cong-comp (reify-eval' ra re c) (reify-eval' re rb d))
+reify-eval' {(na ! a) ⇒ (nb ! b)}
+       {(nu ! u) ⇒ (nv ! v)}
+       {a' D.⇒ b'}
+       {u' D.⇒ v'}
+       (ra r-⇒ rb) (ru r-⇒ rv) (D.c-arr c d)
+  with eval! ru ra c | eval! rb rv d | reify-eval! ru ra c | reify-eval! rb rv d
+... | c-! refl c' | c-! refl d' | pf | pf'
+  with reify-ty'-r a | reify-ty'-r b | reify-ty'-r u | reify-ty'-r v
+...  | ao , pfao     | bo , pfbo     | uo , pfuo     | vo , pfvo
+  with ty-rep-inj₁ (r-fs na pfuo) ru | ty-rep-inj₁ (r-fs nb pfvo) rv
+... | refl | refl
+  = D.c-trans D.c-id-r {!!}
+reify-eval' {u} {v} {a D.⇒ b} {D.f a D.⇒ D.f b}
+  (_r-⇒_ {a} {b} {na ! a'} {nb ! b'} ra rb)
+  (_r-⇒_ {D.f a} {D.f b} {na' ! fa'} {nb' ! fb'} (r-suc rfa) (r-suc rfb)) D.c-fmap
+  with ty-rep-inj₂ rfa ra | ty-rep-inj₂ rfb rb
+...  | refl | refl
+  with reify-ty'-r fa' | reify-ty'-r fb'
+...  | a0 , ra' | b0 , rb'
+  with r-fs-eq rb rb' | r-fs-eq ra ra'
+...  | refl | refl
+  with r-fs-eq-r rb rb' | r-fs-eq-r ra ra'
+...  | refl | refl
+  with ty-rep-inj₁ (r-fs na ra') rfa | ty-rep-inj₁ (r-fs nb rb') rfb
+...  | refl | refl
+  = let pf1 = reify-mkid' ra' ra' in
+    let pf2 = reify-mkid' rb' rb' in
+    D.c-trans
+      (D.c-cong-comp
+        (D.c-trans
+          (D.c-cong-arr
+            (c-monos-rep-id na ra' ra' (r-fs na ra') rfa (reify' ra' ra' (mkid' a')) pf1)
+            (c-monos-rep-id nb rb' rb' (r-fs nb rb') rfb (reify' rb' rb' (mkid' b')) pf2))
+          D.c-arr-id)
+        (D.c-refl _))
+      (D.c-trans D.c-id-l D.c-id-l)
