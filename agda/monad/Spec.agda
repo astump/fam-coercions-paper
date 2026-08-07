@@ -8,15 +8,18 @@ open import Semantics
 
 infix 5 ⊨_<_:!_
 ⊨_<_:!_ : Tp! → Flag → Tp! → Set
-⊨ T < Nothing :! T' = ∃ Tp (λ S → ∃ Tp (λ S' →
-                       T ≺ S ∧
-                       T' ≺ S' ∧
-                       S <: S'))
-⊨ T < Left :! T' = ∃ Tp (λ S → ∃ Tp (λ S' →
-                       (↑ T) ≺ S ∧
-                       T' ≺ S' ∧
-                       S <: S'))
-⊨ T < Right :! T' = ∃ Tp (λ S → ∃ Tp (λ S' →
-                       T ≺ S ∧
-                       (↑ T') ≺ S' ∧
-                       S <: S'))
+⊨ T < Nothing :! T' =
+  {A B : Tp} →
+  ⌈ A ⌉ ≡ T →
+  ⌈ B ⌉ ≡ T' →
+  A <: B
+⊨ T < Left :! T' =
+  {A B : Tp} →
+  ⌈ A ⌉ ≡ ↑ T →
+  ⌈ B ⌉ ≡ T' →
+  A <: B
+⊨ T < Right :! T' =
+  {A B : Tp} →
+  ⌈ A ⌉ ≡ T →
+  ⌈ B ⌉ ≡ ↑ T' →
+  A <: B

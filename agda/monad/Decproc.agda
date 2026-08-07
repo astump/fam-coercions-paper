@@ -8,8 +8,7 @@ data Flag : Set where
   Right : Flag
   Nothing : Flag
 
--- Internal mode for function coercions.
--- Ord uses the ordinary function rule, Seq uses the sequenced rule.
+-- Toggles the function rule between ordinary and sequenced
 data FunMode : Set where
   Ord : FunMode
   Seq : FunMode
@@ -32,9 +31,9 @@ natFlagOk _ _ _ = ⊤
 funFlagOk : 𝔹 → Flag → 𝔹 → FunMode → Set
 -- Ord mode follows natFlagOk.
 funFlagOk b f b' Ord = natFlagOk b f b'
--- Seq mode is intentionally enabled only on cells where Ord is impossible.
--- This artificial partition prevents overlap between the two function-rule
--- interpretations and gives a canonical derivation choice per cell.
+-- Seq mode is intentionally enabled only on (b f b')s where Ord is impossible.
+-- This prevents overlap between the two function-rules and provides
+-- a cannonical derivation for every choice of (b f b')
 -- The enabled Seq-only cells are:
 --   (tt , Nothing , ff)  -- L(A⇒B) <: (A'⇒B') via Seq then Fun
 --   (_  , Left    , ff)
@@ -50,10 +49,10 @@ data _<_:!_ : Tp! → Flag → Tp! → Set where
           (b !N) < f :! (b' !N)
 
   Fun! : ∀ {b b' : 𝔹} {f : Flag} {j : FunMode} {A B A' B' : Tp!} →
-         funFlagOk b f b' j →
-      A' < domFlag j :! A →
-      B  < codFlag j :! B' →
-         (b ! A ⇒ B) < f :! (b' ! A' ⇒ B')
+           funFlagOk b f b' j →
+           A' < domFlag j :! A →
+           B  < codFlag j :! B' →
+           (b ! A ⇒ B) < f :! (b' ! A' ⇒ B')
 
 natFlag-unique : ∀{b b' : 𝔹}{f : Flag} →
                   (x  : natFlagOk b f b') →

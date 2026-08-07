@@ -1,3 +1,5 @@
+-- {-# OPTIONS --allow-unsolved-metas #-}
+
 module Soundness where
 
 open import lib
@@ -7,85 +9,55 @@ open import Decproc
 open import Semantics
 open import Spec
 
+↑idem : (T : Tp!) → ↑ ( ↑ T) ≡ ↑ T
+↑idem (x !N) = refl
+↑idem (x ! T ⇒ T₁) = refl
+
+natChain : {A : Tp} → ↑ ⌈ A ⌉ ≡ tt !N → N <: A
+natChain {N} eq = NatRefl
+natChain {L A} eq rewrite ↑idem ⌈ A ⌉ = Trans Pure (Cov (natChain {A} eq))
+
+collapseL : {A : Tp} → ↑ ⌈ A ⌉ ≡ tt !N → L A <: L N
+collapseL {N} eqA = refl-raw
+collapseL {L A} eqA = Trans Join (collapseL {A} (trans (sym (↑idem ⌈ A ⌉)) eqA))
+
+expandL : {B : Tp} → ↑ ⌈ B ⌉ ≡ tt !N → L N <: L B
+expandL {N} eqA = refl-raw
+expandL {L A} eqA = Trans (expandL {A} (trans (sym (↑idem ⌈ A ⌉)) eqA)) Pure
+
+↑neqff : {T : Tp!} → ↑ T ≡ ff !N → ⊥ {lzero}
+↑neqff {x !N} ()
+↑neqff {x ! T ⇒ T₁} ()
+
 soundness : ∀{f : Flag}{T T' : Tp!} →
             T < f :! T' →
             ⊨ T < f :! T'
-soundness {f = Left} {T = b !N} {T' = ff !N} (Nat! ())
-soundness {f = Left} {T = b !N} {T' = tt !N} (Nat! ok) =
-    L N , L N , refl , refl , refl-raw
-soundness {f = Right} {T = ff !N} {T' = b' !N} (Nat! ok) =
-    N , L N , refl , refl , Pure
-soundness {f = Right} {T = tt !N} {T' = b' !N} (Nat! ok) =
-    L N , L N , refl , refl , refl-raw
-soundness {f = Nothing} {T = tt !N} {T' = ff !N} (Nat! ())
-soundness {f = Nothing} {T = ff !N} {T' = ff !N} (Nat! ok) =
-    N , N , refl , refl , NatRefl
-soundness {f = Nothing} {T = ff !N} {T' = tt !N} (Nat! ok) =
-    N , L N , refl , refl , Pure
-soundness {f = Nothing} {T = tt !N} {T' = tt !N} (Nat! ok) =
-    L N , L N , refl , refl , refl-raw
-soundness {Left} (Fun! {tt} {tt} {j = Ord} {A} {B} {A'} {B'} ok dom cod)
-  with soundness dom | soundness cod
-... | DA' , DA , eqA' , eqA , dDom
-    | CB  , CB' , eqB  , eqB' , dCod
-  rewrite (sym eqA) | (sym eqA') | (sym eqB) | (sym eqB') =
-      L (DA ⇒ CB) , L (DA' ⇒ CB') , refl , refl , Cov (Fun dDom dCod)
-soundness {Right} (Fun! {b = tt} {b' = tt} {j = Ord} ok dom cod)
-  with soundness dom | soundness cod
-... | DA' , DA , eqA' , eqA , dDom
-    | CB  , CB' , eqB  , eqB' , dCod
-  rewrite (sym eqA) | (sym eqA') | (sym eqB) | (sym eqB') =
-    L (DA ⇒ CB) , L (DA' ⇒ CB') , refl , refl , Cov (Fun dDom dCod)
-soundness {Nothing} (Fun! {b = tt} {b' = tt} {j = Ord} ok dom cod)
-  with soundness dom | soundness cod
-... | DA' , DA , eqA' , eqA , dDom
-    | CB  , CB' , eqB  , eqB' , dCod
-  rewrite (sym eqA) | (sym eqA') | (sym eqB) | (sym eqB') =
-    L (DA ⇒ CB) , L (DA' ⇒ CB') , refl , refl , Cov (Fun dDom dCod)
-soundness {Right} (Fun! {b = tt} {b' = ff} {j = Ord} ok dom cod)
-  with soundness dom | soundness cod
-... | DA' , DA , eqA' , eqA , dDom
-    | CB  , CB' , eqB  , eqB' , dCod
-  rewrite (sym eqA) | (sym eqA') | (sym eqB) | (sym eqB') =
-    L (DA ⇒ CB) , L (DA' ⇒ CB') , refl , refl , Cov (Fun dDom dCod)
-soundness {Left} (Fun! {b = ff} {b' = tt} {j = Ord} ok dom cod)
-  with soundness dom | soundness cod
-... | DA' , DA , eqA' , eqA , dDom
-    | CB  , CB' , eqB  , eqB' , dCod
-  rewrite (sym eqA) | (sym eqA') | (sym eqB) | (sym eqB') =
-    L (DA ⇒ CB) , L (DA' ⇒ CB') , refl , refl , Cov (Fun dDom dCod)
-soundness {Right} (Fun! {b = ff} {b' = tt} {j = Ord} ok dom cod)
-  with soundness dom | soundness cod
-... | DA' , DA , eqA' , eqA , dDom
-    | CB  , CB' , eqB  , eqB' , dCod
-  rewrite (sym eqA) | (sym eqA') | (sym eqB) | (sym eqB') =
-    DA ⇒ CB , L (DA' ⇒ CB') , refl , refl , Trans (Fun dDom dCod) Pure
-soundness {Nothing} (Fun! {b = ff} {b' = tt} {j = Ord} ok dom cod)
-  with soundness dom | soundness cod
-... | DA' , DA , eqA' , eqA , dDom
-    | CB  , CB' , eqB  , eqB' , dCod
-  rewrite (sym eqA) | (sym eqA') | (sym eqB) | (sym eqB') =
-    DA ⇒ CB , L (DA' ⇒ CB') , refl , refl , Trans (Fun dDom dCod) Pure
-soundness {Right} (Fun! {b = ff} {b' = ff} {j = Ord} ok dom cod)
-  with soundness dom | soundness cod
-... | DA' , DA , eqA' , eqA , dDom
-    | CB  , CB' , eqB  , eqB' , dCod
-  rewrite (sym eqA) | (sym eqA') | (sym eqB) | (sym eqB') =
-    DA ⇒ CB , L (DA' ⇒ CB') , refl , refl , Trans (Fun dDom dCod) Pure
-soundness {Nothing} (Fun! {b = ff} {b' = ff} {j = Ord} ok dom cod)
-  with soundness dom | soundness cod
-... | DA' , DA , eqA' , eqA , dDom
-    | CB  , CB' , eqB  , eqB' , dCod
-  rewrite (sym eqA) | (sym eqA') | (sym eqB) | (sym eqB') =
-    DA ⇒ CB , DA' ⇒ CB' , refl , refl , Fun dDom dCod
-soundness {Left} (Fun! {b = tt} {b' = ff} {j = Ord} ok dom cod) = ⊥-elim ok
-soundness {Left} (Fun! {b = ff} {b' = ff} {j = Ord} ok dom cod) = ⊥-elim ok
-soundness {Nothing} (Fun! {b = tt} {b' = ff} {j = Ord} ok dom cod) = ⊥-elim ok
-soundness {Left} (Fun! {tt} {ff} {j = Seq} {A} {B} {A'} {B'} ok dom cod)
-  with soundness dom | soundness cod
-... | DA' , DA , eqA' , eqA , dDom
-    | CB  , CB' , eqB  , eqB' , dCod
--- Problem: I dont think I can find an S such that ⌈ S ⌉ ≡ tt ! A ⇒ B
-  = {!!}
-soundness {Left} (Fun! {ff} {ff} {j = Seq} ok dom cod) = {!!}
-soundness {Nothing} (Fun! {tt} {ff} {j = Seq} ok dom cod) = {!!}
+soundness {Left} (Nat! {tt} {tt} x) {L A} {L B} eqA eqB = 
+  Trans (collapseL eqA) (expandL eqB)
+soundness {Left} (Nat! {ff} {tt} x) {L A} {L B} eqA eqB = 
+  Trans (collapseL eqA) (expandL eqB)
+soundness {Left} (Fun! x eq eq₁) eqA eqB = {!!}
+
+soundness {Right} (Nat! {ff} {tt} x) {N} {L B} eqA eqB = 
+  natChain {L B} (trans (↑idem ⌈ B ⌉) eqB)
+soundness {Right} (Nat! {ff} {ff} x) {N} {L B} eqA eqB =
+  natChain {L B} (trans (↑idem ⌈ B ⌉) eqB)
+soundness {Right} (Nat! {tt} {tt} x) {L A} {L B} eqA eqB =
+  Trans (collapseL eqA) (expandL eqB)
+soundness {Right} (Nat! {tt} {ff} x) {L A} {L B} eqA eqB =
+  Trans (collapseL eqA) (expandL eqB)
+soundness {Right} (Nat! {ff} {tt} x) {L A} {L B} eqA eqB = ⊥-elim (↑neqff eqA)
+soundness {Right} (Nat! {ff} {ff} x) {L A} {L B} eqA eqB = ⊥-elim (↑neqff eqA)
+soundness {Right} (Fun! x eq eq₁) eqA eqB = {!!}
+
+soundness {Nothing} (Nat! {ff} {b' = tt} x) {N} {L B} eqA eqB =
+  natChain {L B} (trans (↑idem ⌈ B ⌉) eqB)
+soundness {Nothing} (Nat! {tt} {b' = tt} x) {L A} {L B} eqA eqB = 
+  Trans (collapseL eqA) (expandL eqB)
+soundness {Nothing} (Nat! {ff} {b' = tt} x) {L A} {L B} eqA eqB = ⊥-elim (↑neqff eqA)
+soundness {Nothing} (Nat! {ff} {b' = ff} x) {N} {N} eqA eqB = NatRefl
+soundness {Nothing} (Nat! {ff} {b' = ff} x) {N} {L B} eqA eqB = ⊥-elim (↑neqff eqB)
+soundness {Nothing} (Nat! {ff} {b' = ff} x) {L A} {N} eqA eqB = ⊥-elim (↑neqff eqA)
+soundness {Nothing} (Nat! {ff} {b' = ff} x) {L A} {L B} eqA eqB = ⊥-elim (↑neqff eqA)
+
+soundness {Nothing} (Fun! x eq eq₁) eqA eqB = {!!}

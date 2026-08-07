@@ -10,7 +10,6 @@ open import Uniqueness
 -- open import Completeness (commented out because no interaction points)
 -- open import Soundness
 
--- remove these soundness and completeness defs later
 soundness : ∀ {T T' : Tp!} →
          T < Nothing :! T' →
          ⟦ T ⟧ <: ⟦ T' ⟧
@@ -38,6 +37,8 @@ data _≃_ : {A B : Tp} → A <: B → A <: B → Set where
             → d₁ ≃ d₂ → d₂ ≃ d₃
             → d₁ ≃ d₃
 
+-- How can I put this directly in the coherence proof?
+-- I frequently find myself wanting to use 'rewrite' mid-proof
 ≃-eq : ∀ {A B : Tp} {d d' : A <: B} → d ≡ d' → d ≃ d'
 ≃-eq eq rewrite eq = ≃-refl _
 
