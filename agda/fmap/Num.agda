@@ -20,15 +20,20 @@ infixr 9 _↑_
 _↑_ : ℕ → ty! → ty!
 m ↑ n ! a = (m + n) ! a
 
-data coe' : ty' → ty' → Set where
-  c-base : coe' base base
-  c-⇒ : {n m i j : ℕ} {a b u v : ty'} →
-    (k : ℕ) →
-    coe' u a →
-    coe' b v →
-      coe' ((n ! a) ⇒ (m ! b)) (((k + n) ! u) ⇒ ((k + m) ! v))
+data coe' : ty' → ty' → Set
+data coe! : ty! → ty! → Set
 
-data coe! : ty! → ty! → Set where
+data coe' where
+  c-base : coe' base base
+  c-⇒ : {a b u v uu vv : ty!} →
+    (k : ℕ) →
+    uu ≡ k ↑ u →
+    vv ≡ k ↑ v →
+    coe! u a →
+    coe! b v →
+    coe' (a ⇒ b) (uu ⇒ vv)
+
+data coe! where
   c-! : {n m : ℕ} {a b : ty'} →
     n ≡ m →
     coe' a b →
