@@ -24,11 +24,9 @@ data coe' : ty' → ty' → Set where
   c-base : coe' base base
   c-⇒ : {n m i j : ℕ} {a b u v : ty'} →
     (k : ℕ) →
-    k + n ≡ i →
-    k + m ≡ j →
     coe' u a →
     coe' b v →
-    coe' ((n ! a) ⇒ (m ! b)) ((i ! u) ⇒ (j ! v))
+      coe' ((n ! a) ⇒ (m ! b)) (((k + n) ! u) ⇒ ((k + m) ! v))
 
 data coe! : ty! → ty! → Set where
   c-! : {n m : ℕ} {a b : ty'} →
