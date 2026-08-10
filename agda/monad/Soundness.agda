@@ -42,15 +42,6 @@ eqOfNormff : {A : Tp} → {T T' : Tp!} →
 eqOfNormff {L A} ex = ⊥-elim (↑neqffFun ex)
 eqOfNormff {A ⇒ A₁} refl = A , A₁ , refl , refl , refl
 
--- is this stated correctly?
-eq_of_norm_tt : {A : Tp} → {T T' : Tp!} →
-    ⌈ A ⌉ ≡ tt ! T ⇒ T' →
-    ∃ Tp (λ B → ∃ Tp (λ B' →
-      A ≡ L (B ⇒ B') ∧
-      ⌈ B  ⌉ ≡ T ∧
-      ⌈ B' ⌉ ≡ T' ))
-eq_of_norm_tt eq = {!!}
-
 soundness : ∀{f : Flag}{T T' : Tp!} →
             T < f :! T' →
             ⊨ T < f :! T'
@@ -58,8 +49,7 @@ soundness {Left} (Nat! {tt} {tt} x) {L A} {L B} eqA eqB =
   Trans (collapseL eqA) (expandL eqB)
 soundness {Left} (Nat! {ff} {tt} x) {L A} {L B} eqA eqB = 
   Trans (collapseL eqA) (expandL eqB)
-soundness {Left} (Fun! {j = Ord} x eq eq₁) eqA eqB = ?
-soundness {Left} (Fun! {j = Seq} x eq eq₁) eqA eqB = ?
+soundness {Left} (Fun! x eq eq₁) eqA eqB = {!!}
 
 soundness {Right} (Nat! {ff} {tt} x) {N} {L B} eqA eqB = 
   natChain {L B} (trans (↑idem ⌈ B ⌉) eqB)
@@ -71,7 +61,8 @@ soundness {Right} (Nat! {tt} {ff} x) {L A} {L B} eqA eqB =
   Trans (collapseL eqA) (expandL eqB)
 soundness {Right} (Nat! {ff} {tt} x) {L A} {L B} eqA eqB = ⊥-elim (↑neqff eqA)
 soundness {Right} (Nat! {ff} {ff} x) {L A} {L B} eqA eqB = ⊥-elim (↑neqff eqA)
-soundness {Right} (Fun! x eq eq₁) eqA eqB = {!!}
+soundness {Right} (Fun! {j = Ord} x eq eq₁) {A} {B} eqA eqB = {!!}
+soundness {Right} (Fun! {j = Seq} x eq eq₁) {A} {B} eqA eqB = {!!}
 
 soundness {Nothing} (Nat! {ff} {b' = tt} x) {N} {L B} eqA eqB =
   natChain {L B} (trans (↑idem ⌈ B ⌉) eqB)
@@ -83,7 +74,14 @@ soundness {Nothing} (Nat! {ff} {b' = ff} x) {N} {L B} eqA eqB = ⊥-elim (↑neq
 soundness {Nothing} (Nat! {ff} {b' = ff} x) {L A} {N} eqA eqB = ⊥-elim (↑neqff eqA)
 soundness {Nothing} (Nat! {ff} {b' = ff} x) {L A} {L B} eqA eqB = ⊥-elim (↑neqff eqA)
 
-soundness {Nothing} (Fun! {tt} {tt} {j = Ord} x eq eq₁) eqA eqB = {!!}
+soundness {Nothing} (Fun! {tt} {tt} {j = Ord} x eq eq₁) {A} {B} eqA eqB = Trans
+  (raw<norm A)
+  (Trans (Trans (<:OfEq (cong (λ x → ⟦ x ⟧) eqA)) (
+  Trans (Cov (Fun
+    ((soundness eq) norm-norm norm-norm) (
+    (soundness eq₁) norm-norm norm-norm )))
+  (<:OfEq (cong (λ x → ⟦ x ⟧) (sym eqB)))))
+  (norm<raw B))
 soundness {Nothing} (Fun! {ff} {tt} {j = Ord} x eq eq₁) eqA eqB = {!!}
 soundness {Nothing} (Fun! {ff} {ff} {j = Ord} x eq eq₁) {A} {B} eqA eqB
     with eqOfNormff {A} eqA

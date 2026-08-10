@@ -45,3 +45,9 @@ mutual
   norm<raw N       = NatRefl
   norm<raw (L T)   = Trans (↑<L⟦⟧ ⌈ T ⌉) (Cov (norm<raw T))
   norm<raw (T ⇒ U) = Fun (raw<norm T) (norm<raw U)
+
+norm-norm : ∀ {T : Tp!} → ⌈ ⟦ T ⟧ ⌉ ≡ T
+norm-norm {tt !N} = refl
+norm-norm {ff !N} = refl
+norm-norm {tt ! T ⇒ T₁} rewrite norm-norm {T} | norm-norm {T₁} = refl
+norm-norm {ff ! T ⇒ T₁} rewrite norm-norm {T} | norm-norm {T₁} = refl

@@ -41,3 +41,6 @@ refl-raw : ∀ {T} → T <: T
 refl-raw {N}      = NatRefl
 refl-raw {L T}    = Cov refl-raw
 refl-raw {T ⇒ T'} = Fun refl-raw refl-raw
+
+<:OfEq : ∀ {T1 T2 : Tp} → T1 ≡ T2 → T1 <: T2
+<:OfEq eq rewrite eq = refl-raw
