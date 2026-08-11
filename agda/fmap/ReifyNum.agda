@@ -276,23 +276,47 @@ reify' {a ⇒ b}
 data _≈_ : ∀ {a b u v} → D.coe a b → D.coe u v → Set where
   heq : ∀ a b c d → c D.≃ d → c ≈ d
 
-{-
 mkid' : (a : ty') → coe' a a
-mkid' base = c-base
-mkid' ((n ! a) ⇒ (m ! b)) = c-⇒ 0 (mkid' a) (mkid' b)
-
 mkid! : (a : ty!) → coe! a a
+
+↑-zero : ∀ a → zero ↑ a ≡ a
+↑-zero (n ! a) = refl
+
+mkid' base = c-base
+mkid' (a ⇒ b) = c-⇒ 0 (sym (↑-zero a)) (sym (↑-zero b)) (mkid! a) (mkid! b)
 mkid! (n ! a) = c-! refl (mkid' a)
+
+fmap-l : ∀ {na a nb b u} → coe' ((suc na ! a) ⇒ (suc nb ! b)) u → coe' ((na ! a) ⇒ (nb ! b)) u
+fmap-l (c-⇒ k refl refl (c-! refl c) (c-! refl d))
+    = c-⇒ (suc k)
+          (cong₂ _!_ (+-suc _ _) refl)
+          (cong₂ _!_ (+-suc _ _) refl)
+          (c-! refl c)
+          (c-! refl d)
 
 mkcomp! : {a b c : ty!} → coe! a b → coe! b c → coe! a c
 mkcomp' : {a b c : ty'} → coe' a b → coe' b c → coe' a c
-mkcomp! (c-! eqc c) (c-! eqd d) rewrite eqc | eqd = c-! refl (mkcomp' c d)
+mkcomp-arr-l : ∀ {a b u v f} → (k : ℕ) → (j : ℕ) →
+  coe! u a →
+  coe! b v →
+  coe' ((k ↑ u) ⇒ (k ↑ v)) f →
+  coe' (a ⇒ b) f
+mkcomp-arr-l {a} {b} {nu ! u} {nv ! v} {uu ⇒ vv}
+  zero c d
+  (c-⇒ {a'} {b'} {u'} {v'} j refl refl cc dd)
+  = c-⇒ j refl refl (mkcomp! cc c) (mkcomp! d dd)
+mkcomp-arr-l {a} {b} {nu ! u} {nv ! v} (suc k) c d (c-⇒ j refl refl (c-! refl cc) (c-! refl dd))
+  = mkcomp-arr-l k c d
+      (c-⇒ (suc j)
+          (cong₂ _!_ (+-suc _ _) refl)
+          (cong₂ _!_ (+-suc _ _) refl)
+          (c-! refl cc)
+          (c-! refl dd))
+mkcomp! (c-! refl c) (c-! refl d) = c-! refl (mkcomp' c d)
 mkcomp' c-base c-base = c-base
-mkcomp' {(na ! a) ⇒ (nb ! b)} {(ne ! e) ⇒ (nf ! f)} {(nu ! u) ⇒ (nv ! v)}
-        (c-⇒ k c d)
-        (c-⇒ k' c' d')
-  =  ?
+mkcomp' (c-⇒ k refl refl c d) cc = mkcomp-arr-l k c d cc
 
+{-
 mkarr! : ∀ {a b u v} →
   coe! u a →
   coe! b v →
