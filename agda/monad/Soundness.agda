@@ -1,5 +1,3 @@
--- {-# OPTIONS --allow-unsolved-metas #-}
-
 module Soundness where
 
 open import lib
@@ -49,7 +47,35 @@ soundness {Left} (Nat! {tt} {tt} x) {L A} {L B} eqA eqB =
   Trans (collapseL eqA) (expandL eqB)
 soundness {Left} (Nat! {ff} {tt} x) {L A} {L B} eqA eqB = 
   Trans (collapseL eqA) (expandL eqB)
-soundness {Left} (Fun! x eq eq₁) eqA eqB = {!!}
+soundness {Left} (Fun! {tt} {tt} {j = Ord} x eq eq₁) {A} {B} eqA eqB = Trans
+  (raw<norm A)
+  (Trans (Trans (<:OfEq (cong (λ x → ⟦ x ⟧) eqA)) (
+  Trans (Cov (Fun
+    ((soundness eq) norm-norm norm-norm) (
+    (soundness eq₁) norm-norm norm-norm )))
+  (<:OfEq (cong (λ x → ⟦ x ⟧) (sym eqB)))))
+  (norm<raw B))
+soundness {Left} (Fun! {ff} {tt} {j = Ord} x eq eq₁) {A} {B} eqA eqB = Trans
+  (raw<norm A)
+  (Trans (Trans (<:OfEq (cong (λ x → ⟦ x ⟧) eqA)) (
+  Trans (Cov (Fun
+    ((soundness eq) norm-norm norm-norm) (
+    (soundness eq₁) norm-norm norm-norm )))
+  (<:OfEq (cong (λ x → ⟦ x ⟧) (sym eqB)))))
+  (norm<raw B))
+
+soundness {Left} (Fun! {b' = ff} {j = Seq} x eq eq₁) {A₀} {B₀} eqA eqB
+  with eqOfNormff {B₀} eqB
+... | A₂' , (B₂' , (hB , hA₂' , hB₂'))
+  = Trans (raw<norm A₀)
+    (Trans (<:OfEq (cong (λ x → ⟦ x ⟧) eqA))
+    (Trans (Trans Seq
+      (Fun ((soundness eq) hA₂' (Lnorm _))
+        ((soundness eq₁) (Lnorm _) hB₂')))
+    (<:OfEq (sym hB))))
+  where
+  Lnorm : (T : Tp!) → ⌈ L ⟦ T ⟧ ⌉ ≡ ↑ T
+  Lnorm T rewrite norm-norm {T} = refl
 
 soundness {Right} (Nat! {ff} {tt} x) {N} {L B} eqA eqB = 
   natChain {L B} (trans (↑idem ⌈ B ⌉) eqB)
@@ -61,8 +87,45 @@ soundness {Right} (Nat! {tt} {ff} x) {L A} {L B} eqA eqB =
   Trans (collapseL eqA) (expandL eqB)
 soundness {Right} (Nat! {ff} {tt} x) {L A} {L B} eqA eqB = ⊥-elim (↑neqff eqA)
 soundness {Right} (Nat! {ff} {ff} x) {L A} {L B} eqA eqB = ⊥-elim (↑neqff eqA)
-soundness {Right} (Fun! {j = Ord} x eq eq₁) {A} {B} eqA eqB = {!!}
-soundness {Right} (Fun! {j = Seq} x eq eq₁) {A} {B} eqA eqB = {!!}
+soundness {Right} (Fun! {tt} {tt} {j = Ord} x eq eq₁) {A} {B} eqA eqB = Trans
+  (raw<norm A)
+  (Trans (Trans (<:OfEq (cong (λ x → ⟦ x ⟧) eqA)) (
+  Trans (Cov (Fun
+    ((soundness eq) norm-norm norm-norm) (
+    (soundness eq₁) norm-norm norm-norm )))
+  (<:OfEq (cong (λ x → ⟦ x ⟧) (sym eqB)))))
+  (norm<raw B))
+soundness {Right} (Fun! {tt} {ff} {j = Ord} x eq eq₁) {A} {B} eqA eqB = Trans
+  (raw<norm A)
+  (Trans (Trans (<:OfEq (cong (λ x → ⟦ x ⟧) eqA)) (
+  Trans (Cov (Fun
+    ((soundness eq) norm-norm norm-norm) (
+    (soundness eq₁) norm-norm norm-norm )))
+  (<:OfEq (cong (λ x → ⟦ x ⟧) (sym eqB)))))
+  (norm<raw B))
+soundness {Right} (Fun! {ff} {tt} {j = Ord} x eq eq₁) {A} {B} eqA eqB = Trans
+  (raw<norm A)
+  (Trans (Trans (<:OfEq (cong (λ x → ⟦ x ⟧) eqA)) (
+  Trans (Trans (Fun
+    ((soundness eq) norm-norm norm-norm) (
+    (soundness eq₁) norm-norm norm-norm ))
+    Pure)
+  (<:OfEq (cong (λ x → ⟦ x ⟧) (sym eqB)))))
+  (norm<raw B))
+soundness {Right} (Fun! {ff} {ff} {j = Ord} x eq eq₁) {A} {B} eqA eqB = Trans
+  (raw<norm A)
+  (Trans (Trans (<:OfEq (cong (λ x → ⟦ x ⟧) eqA)) (
+  Trans (Trans (Fun
+    ((soundness eq) norm-norm norm-norm) (
+    (soundness eq₁) norm-norm norm-norm ))
+    Pure)
+  (<:OfEq (cong (λ x → ⟦ x ⟧) (sym eqB)))))
+  (norm<raw B))
+
+soundness {Right} (Fun! {tt} {tt} {j = Seq} () eq eq₁) {A} {B} eqA eqB
+soundness {Right} (Fun! {tt} {ff} {j = Seq} () eq eq₁) {A} {B} eqA eqB
+soundness {Right} (Fun! {ff} {tt} {j = Seq} () eq eq₁) {A} {B} eqA eqB
+soundness {Right} (Fun! {ff} {ff} {j = Seq} () eq eq₁) {A} {B} eqA eqB
 
 soundness {Nothing} (Nat! {ff} {b' = tt} x) {N} {L B} eqA eqB =
   natChain {L B} (trans (↑idem ⌈ B ⌉) eqB)
@@ -82,7 +145,16 @@ soundness {Nothing} (Fun! {tt} {tt} {j = Ord} x eq eq₁) {A} {B} eqA eqB = Tran
     (soundness eq₁) norm-norm norm-norm )))
   (<:OfEq (cong (λ x → ⟦ x ⟧) (sym eqB)))))
   (norm<raw B))
-soundness {Nothing} (Fun! {ff} {tt} {j = Ord} x eq eq₁) eqA eqB = {!!}
+soundness {Nothing} (Fun! {ff} {tt} {j = Ord} x eq eq₁) {A} {B} eqA eqB = Trans
+  (raw<norm A)
+  (Trans (Trans (<:OfEq (cong (λ x → ⟦ x ⟧) eqA)) (
+  Trans (Trans (Fun
+    ((soundness eq) norm-norm norm-norm) (
+    (soundness eq₁) norm-norm norm-norm ))
+    Pure)
+  (<:OfEq (cong (λ x → ⟦ x ⟧) (sym eqB)))))
+  (norm<raw B))
+
 soundness {Nothing} (Fun! {ff} {ff} {j = Ord} x eq eq₁) {A} {B} eqA eqB
     with eqOfNormff {A} eqA
 ... | A₂ , (B₂ , (hA , hA₂ , hB₂))
@@ -90,4 +162,15 @@ soundness {Nothing} (Fun! {ff} {ff} {j = Ord} x eq eq₁) {A} {B} eqA eqB
 ... | A₂' , (B₂' , (hB , hA₂' , hB₂'))
     rewrite hA | hB = Fun ((soundness eq) hA₂' hA₂) ((soundness eq₁) hB₂ hB₂')
 
-soundness {Nothing} (Fun! {j = Seq} x eq eq₁) eqA eqB = {!!}
+soundness {Nothing} (Fun! {tt} {ff} {j = Seq} x eq eq₁) {A₀} {B₀} eqA eqB
+  with eqOfNormff {B₀} eqB
+... | A₂' , (B₂' , (hB , hA₂' , hB₂'))
+  = Trans (raw<norm A₀)
+    (Trans (<:OfEq (cong (λ x → ⟦ x ⟧) eqA))
+    (Trans (Trans Seq
+      (Fun ((soundness eq) hA₂' (Lnorm _))
+        ((soundness eq₁) (Lnorm _) hB₂')))
+    (<:OfEq (sym hB))))
+  where
+  Lnorm : (T : Tp!) → ⌈ L ⟦ T ⟧ ⌉ ≡ ↑ T
+  Lnorm T rewrite norm-norm {T} = refl

@@ -57,9 +57,9 @@ round-trip {A} {B} d
         | spec-decl-id {A} {B} d
   = ≃-refl d
 
-helper : ∀ {A B : Tp} (d d' : A <: B) →
+helper' : ∀ {A B : Tp} (d d' : A <: B) →
          completeness {Nothing} (decl→spec d) ≡ completeness {Nothing} (decl→spec d')
-helper d d' = uniqueness (
+helper' d d' = uniqueness (
   completeness {Nothing} (decl→spec d)) (
   completeness {Nothing} (decl→spec d'))
 
@@ -71,4 +71,4 @@ sound∘complete→decl {A} {B} x =
 
 coherence : ∀ {A B : Tp} (d d' : A <: B) → d ≃ d'
 coherence d d' = ≃-trans (round-trip d) (
-  ≃-trans (≃-eq (cong sound∘complete→decl (helper d d'))) (≃-sym (round-trip d')) )
+  ≃-trans (≃-eq (cong sound∘complete→decl (helper' d d'))) (≃-sym (round-trip d')) )
