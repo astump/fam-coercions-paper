@@ -18,7 +18,8 @@ infixr 9 _!_
 infixr 9 _↑_
 
 _↑_ : ℕ → ty! → ty!
-m ↑ n ! a = (m + n) ! a
+zero ↑ a = a
+suc m ↑ n ! a = m ↑ (suc n ! a)
 
 data coe' : ty' → ty' → Set
 data coe! : ty! → ty! → Set
@@ -34,10 +35,17 @@ data coe' where
     coe' (a ⇒ b) (uu ⇒ vv)
 
 data coe! where
-  c-! : {n m : ℕ} {a b : ty'} →
-    n ≡ m →
+  c-zero : {a b : ty'} →
     coe' a b →
-    coe! (n ! a) (m ! b)
+    coe! (zero ! a) (zero ! b)
+  c-suc : {a b : ty'} →
+    (n : ℕ) →
+    coe! (n ! a) (n ! b) →
+    coe! (suc n ! a) (suc n ! b)
+
+c-! : ∀ {n m a b} → n ≡ m → coe' a b → coe! (n ! a) (m ! b)
+c-! {zero} {zero} refl c = c-zero c
+c-! {suc n} {suc n} refl c = c-suc n (c-! refl c)
 
 depth : ty! → ℕ
 depth (n ! t) = n
