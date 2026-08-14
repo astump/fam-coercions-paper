@@ -4,23 +4,17 @@ open import lib
 open import Tp
 open import Decproc
 
-ord-seq-disjoint : ∀{b b' : 𝔹}{f : Flag} →
-                   funFlagOk b f b' Ord →
-                   funFlagOk b f b' Seq →
+ord-seq-disjoint : ∀{b b' : 𝔹}{f : Flag}{da' da : 𝔹} →
+                   funFlagOk b f b' Ord da' da →
+                   funFlagOk b f b' Seq da' da →
                    ⊥{lzero}
-ord-seq-disjoint {tt} {tt} {f = Left} _ ()
-ord-seq-disjoint {tt} {ff} {f = Left} ()
-ord-seq-disjoint {ff} {tt} {f = Left} _ ()
-ord-seq-disjoint {ff} {ff} {f = Left} ()
-ord-seq-disjoint {tt} {b'} {f = Right} _ ()
-ord-seq-disjoint {ff} {b'} {f = Right} _ ()
-ord-seq-disjoint {tt} {tt} {f = Nothing} _ ()
-ord-seq-disjoint {tt} {ff} {f = Nothing} ()
-ord-seq-disjoint {ff} {b'} {f = Nothing} _ ()
+ord-seq-disjoint {tt} {ff} {Nothing} (x1 , _) _ = x1
+ord-seq-disjoint {b} {ff} {Left} (x1 , _) _ = x1
+ord-seq-disjoint {ff} {ff} {Nothing} {tt} {ff} (_ , x2) _ = x2
 
-seq-ord-disjoint : ∀{b b' : 𝔹}{f : Flag} →
-                   funFlagOk b f b' Seq →
-                   funFlagOk b f b' Ord →
+seq-ord-disjoint : ∀{b b' : 𝔹}{f : Flag}{da' da : 𝔹} →
+                   funFlagOk b f b' Seq da' da →
+                   funFlagOk b f b' Ord da' da →
                    ⊥
 seq-ord-disjoint x y = ord-seq-disjoint y x
 

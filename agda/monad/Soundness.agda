@@ -64,6 +64,8 @@ soundness {Left} (Fun! {ff} {tt} {j = Ord} x eq eq₁) {A} {B} eqA eqB = Trans
   (<:OfEq (cong (λ x → ⟦ x ⟧) (sym eqB)))))
   (norm<raw B))
 
+soundness {Left} (Fun! {b' = ff} {j = Ord} (() , _) eq eq₁)
+
 soundness {Left} (Fun! {b' = ff} {j = Seq} x eq eq₁) {A₀} {B₀} eqA eqB
   with eqOfNormff {B₀} eqB
 ... | A₂' , (B₂' , (hB , hA₂' , hB₂'))
@@ -155,6 +157,8 @@ soundness {Nothing} (Fun! {ff} {tt} {j = Ord} x eq eq₁) {A} {B} eqA eqB = Tran
   (<:OfEq (cong (λ x → ⟦ x ⟧) (sym eqB)))))
   (norm<raw B))
 
+soundness {Nothing} (Fun! {tt} {ff} {j = Ord} (() , _) eq eq₁)
+
 soundness {Nothing} (Fun! {ff} {ff} {j = Ord} x eq eq₁) {A} {B} eqA eqB
     with eqOfNormff {A} eqA
 ... | A₂ , (B₂ , (hA , hA₂ , hB₂))
@@ -168,6 +172,19 @@ soundness {Nothing} (Fun! {tt} {ff} {j = Seq} x eq eq₁) {A₀} {B₀} eqA eqB
   = Trans (raw<norm A₀)
     (Trans (<:OfEq (cong (λ x → ⟦ x ⟧) eqA))
     (Trans (Trans Seq
+      (Fun ((soundness eq) hA₂' (Lnorm _))
+        ((soundness eq₁) (Lnorm _) hB₂')))
+    (<:OfEq (sym hB))))
+  where
+  Lnorm : (T : Tp!) → ⌈ L ⟦ T ⟧ ⌉ ≡ ↑ T
+  Lnorm T rewrite norm-norm {T} = refl
+
+soundness {Nothing} (Fun! {ff} {ff} {j = Seq} x eq eq₁) {A₀} {B₀} eqA eqB
+  with eqOfNormff {B₀} eqB
+... | A₂' , (B₂' , (hB , hA₂' , hB₂'))
+  = Trans (raw<norm A₀)
+    (Trans (<:OfEq (cong (λ x → ⟦ x ⟧) eqA))
+    (Trans (Trans (Trans Pure Seq)
       (Fun ((soundness eq) hA₂' (Lnorm _))
         ((soundness eq₁) (Lnorm _) hB₂')))
     (<:OfEq (sym hB))))
