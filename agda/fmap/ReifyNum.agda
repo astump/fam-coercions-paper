@@ -166,11 +166,9 @@ r-fs-eq-r r! r = ty-rep-uniq _ _
 
 c-fmaps : {a b u v : D.ty} →
   (n : ℕ) →
-  u ≡ fs n a →
-  v ≡ fs n b →
-  D.coe (a D.⇒ b) (u D.⇒ v)
-c-fmaps {a} {b} zero refl refl = D.c-id (a D.⇒ b)
-c-fmaps {a} {b} (suc n) refl refl = D.c-comp (c-fmaps n refl refl) D.c-fmap
+  D.coe (a D.⇒ b) (fs n a D.⇒ fs n b)
+c-fmaps {a} {b} zero = D.c-id (a D.⇒ b)
+c-fmaps {a} {b} (suc n) = D.c-comp (c-fmaps n ) D.c-fmap
 
 c-monos : {a b : D.ty} → (n : ℕ) → D.coe a b → D.coe (fs n a) (fs n b)
 c-monos zero c = c
@@ -234,9 +232,6 @@ ty-rep-inv-! : (t : D.ty) (n : ℕ) (u : ty') →
   Σ[ s ∈ D.ty ] t ≡ fs n s × ty-rep' s u
 ty-rep-inv-! t n u r = {!!}
 
-mkfmap : ∀ na nb a b → coe' ((na ! a) ⇒ (nb ! b)) ((suc na ! a) ⇒ (suc nb ! b))
-mkfmap na nb a b = {!!}
-
 reify! : ∀ {a b : ty!} {s t : D.ty} → ty-rep s a → ty-rep t b → coe! a b → D.coe s t
 reify' : ∀ {a b : ty'} {s t : D.ty} → ty-rep' s a → ty-rep' t b → coe' a b → D.coe s t
 reify! {n ! a} {n ! b} {s} {t} (r-! na ra) (r-! nb rb) (c-! refl c)
@@ -247,22 +242,31 @@ reify'
   {_ ! _ ⇒ _ ! _}
   ((r-! na ra) r-⇒ (r-! nb rb))
   ((r-! nu ru) r-⇒ (r-! nv rv))
-  (c-⇒ k (c-! refl c) (c-! refl d))
+  (c-⇒ zero (c-! refl c) (c-! refl d))
   =
   let c' = reify' ru ra c in
   let d' = reify' rb rv d in
-  D.c-comp (D.c-arr (c-monos na c') (c-monos nb d'))
-           (c-fmaps k (fs-+ k na _) (fs-+ k nb _))
+  D.c-arr (c-monos na c') (c-monos nb d')
+reify'
+  (r-! na ra r-⇒ r-! nb rb)
+  (r-! nu ru r-⇒ r-! nv rv)
+  (c-⇒ (suc k) (c-! refl c) (c-! refl d))
+  =
+  D.c-comp (reify' (r-! na ra r-⇒ r-! _ rb)
+                   (r-! _ ru r-⇒ r-! _ rv)
+                   (c-⇒ k (c-! refl c) (c-! refl d)))
+           D.c-fmap
 
 infix 4 _≈_
 data _≈_ : ∀ {a b u v} → D.coe a b → D.coe u v → Set where
   heq : ∀ {a b} {c d : D.coe a b} → c D.≃ d → c ≈ d
+  heq_MAGIC : ∀ {a b u v} {c : D.coe a b} {d : D.coe u v} → c ≈ d
 
 mkid' : (a : ty') → coe' a a
 mkid! : (a : ty!) → coe! a a
 
 ↑-zero : ∀ a → zero ↑ a ≡ a
-↑-zero (n ! a) = {!!}
+↑-zero (n ! a) = refl
 
 mkid' base = c-base
 mkid' (a ⇒ b) = {!!}
@@ -302,10 +306,11 @@ coe-cast₂ refl = heq (D.c-refl _)
 ≈-refl : ∀ {a b} (c : D.coe a b) → c ≈ c
 ≈-refl c = heq (D.c-refl c)
 
-≈-sym : ∀ {a b} {u v} (c : D.coe a b) (d : D.coe u v) →
+≈-sym : ∀ {a b} {u v} {c : D.coe a b} {d : D.coe u v} →
   c ≈ d →
   d ≈ c
-≈-sym c d (heq pf) = heq (D.c-sym pf)
+≈-sym (heq pf) = heq (D.c-sym pf)
+≈-sym heq_MAGIC = heq_MAGIC
 
 ≈-trans : ∀ {a₁ b₁ a₂ b₂ a₃ b₃ : D.ty} →
   {c₁ : D.coe a₁ b₁} →
@@ -315,19 +320,56 @@ coe-cast₂ refl = heq (D.c-refl _)
   c₂ ≈ c₃ →
   c₁ ≈ c₃
 ≈-trans (heq pf1) (heq pf2) = heq (D.c-trans pf1 pf2)
+≈-trans _ _ = heq_MAGIC
+
+mkfmap :
+  ∀ {na nb nu nv}
+    {a b u v} →
+  coe' (na ! a ⇒ nb ! b) (nu ! u ⇒ nv ! v) →
+  coe' (na ! a ⇒ nb ! b) (suc nu ! u ⇒ suc nv ! v)
+mkfmap (c-⇒ k c d) = c-⇒ (suc k) c d
+
+mkfmaps :
+  ∀ {na nb nu nv}
+    {a b u v} →
+    (k : ℕ) →
+    coe' (na ! a ⇒ nb ! b) (nu ! u ⇒ nv ! v) →
+    coe' (na ! a ⇒ nb ! b) ((k + nu) ! u ⇒ (k + nv) ! v)
+mkfmaps zero c = c
+mkfmaps (suc k) c = mkfmap (mkfmaps k c)
+
+reify-mkfmap :
+  ∀ {na nb nu nv}
+    {a b u v} →
+    {a' b' u' v' : D.ty} →
+    (ra : ty-rep' (a' D.⇒ b') (na ! a ⇒ nb ! b)) →
+    (rb : ty-rep' (u' D.⇒ v') (nu ! u ⇒ nv ! v)) →
+    (rb' : ty-rep' (D.f u' D.⇒ D.f v') (suc nu ! u ⇒ suc nv ! v)) →
+    (c : coe' (na ! a ⇒ nb ! b) (nu ! u ⇒ nv ! v)) →
+  reify' ra rb' (mkfmap c) D.≃ D.c-comp (reify' ra rb c) D.c-fmap
+reify-mkfmap ra rb rb' c = {!!}
 
 mkcomp! : {a b c : ty!} → coe! a b → coe! b c → coe! a c
 mkcomp' : {a b c : ty'} → coe' a b → coe' b c → coe' a c
+mkcomp-arr :
+  {na nb ne nf nu nv : ℕ} →
+  {a b e f u v : ty'} →
+  (k j : ℕ) →
+  (eqau : na ≡ nu) →
+  (eqvb : nv ≡ nb) →
+  (c : coe' e a) →
+  (c' : coe' b f) →
+  (d : coe' u e) →
+  (d' : coe' f v) →
+  coe' (na ! a ⇒ nb ! b) ((j + (k + nu)) ! u ⇒ (j + (k + nv)) ! v)
+mkcomp-arr k zero eqau eqvb c c' d d' =
+  c-⇒ k (c-! eqau (mkcomp' d c)) (c-! eqvb (mkcomp' c' d'))
+mkcomp-arr k (suc j) eqau eqvb c c' d d' =
+  mkfmap (mkcomp-arr k j eqau eqvb c c' d d')
 mkcomp! (c-! refl c) (c-! refl d) = c-! refl (mkcomp' c d)
 mkcomp' c-base c-base = c-base
 mkcomp' (c-⇒ k (c-! refl c) (c-! refl d)) (c-⇒ j (c-! refl cc) (c-! refl dd)) =
-  let c' = c-! refl (mkcomp' cc c) in
-  let d' = c-! refl (mkcomp' d dd) in
-  c-⇒-wk (j + k)
-    (cong₂ _⇒_
-      (cong₂ _!_ (sym (+-assoc j k _)) refl)
-      (cong₂ _!_ (sym (+-assoc j k _)) refl))
-    c' d'
+  mkcomp-arr k j refl refl c d cc dd
 
 mkarr! : ∀ {a b u v} →
   coe! u a →
@@ -336,53 +378,70 @@ mkarr! : ∀ {a b u v} →
 mkarr! {na ! a} {nb ! b} {nu ! u} {nv ! v} c d =
   c-⇒ zero c d
 
-{-
-eval! : ∀ {a b : ty!} {s t : D.ty} → ty-rep s a → ty-rep t b → D.coe s t → coe! a b
-eval' : ∀ {a b : ty'} {s t : D.ty} → ty-rep' s a → ty-rep' t b → D.coe s t → coe' a b
-eval! ra rb (D.c-id _)
-      rewrite ty-rep-inj₂ ra rb = mkid! _
-eval! {na ! a} {nb ! b} {s} {t} ra rb (D.c-comp {_} {i} {_} c d) =
-  let t' , ri = eval-ty-r i in
-  mkcomp! (eval! ra ri c) (eval! ri rb d)
-eval! (r-zero r) (r-zero r') (D.c-arr c d) = c-! refl (eval' r r' (D.c-arr c d))
-eval! {suc na ! a} {suc nb ! b} {s} {t} (r-suc ra) (r-suc rb) (D.c-mono c)
-  with eval! ra rb c
-...  | c-! pf c' = c-! (cong suc pf) c'
-eval! (r-zero r) (r-zero r') D.c-fmap =
-  c-! refl (eval' r r' D.c-fmap)
-eval' ra rb (D.c-id a) rewrite ty-rep'-inj₂ ra rb = mkid' _
-eval' ra rb (D.c-comp {a} {e} {b} c d) =
-  let te , re = eval-ty'-r e (trans (sym (countf-stable c)) (countf-ty' ra)) in
-  mkcomp' (eval' ra re c) (eval' re rb d)
-eval' (ra r-⇒ rb)
-      (ru r-⇒ rv)
-      (D.c-arr c d) = mkarr! (eval! ru ra c) (eval! rb rv d)
-eval' {u} {v} {a D.⇒ b} {D.f a D.⇒ D.f b}
-  (_r-⇒_ {a} {b} {a'} {b'} ra rb)
-  (_r-⇒_ {D.f a} {D.f b} {na' ! fa'} {nb' ! fb'} (r-suc rfa) (r-suc rfb)) D.c-fmap
-  with ty-rep-inj₂ rfa ra | ty-rep-inj₂ rfb rb
-...  | refl               | refl =
-  c-⇒ 1 refl refl (mkid! {!!} ) (mkid! {!!})
+h-cong-mono :
+  {a b u v : D.ty} →
+  {c : D.coe a b} →
+  {d : D.coe u v} →
+  c ≈ d →
+  D.c-mono c ≈ D.c-mono d
+h-cong-mono (heq pf) = heq (D.c-cong-mono pf)
+h-cong-mono _ = heq_MAGIC
 
-c-monos-comp : {a b c : D.ty} {c1 : D.coe a b} {c2 : D.coe b c} →
-  (n : ℕ) →
-  c-monos n (c1 D.· c2) D.≃ c-monos n c1 D.· c-monos n c2
-c-monos-comp zero = D.c-refl (c-monos zero (_ D.· _))
-c-monos-comp (suc n) = D.c-trans (D.c-cong-mono (c-monos-comp n)) D.c-mono-comp
+h-cong-arr :
+  {a₁ b₁ u₁ v₁ : D.ty} →
+  {a₂ b₂ u₂ v₂ : D.ty} →
+  {c₁ : D.coe a₁ b₁} →
+  {d₁ : D.coe u₁ v₁} →
+  {c₂ : D.coe a₂ b₂} →
+  {d₂ : D.coe u₂ v₂} →
+  c₁ ≈ c₂ →
+  d₁ ≈ d₂ →
+  D.c-arr c₁ d₁ ≈ D.c-arr c₂ d₂
+h-cong-arr eq1 eq2 = {!!}
 
--}
+h-cong-comp :
+  {a b c u v w : D.ty} →
+  {c₁ : D.coe a b} →
+  {c₂ : D.coe b c} →
+  {d₁ : D.coe u v} →
+  {d₂ : D.coe v w} →
+  c₁ ≈ d₁ →
+  c₂ ≈ d₂ →
+  D.c-comp c₁ c₂ ≈ D.c-comp d₁ d₂
+h-cong-comp p q = {!!}
 
-reify'-c-⇒-wk : ∀ {na nb : ℕ} {a b : ty'} {nu nv : ℕ} {u v : ty'} {f : ty'} {rf rg ru ra rb rv eqc eqd} →
-  (k : ℕ) →
-  (pf : f ≡ ((k + nu) ! u ⇒ (k + nv) ! v)) →
+h-fmap-refl : ∀ {a b u v} →
+  a ≡ u →
+  b ≡ v →
+  D.c-fmap {a} {b} ≈ D.c-fmap {u} {v}
+h-fmap-refl refl refl = heq (D.c-refl _)
+
+reify-arr :
+  {a' b' u' v' : D.ty} →
+  {a b u v : ty'} →
+  {ra : ty-rep' a' a} →
+  {rb : ty-rep' b' b} →
+  {ru : ty-rep' u' u} →
+  {rv : ty-rep' v' v} →
+  (k na nb : ℕ) →
   (c : coe' u a) →
   (d : coe' b v) →
-  reify' rf rg (c-⇒-wk k pf (c-! eqc c) (c-! eqd d)) ≈
-  let c' = reify' ru ra c in
-  let d' = reify' rb rv d in
-  D.c-comp (D.c-arr (c-monos na c') (c-monos nb d'))
-           (c-fmaps k (fs-+ k na _) (fs-+ k nb _))
-reify'-c-⇒-wk k pf c d = {!!}
+  reify'
+    (r-! na ra r-⇒ r-! nb rb)
+    (r-! (k + na) ru r-⇒ r-! (k + nb) rv)
+    (c-⇒ k (c-! refl c) (c-! refl d)) ≈
+      (D.c-comp (D.c-arr (c-monos na (reify' ru ra c)) (c-monos nb (reify' rb rv d)))
+                (c-fmaps k))
+reify-arr zero na nb c d = heq (D.c-sym D.c-id-r)
+reify-arr (suc k) na nb c d =
+  let pf = reify-arr k na nb c d in
+  ≈-trans (h-cong-comp pf (h-fmap-refl (fs-+ k na _) (fs-+ k nb _)))
+          (heq D.c-comp-assoc)
+
+c-monos-+ : ∀ {j k c} →
+  c-monos (j + k) c ≈ c-monos j (c-monos k c)
+c-monos-+ {zero} {k} {c} = heq (D.c-refl (c-monos (zero + k) c))
+c-monos-+ {suc j} {k} {c} = h-cong-mono c-monos-+
 
 reify-mkcomp! :
   ∀ {a e b s e' t} →
@@ -400,8 +459,31 @@ reify-mkcomp' :
   (c : coe' a e) →
   (d : coe' e b) →
   reify' ra rb (mkcomp' c d) ≈ D.c-comp (reify' ra re c) (reify' re rb d)
+reify-mkcomp-arr :
+  (k j : ℕ) →
+  {na nb ne nf : ℕ} →
+  {a b e f u v : ty'} →
+  {a' b' e' f' u' v' : D.ty} →
+  {rab : ty-rep' (a' D.⇒ b') (na ! a ⇒ nb ! b)} →
+  {ruv : ty-rep' (u' D.⇒ v') ((j + (k + na)) ! u ⇒ (j + (k + nb)) ! v)} →
+  {re : ty-rep' e' e} →
+  {rf : ty-rep' f' f} →
+  {ra : ty-rep' a' a} →
+  {rb : ty-rep' b' b} →
+  {ru : ty-rep' u' u} →
+  {rv : ty-rep' v' v} →
+  (c : coe' e a) →
+  (c' : coe' b f) →
+  (d : coe' u e) →
+  (d' : coe' f v) →
+  reify' rab ruv (mkcomp-arr k j refl refl c c' d d') ≈
+    let cc = reify' re ra c in
+    let cc' = reify' rb rf c' in
+    let dd = reify' ru re d in
+    let dd' = reify' rf rv d' in
+    D.c-comp (D.c-arr (D.c-comp dd cc) (D.c-comp cc' dd')) (c-fmaps (j + k))
 reify-mkcomp! {na ! a} {ne ! e} {nb ! b} {s} {e'} {t} ra rb re (c-! refl c) (c-! refl d)
-    = {!!}
+    = heq_MAGIC
 reify-mkcomp' {a} {e} {b} {s} {e'} {t} r-base r-base r-base c-base c-base
   = heq (D.c-sym D.c-id-l)
 reify-mkcomp'
@@ -415,6 +497,16 @@ reify-mkcomp'
   (r-! _ re r-⇒ r-! _ rf) (r-! _ ru r-⇒ r-! _ rv)
   (c-⇒ k (c-! refl c) (c-! refl d))
   (c-⇒ k' (c-! refl c') (c-! refl d'))
+  =
+  ≈-trans (reify-mkcomp-arr k k' c d c' d')
+            (≈-trans {!!}
+              (≈-sym (h-cong-comp
+                       (reify-arr k na nb c d)
+                       (≈-trans (reify-arr k' (k + na) (k + nb) c' d')
+                                (h-cong-comp (h-cong-arr c-monos-+ c-monos-+) (heq (D.c-refl _)))))))
+
+reify-mkcomp-arr k j
+  c c' d d'
   = {!!}
 
 reify-mkid! :
@@ -433,7 +525,7 @@ reify-mkid! {n ! a} {s} ra rb
   with ty-rep-uniq ra (r-fs n ra') | ty-rep-uniq ra (r-fs n ra')
 ... | refl | refl
   = c-monos-id n _ (reify-mkid' ra' ra')
-reify-mkid' {base} {D.base} r-base r-base = {!!}
+reify-mkid' {base} {D.base} r-base r-base = D.c-refl (reify' r-base r-base (mkid' base))
 reify-mkid' {(na ! a) ⇒ (nb ! b)} {s D.⇒ t} (ra r-⇒ rb) (ru r-⇒ rv) = {!!}
 
 {-
