@@ -253,7 +253,6 @@ reify'
 infix 4 _≈_
 data _≈_ : ∀ {a b u v} → D.coe a b → D.coe u v → Set where
   heq : ∀ {a b} {c d : D.coe a b} → c D.≃ d → c ≈ d
-  heq_MAGIC : ∀ {a b u v} {c : D.coe a b} {d : D.coe u v} → c ≈ d
 
 mkid' : (a : ty') → coe' a a
 mkid! : (a : ty!) → coe! a a
@@ -262,7 +261,7 @@ mkid! : (a : ty!) → coe! a a
 ↑-zero (n ! a) = refl
 
 mkid' base = c-base
-mkid' (a ⇒ b) = {!!}
+mkid' (na ! a ⇒ nb ! b) = c-⇒ 0 (mkid! (na ! a)) (mkid! (nb ! b))
 mkid! (n ! a) = c-! refl (mkid' a)
 
 fmap-l : ∀ {na a nb b u} → coe' ((suc na ! a) ⇒ (suc nb ! b)) u → coe' ((na ! a) ⇒ (nb ! b)) u
@@ -303,7 +302,6 @@ coe-cast₂ refl = heq (D.c-refl _)
   c ≈ d →
   d ≈ c
 ≈-sym (heq pf) = heq (D.c-sym pf)
-≈-sym heq_MAGIC = heq_MAGIC
 
 ≈-trans : ∀ {a₁ b₁ a₂ b₂ a₃ b₃ : D.ty} →
   {c₁ : D.coe a₁ b₁} →
@@ -313,7 +311,6 @@ coe-cast₂ refl = heq (D.c-refl _)
   c₂ ≈ c₃ →
   c₁ ≈ c₃
 ≈-trans (heq pf1) (heq pf2) = heq (D.c-trans pf1 pf2)
-≈-trans _ _ = heq_MAGIC
 
 c-monos-proper :
   {a b : D.ty} → {c : D.coe a b} →
@@ -390,7 +387,6 @@ h-cong-mono :
   c ≈ d →
   D.c-mono c ≈ D.c-mono d
 h-cong-mono (heq pf) = heq (D.c-cong-mono pf)
-h-cong-mono _ = heq_MAGIC
 
 h-cong-arr :
   {a₁ b₁ u₁ v₁ : D.ty} →
@@ -521,8 +517,8 @@ reify-mkcomp-arr :
     let dd' = reify' rf rv d' in
     D.c-comp (D.c-arr (c-monos na (D.c-comp dd cc)) (c-monos nb (D.c-comp cc' dd'))) (c-fmaps (j + k))
 
-reify-mkcomp! {na ! a} {ne ! e} {nb ! b} {s} {e'} {t} ra rb re (c-! refl c) (c-! refl d)
-    = heq_MAGIC
+reify-mkcomp! {na ! a} {ne ! e} {nb ! b} {s} {e'} {t} (r-! na ra) (r-! nb rb) (r-! ne re) (c-! refl c) (c-! refl d)
+    = ≈-trans (c-monos-proper na refl refl (reify-mkcomp' ra rb re c d)) (c-monos-comp na)
 
 reify-mkcomp' {a} {e} {b} {s} {e'} {t} r-base r-base r-base c-base c-base
   = heq (D.c-sym D.c-id-l)
@@ -585,21 +581,39 @@ reify-mkcomp-arr k (suc j) {na} {nb} c c' d d' =
 reify-mkid! :
   ∀ {a s} →
   (ra rb : ty-rep s a) →
-  reify! ra rb (mkid! a) D.≃ D.c-id s
+  reify! ra rb (mkid! a) ≈ D.c-id s
 reify-mkid' :
   ∀ {a s} →
   (ra rb : ty-rep' s a) →
-  reify' ra rb (mkid' a) D.≃ D.c-id s
-reify-mkid! {n ! a} {s} ra rb
-  with ty-rep-uniq ra rb
+  reify' ra rb (mkid' a) ≈ D.c-id s
+reify-mkid! {n ! a} {s} (r-! n ra) rb
+  with r-fs-inv n rb
+...  | rb'
+  with ty-rep-uniq rb (r-! n rb')
 ...  | refl
-  with ty-rep-inv-! s n a ra
-...  | a' , refl , ra'
-  with ty-rep-uniq ra (r-fs n ra') | ty-rep-uniq ra (r-fs n ra')
-... | refl | refl
-  = c-monos-id n _ (reify-mkid' ra' ra')
-reify-mkid' {base} {D.base} r-base r-base = D.c-refl (reify' r-base r-base (mkid' base))
-reify-mkid' {(na ! a) ⇒ (nb ! b)} {s D.⇒ t} (ra r-⇒ rb) (ru r-⇒ rv) = {!!}
+  = ≈-trans
+      (c-monos-proper n refl refl (reify-mkid' ra rb'))
+      (heq (c-monos-id n _ (D.c-refl _)))
+reify-mkid' {base} {D.base} r-base r-base = heq (D.c-refl (reify' r-base r-base (mkid' base)))
+reify-mkid'
+  {(na ! a) ⇒ (nb ! b)}
+  {s D.⇒ t}
+  (ra r-⇒ rb)
+  (r-! nu ru r-⇒ r-! nv rv)
+  with r-fs-inv na ra | r-fs-inv nb rb
+...  | ra' | rb'
+  with ty-rep-uniq ra (r-! na ra') | ty-rep-uniq rb (r-! nb rb')
+...  | refl | refl
+  = ≈-trans
+      (h-cong-arr
+        (c-monos-proper na refl refl (reify-mkid' ru ra'))
+        (c-monos-proper nb refl refl (reify-mkid' rb' rv)))
+      (≈-trans
+        (h-cong-arr
+          (heq (c-monos-id na (D.c-id _) (D.c-refl _)))
+          (heq (c-monos-id nb (D.c-id _) (D.c-refl _))))
+        (heq D.c-arr-id))
+
 
 {-
 reify-eval! : ∀ {a b s t} → (ra : ty-rep s a) → (rb : ty-rep t b) → (c : D.coe s t) → reify! ra rb (eval! ra rb c) D.≃ c
