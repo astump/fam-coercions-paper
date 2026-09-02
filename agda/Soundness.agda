@@ -26,20 +26,20 @@ open import ExtraIntegerLemmas
 
 
 Soundness : ∀{k : ℤ}{T T' : Tp!} → T < k ] T' → ⊨ T < k ] T'
-Soundness {mkℤ zero triv} (NatRefl{n}{m} x) with toℤ-≤{n}{m} x 
-Soundness {mkℤ zero triv} (NatRefl{n}{m} x) | u = ≤iterL{n}{m} u
-Soundness {mkℤ (suc k) tt} (NatRefl{n}{m} x)
-  rewrite iter-add{k}{m}{f = L_}{x = N}
-        | toℤ-+{suc k}{m}
-        = ≤iterL {n} (toℤ-≤{n} x)
-Soundness {mkℤ (suc k) ff} (NatRefl{n}{m} x)
-  rewrite iter-add{k}{n}{f = L_}{x = N}
+Soundness {mkℤ zero triv} (NatRefl{n}{m} x) rewrite =ℕ-to-≡{n} (toℤ-≡{n}{m} x) = refl-all
+Soundness {mkℤ (suc k) tt} (NatRefl{n}{m} x)rewrite iter-add{k}{m}{f = L_}{x = N} | toℤ-+{suc k}{m}
+                                                  | =ℕ-to-≡{n} (toℤ-≡{n}{suc (k + m)} x) = refl-all
+Soundness {mkℤ (suc k) ff} (NatRefl{n}{m} x) rewrite iter-add{k}{n}{f = L_}{x = N}
+ with +negℤ-swap{toℤ n}{mkℤ (suc k) ff}{toℤ m} x 
+Soundness {mkℤ (suc k) ff} (NatRefl{n}{m} x) | u rewrite toℤ-+{n}{suc k}
+   | sym (=ℕ-to-≡{n + suc k}{m} (toℤ-≡{n + suc k}{m} u)) | +suc n k | +comm n k = refl-all
+{-  rewrite iter-add{k}{n}{f = L_}{x = N}
         | ≤ℤ-+2{toℤ n}{mkℤ (suc k) ff +ℤ toℤ m} (toℤ (suc k))
         | sym (+ℤ-assoc{toℤ (suc k)}{mkℤ (suc k) ff}{toℤ m})
         | diffℤ-nn{k}
         | toℤ-+{suc k}{n}
         = ≤iterL {suc (k + n)} {m} (toℤ-≤{suc (k + n)}{m} x)
-
+-}
 Soundness (Fun nz jb d d') with Soundness d | Soundness d'
 Soundness
   {mkℤ zero triv}

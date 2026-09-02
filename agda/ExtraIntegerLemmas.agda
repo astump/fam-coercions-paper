@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 open import lib
 
 
@@ -414,3 +415,28 @@ toℤ-ℤ : ∀{a b c : ℕ} →
 toℤ-ℤ {a} {zero} {c} u rewrite 0∸{c} = ≤0 a
 toℤ-ℤ {suc a} {suc b} {zero} u rewrite +ℤ0{toℤ (suc b)} = u
 toℤ-ℤ {a} {suc b} {suc c} u rewrite suc-ℤsuc{b}{c} = toℤ-ℤ {a} {b} {c} u
+
+=ℤ-refl : ∀(n : ℤ) →
+          n =ℤ n ≡ tt
+=ℤ-refl (mkℤ zero triv) = refl
+=ℤ-refl (mkℤ 1 tt) = refl
+=ℤ-refl (mkℤ 1 ff) = refl
+=ℤ-refl (mkℤ (suc (suc n)) tt) = =ℕ-refl n
+=ℤ-refl (mkℤ (suc (suc n)) ff) = =ℕ-refl n
+
+toℤ-≡ : ∀{n m : ℕ} → toℤ n =ℤ toℤ m ≡ tt → n =ℕ m ≡ tt
+toℤ-≡ {zero} {zero} u = refl
+toℤ-≡ {suc n} {suc m} u = u
+
++1ℤ-swap : ∀{z1 z2 : ℤ}{p : 𝔹} →
+           z1 =ℤ (mkℤ 1 p) +ℤ z2 ≡ tt →
+           z1 +ℤ (mkℤ 1 (~ p)) =ℤ z2 ≡ tt
++1ℤ-swap{z1}{z2}{p} u rewrite =ℤ-to-≡{z1} u | +ℤ-comm{mkℤ 1 p}{z2} | +ℤ-assoc{z2}{mkℤ 1 p}{mkℤ 1 (~ p)} | xor-~{p}
+                            | ite-same (p imp ~ p) 0ℤ | +ℤ-0{z2} = =ℤ-refl z2
+
++negℤ-swap : ∀{z1 z2 z3 : ℤ} →
+             z1 =ℤ z2 +ℤ z3 ≡ tt →
+             z1 +ℤ (negℤ z2) =ℤ z3 ≡ tt 
++negℤ-swap {z1} {mkℤ zero triv} {z3} u rewrite +ℤ-0{z1} = u
++negℤ-swap {z1} {mkℤ (suc n) tt} {z3} u = {!!}
++negℤ-swap {z1} {mkℤ (suc n) ff} {z3} u = {!!}

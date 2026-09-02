@@ -12,10 +12,8 @@ mutual
         T1 < k +ℤ k' ] T3
  trns{k = k}{k'} (NatRefl{n} x) (NatRefl{n'}{m'} x') =
    NatRefl h
-   where h : toℤ n ≤ℤ k +ℤ k' +ℤ toℤ m' ≡ tt
-         h with keep (k +ℤ k' +ℤ toℤ m')
-         h | u , e rewrite e with (≤ℤ-trans{toℤ n} x (≤ℤ-+2a{toℤ n'}{z = k} x'))
-         h | u , e | v rewrite trans (sym(+ℤ-assoc{k}{k'}{toℤ m'})) e = v
+   where h : toℤ n =ℤ k +ℤ k' +ℤ toℤ m' ≡ tt
+         h rewrite =ℤ-to-≡{toℤ n'} x' | +ℤ-assoc{k}{k'}{toℤ m'} = x
 
  trns (Fun{n}{m}{i}{j}{T1}{T2}{T1'}{T2'} x y d dd)
       (Fun{mn}{mm}{ii}{jj}{TT1}{TT2}{TT1'}{TT2'} x' y' d' dd') = Fun ((≤ℤ+{ii} x' x)) h' (trns d' d) h 

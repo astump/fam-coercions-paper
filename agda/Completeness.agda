@@ -19,12 +19,12 @@ Clem2{b} rewrite diffℤ-0{b} = ≤ℤ-refl{toℤ b}
 
 Clem3 : ∀{a : ℕ}{T1 : Tp!} → L iter a L_ N ≡ L ⟦ T1 ⟧ →
         suc a !N < mkℤ 1 tt ] T1
-Clem3{a}{T1} e rewrite iterN⟦⟧{a}{T1} (Linj e) = NatRefl (Clem1{a})        
+Clem3{a}{T1} e rewrite iterN⟦⟧{a}{T1} (Linj e) = {!!} -- NatRefl (Clem1{a})        
 
 Clem4 : ∀{b : ℕ}{T2 : Tp!} → 
         L iter b L_ N ≡ L ⟦ T2 ⟧ → 
         T2 < mkℤ 1 ff ] suc b !N
-Clem4{b}{T2} e rewrite iterN⟦⟧{b}{T2} (Linj e) = NatRefl (Clem2{b})
+Clem4{b}{T2} e rewrite iterN⟦⟧{b}{T2} (Linj e) = {!!} -- NatRefl (Clem2{b})
 
 Clem5 : ∀{b : ℕ}{T2 T2a T2b : Tp!} →
         L iter b L_ (⟦ T2a ⟧ ⇒ ⟦ T2b ⟧) ≡ L ⟦ T2 ⟧ →
@@ -47,7 +47,7 @@ Clem7a {suc y} rewrite diffℤ-0{y} = -ℤ-suc{y}
 Clem7 : ∀{n : ℕ}{T T' : Tp!} →
         iter n L_ ⟦ T' ⟧ ≡ ⟦ T ⟧ →
         T < toℤ (suc n) ] T'
-Clem7 {zero} {T} {T'} e rewrite ⟦⟧inj{T'}{T} e = refl-decproc{1ℤ} refl
+Clem7 {zero} {T} {T'} e rewrite ⟦⟧inj{T'}{T} e = {!!} -- refl-decproc{1ℤ} refl
 Clem7 {suc n} {suc x !N} {T'} e = <]sucN (Clem7{n}{x !N}{T'} (Linj e))
 Clem7 {suc n} {x ! T ⇒ T₁} {y !N} e rewrite iter-add{n}{y}{f = L_}{N} = ⊥-elim (¬⇒iterN{x}{suc n + y} (sym e))
 Clem7 {suc n} {x ! T ⇒ T₁} {y ! T' ⇒ T''} e rewrite iter-add{n}{y}{f = L_}{⟦ T' ⟧ ⇒ ⟦ T'' ⟧}
@@ -71,7 +71,7 @@ Clem11 = Fun{j = 1ℤ} refl refl (Tp!++<] (refl-decproc {0ℤ} refl)) (<]Tp!++ (
 Clem12 : ∀{n : ℕ}{T A'' : Tp!} →
           iter n L_ ⟦ T ⟧ ≡ ⟦ A'' ⟧ → 
           T < toℤ- n ] Tp!++ A''
-Clem12 {zero} {T} {x !N} e rewrite iterN⟦⟧{x}{T} (sym e) = NatRefl (≤ℤ-suc{x}{tt})
+Clem12 {zero} {T} {x !N} e rewrite iterN⟦⟧{x}{T} (sym e) = {!!} -- NatRefl (≤ℤ-suc{x}{tt})
 Clem12 {zero} {T} {x ! A'' ⇒ A'''} e rewrite iter⇒⟦⟧{x}{T}{A''}{A'''} (sym e) = Fun{j = 0ℤ} refl h (refl-decproc refl) (refl-decproc refl)
  where h : 0ℤ ≥ℤ toℤ x +ℤ mkℤ 0 triv +ℤ mkℤ (suc x) ff ≡ tt
        h rewrite +ℤ-0{toℤ x} | -ℤ-suc{x} = refl
@@ -80,7 +80,7 @@ Clem12 {suc n} {T}  e | M , refl = <]Tp!++ (Clem12 (sym (++inv{M}{iter n L_ ⟦ 
 
 Completeness : ∀{k : ℤ}{T T' : Tp!} → ⊨ T < k ] T' → T < k ] T' 
 Completeness {mkℤ zero triv} {x !N} {y !N} d with N<:{x}{iter x L_ N}{iter y L_ N} refl d
-Completeness {mkℤ zero triv} {x !N} {y !N} d | m , lm , e rewrite iterLN-inj{y}{m} e = NatRefl (≤-≤ℤ1{x} lm)
+Completeness {mkℤ zero triv} {x !N} {y !N} d | m , lm , e rewrite iterLN-inj{y}{m} e = {!!} -- NatRefl (≤-≤ℤ1{x} lm)
 Completeness {mkℤ zero triv} {x !N} {y ! T' ⇒ T''} d with N<:{x} refl d 
 Completeness {mkℤ zero triv} {x !N} {y ! T' ⇒ T''} d | m , lm , e = ⊥-elim (¬⇒iterN{y}{m} e)
 Completeness {mkℤ zero triv} {x ! T ⇒ T₁} {y !N} d with <:N{y} refl d
