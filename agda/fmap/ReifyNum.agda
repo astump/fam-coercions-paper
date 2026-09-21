@@ -614,17 +614,36 @@ reify-mkid'
           (heq (c-monos-id nb (D.c-id _) (D.c-refl _))))
         (heq D.c-arr-id))
 
+inv-ty-rep-darr : ∀ {s t na a}
+  (rb : ty-rep (s D.⇒ t) (na ! a)) →
+  na ≡ 0 ×
+  (Σ[ u ∈ ty! ] Σ[ v ∈ ty! ] (a ≡ u ⇒ v) × (ty-rep s u) × (ty-rep t v))
+inv-ty-rep-darr {s} {t} {zero} {u ⇒ v} (r-! 0 (ru r-⇒ rv)) = refl , u , v , refl , ru , rv
+
 eval! : ∀ {a b s t} → ty-rep s a → ty-rep t b → D.coe s t → coe! a b
 eval' : ∀ {a b s t} → ty-rep' s a → ty-rep' t b → D.coe s t → coe' a b
 
 eval! {a} {b} ra rb (D.c-id s) rewrite ty-rep-inj₂ ra rb = mkid! b
-eval! ra rb (D.c-comp c d) = mkcomp! (eval! ra {!!} c) (eval! {!!} rb d)
-eval! ra rb (D.c-arr c d) = {!!}
-eval! ra rb (D.c-mono c) = {!!}
+eval! ra rb (D.c-comp {u} {v} {w} c d) =
+  let v' , rv = eval-ty-r v in
+  mkcomp! (eval! ra rv c) (eval! rv rb d)
+eval! {na ! a} {nb ! b} {s₁ D.⇒ s₂} {t₁ D.⇒ t₂} ra rb (D.c-arr c d)
+  with inv-ty-rep-darr ra
+    | inv-ty-rep-darr rb
+... | refl , nua ! ua , nva ! va , refl , r-! nua rua , r-! nva rva
+    | refl , nub ! ub , nvb ! vb , refl , r-! nub rub , r-! nvb rvb =
+  let c' = eval! (r-! nub rub) (r-! nua rua) c in
+  let d' = eval! (r-! nva rva) (r-! nvb rvb) d in
+  c-! refl (c-⇒ 0 c' d' )
+eval! {na ! a} {nb ! b} ra rb (D.c-mono c)
+  = {!!}
 eval! ra rb D.c-fmap = {!!}
-eval' ra rb c = {!!}
+eval' {u} ra rb (D.c-id a) rewrite ty-rep'-inj₂ rb ra = mkid' u
+eval' ra rb (D.c-comp c d) = {!!}
+eval' ra rb (D.c-arr c d) = {!!}
+eval' ra rb D.c-fmap = {!!}
 
 reify-eval! : ∀ {a b s t} → (ra : ty-rep s a) → (rb : ty-rep t b) → (c : D.coe s t) → reify! ra rb (eval! ra rb c) D.≃ c
 reify-eval' : ∀ {a b s t} → (ra : ty-rep' s a) → (rb : ty-rep' t b) → (c : D.coe s t) → reify' ra rb (eval' ra rb c) D.≃ c
-reify-eval! ra rb c = ?
-reify-eval' ra rb c = ?
+reify-eval! ra rb c = {!!}
+reify-eval' ra rb c = {!!}
