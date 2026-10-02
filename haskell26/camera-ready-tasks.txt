@@ -5,10 +5,10 @@
 [x] draw a stronger distinction between general coherence and "coercion coherence"
     [x] discuss the problem of insertion
 [x] point out that normalized coercions are expensive
-[ ] any connection to the standard theory of lambda calculus? Why not just
+[x] any connection to the standard theory of lambda calculus? Why not just
     normalize terms using ordinary beta-eta-equality?
 [x] explain coherence by normalization earlier in the paper
-[ ] consult array programming literature
+[ ] say that head example is not going to work in APL (e.g.)
 [x] Seriously tighten up the claims in section 7: principal type? lifting?
     incoherence? equivalence of normal forms? put this under a heading to
     indicate what's going on.
@@ -18,7 +18,7 @@
 [x] keep the contributions list on one page
 [ ] don't break up inline definitions with the figures
 [x] set F in upright sans-serif instead of italic to avoid confusion
-[ ] discuss how multiple Fs does not pose a problem
+[x] discuss how multiple Fs does not pose a problem
 
 
 # Code tasks

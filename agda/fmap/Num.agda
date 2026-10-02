@@ -10,6 +10,8 @@ data ty! : Set
 data ty! where
   _!_ : ℕ → ty' → ty!
 
+infixl 8 _⇒_
+
 data ty' where
   base : ty'
   _⇒_ : ty! → ty! → ty'
@@ -20,19 +22,20 @@ infixr 9 _↑_
 _↑_ : ℕ → ty! → ty!
 m ↑ n ! a = (m + n) ! a
 
-data coe' : ty' → ty' → Set where
-  c-base : coe' base base
-  c-⇒ : {n m i j : ℕ} {a b u v : ty'} →
-    (k : ℕ) →
-    k + n ≡ i →
-    k + m ≡ j →
-    coe' u a →
-    coe' b v →
-    coe' ((n ! a) ⇒ (m ! b)) ((i ! u) ⇒ (j ! v))
+data coe' : ty' → ty' → Set
+data coe! : ty! → ty! → Set
 
-data coe! : ty! → ty! → Set where
-  c-! : {n m : ℕ} {a b : ty'} →
-    n ≡ m →
+data coe' where
+  c-base : coe' base base
+  c-⇒ : {na nb : ℕ} {a b : ty'} {nu nv : ℕ} {u v : ty'} →
+    (k : ℕ) →
+    coe! (nu ! u) (na ! a) →
+    coe! (nb ! b) (nv ! v) →
+    coe' (na ! a ⇒ nb ! b) ((k + nu) ! u ⇒ (k + nv) ! v)
+
+data coe! where
+  c-! : ∀ {n m a b} →
+    m ≡ n →
     coe' a b →
     coe! (n ! a) (m ! b)
 

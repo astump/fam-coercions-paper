@@ -1,4 +1,4 @@
-\documentclass[acmsmall,screen,review]{acmart}
+\documentclass[acmsmall,screen]{acmart}
 
 \usepackage{proof}
 \usepackage{fancyvrb}
@@ -41,16 +41,16 @@
 
 \usepackage{multicol}
 
-\setcopyright{none}
 \copyrightyear{2026}
-\acmJournal{PACMPL}
 \acmYear{2026}
-\acmDOI{XXXXXXX.XXXXXXX}
+\setcopyright{cc}
+\setcctype{by}
+\acmConference[Haskell '26]{Proceedings of the 19th ACM SIGPLAN International Haskell Symposium}{August 24--29, 2026}{Indianapolis, IN, USA}
+\acmBooktitle{Proceedings of the 19th ACM SIGPLAN International Haskell Symposium (Haskell '26), August 24--29, 2026, Indianapolis, IN, USA}
+\acmDOI{10.1145/3830439.3831273}
+\acmISBN{979-8-4007-2869-3/2026/08}
 
-\acmVolume{1}
-\acmNumber{1}
-\acmArticle{1}
-\acmMonth{1}
+
 
 %%
 %% Submission ID.
@@ -80,32 +80,56 @@
 
 \title{Coercive Subtyping for Implicit Functorial Programming}
 
-%% \author{Ryan Doenges}
-%% \email{me@ryandoeng.es}
-%% \affiliation{%
-%%   \institution{Boston College}
-%%   \city{Boston}
-%%   \state{Massachusetts}
-%%   \country{USA}
-%% }
+\author{Ryan Doenges}
+%\correspondingauthor
+\email{doengesr@bc.edu}
+\orcid{0000-0002-6899-4529}
+\affiliation{%
+  \institution{Boston College}
+  \city{Chestnut Hill}
+  \state{Massachusetts}
+  \country{USA}
+}
 
-%% \author{Caden Parajuli}
-%% \email{parajulc@bc.edu}
-%% \affiliation{%
-%%   \institution{Boston College}
-%%   \city{Boston}
-%%   \state{Massachusetts}
-%%   \country{USA}
-%% }
+\author{Caden Parajuli}
+\email{parajulc@bc.edu}
+\orcid{0000-0003-1069-0570}
+\affiliation{%
+  \institution{Boston College}
+  \city{Chestnut Hill}
+  \state{Massachusetts}
+  \country{USA}
+}
 
-%% \author{Aaron Stump}
-%% \email{stumpaa@bc.edu}
-%% \affiliation{%
-%%   \institution{Boston College}
-%%   \city{Boston}
-%%   \state{Massachusetts}
-%%   \country{USA}
-%% }
+\author{Ayden Lamparski}
+\email{lamparsa@bc.edu}
+\orcid{0009-0002-5513-9731}
+\affiliation{%
+  \institution{Boston College}
+  \city{Chestnut Hill}
+  \state{Massachusetts}
+  \country{USA}
+}
+
+\author{Ke Wu}
+\email{kwu48@jhu.edu}
+\orcid{0009-0008-2647-4198}
+\affiliation{%
+  \institution{Johns Hopkins University}
+  \city{Baltimore}
+  \state{Maryland}
+  \country{USA}
+}
+
+\author{Aaron Stump}
+\email{stumpaa@bc.edu}
+\orcid{0000-0002-9720-0003}
+\affiliation{%
+  \institution{Boston College}
+  \city{Chestnut Hill}
+  \state{Massachusetts}
+  \country{USA}
+}
 
 
 %%
@@ -114,26 +138,25 @@
 %% other information printed in the page headers. This command allows
 %% the author to define a more concise list
 %% of authors' names for this purpose.
-\renewcommand{\shortauthors}{\ }%Blanchette et al.}
+\renewcommand{\shortauthors}{Doenges~et~al.}
+
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10011007.10011006.10011008.10011009.10011012</concept_id>
+<concept_desc>Software and its engineering~Functional languages</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Software and its engineering~Functional languages}
 
 %%
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
-Programming with typeclass-defined combinators like fmap allows programs a
-great deal of generality and concision, but programmers have to explicitly
-invoke combinators in the right places in order to get their programs to type
-check. In this paper, we propose inferring these operations using a coercive
-subtyping discipline and study the metatheory of the resulting algebra of
-coercions. For functors, we promote the fmap combinator \(\ltfmap : (A \to B)
-  \to \F A \to \F B \) to a coercion \(\cfmap : A \to B \subty \F A \to \F B\).
-We incorporate it into a monomorphic system of coercions for base types, arrow
-types, and functor types. We prove that the resulting system of coercions is
-coherent, meaning that all possible choices of coercions from \(A\) to \(B\) end
-up equivalent. The proof of the theorem is based on coherence by evaluation,
-an approach to coherence proofs based on the well-known technique of
-normalization by evaluation.  All definitions and theorems in the paper are
-checked in Agda, which played a valuable role in the design of the system.
+Programming with typeclass-defined combinators like fmap allows programs a great deal of generality and concision, but programmers have to explicitly invoke combinators in the right places in order to get their programs to type check. In this paper, we propose inferring these operations using a coercive subtyping discipline and study the metatheory of the resulting algebra of coercions. For functors, we promote the fmap combinator of type $(A \to B) \to F A \to F B$ to a coercion $A \to B \leq F A \to F B$. We incorporate it into a monomorphic system of coercions for base types, arrow types, and functor types. We prove that the resulting system of coercions is coherent, meaning that all possible choices of coercions from $A$ to $B$ end up equivalent. The proof of the theorem is based on coherence by evaluation, an approach to coherence proofs based on the well-known technique of normalization by evaluation.  All definitions and theorems in the paper are checked in Agda, which played a valuable role in the design of the system.
 \end{abstract}
 
 \keywords{subtyping, functors, normalization by evaluation}
@@ -265,8 +288,8 @@ To summarize, our paper makes the following contributions.
   \item Declarative and algorithmic coercive subtyping judgments for inferring missing uses of \(\cfmap\) in functional programs.
   \item An equivalence-preserving translation of coercion combinators into lambda calculus.
   \item A proof of soundness, completeness, and uniqueness for algorithmic coercions.
-  \item A proof of coercion coherence for declarative subtyping based on normalization by evaluation.
-  \item A mechanization of all of the above in Agda.\footnote{References to Agda definitions are rendered in \agdachk{teal}. The file is available in the supplementary material.}
+  \item A proof of coercion coherence for declarative subtyping using coherence by evaluation.
+  \item A mechanization of all of the above in Agda~\cite{hask-artifact}.\footnote{References to Agda definitions are rendered in \agdachk{teal}.}
 \end{itemize}
 
 \section{Overview}\label{sec:overview}
@@ -300,9 +323,12 @@ To summarize, our paper makes the following contributions.
 \end{figure}
 
 The types and subtyping rules at issue are shown in Figure~\ref{fig:calculus},
-which shows a base type, arrow types, and functor types, along with the usual
+which shows a base type, functions, and a functor, along with the usual
 subtyping rules for all of these and the new \textsc{Fmap} rule.  This is the
-declarative system.  Everything is standard except \textsc{Fmap}, which permits
+declarative system.
+We present the results with a single functor \(\F\) for simplicity, but the
+development could be extended to work with multiple functor symbols.
+Everything is standard except \textsc{Fmap}, which permits
 using functions \(A \to B\) at the lifted type \(\F A \to \F B\). This rule may
 be iterated, permitting the use of a function at \(\F A \to \F B\),
 \(\F \F A \to \F \F B\), and so on. These rules serve as a good specification of
@@ -388,13 +414,16 @@ raises the question of associativity of composition.
   \end{mathpar}
 The ambiguity of the arrow rules leads to confusion between \(\cfmap\) and
 \(\carr\). Together with composition, this produces another pair of possibly
-inequivalent derivations. The first uses \(\cfmap\) after \(\carr\):
+inequivalent derivations.
+\clearpage
+The first uses \(\cfmap\) after \(\carr\):
 \begin{mathpar}
   \inferrule*{
     \inferrule*{c_1 : U \leq A \\ c_2 : B \leq V}{\carr\ c_1\ c_2 : A\to B \leq U \to V} \\
     \inferrule* {  }{\cfmap : U \to V \leq \F U \to \F V}
   }{\ccomp{\carr\ c_1\ c_2}{\cfmap} : A \to B \leq \F U \to \F V}
 \end{mathpar}
+
 The second uses \(\cfmap\) before \(\carr\):
 \begin{mathpar}
   \inferrule*{
@@ -432,7 +461,7 @@ this means that while there is generally a unique derivation for a fixed pair of
 initial \(e\). This means that different implementations of the same type system
 could give different semantics to the same program.
 
-\paragraph{Coherence for subtyping and elaboration}
+\paragraph{Coherence for Subtyping and Elaboration}
 To ensure the meaning of a program is stable across all possible typing
 derivations, language designers prove \emph{coherence}.  A subtyping judgment is
 coherent when all coercions \(c : A \subty B\) between the same types are
@@ -455,7 +484,7 @@ These defects would force the careful programmer to study the particular
 algorithmic system in use, rather than thinking in terms of the conceptually
 simpler interface provided by the declarative system.
 
-\paragraph{Coherence by evaluation: a recipe}
+\paragraph{Coherence by Evaluation: A Recipe}
 We propose coherence by evaluation, a proof technique for coercion coherence 
 that can exploit the benefits of choosing a distinguished algorithmic system
 without requiring future algorithmic systems to be related directly to it.
@@ -475,7 +504,13 @@ relation, we check that the translation \(\ccname\) is sound:
 
 We then define an algorithmic system \(n : A \nsubty B\) of \emph{normal coercions},
 so named because they will be used to put (declarative) coercions into normal form.
-These will enjoy unique derivations. In order to prove coherence, we begin by
+For each \(A\) and \(B\) there will be at most one term \(n\) of type \(A \nsubty B\).
+Ordinary normalization by evaluation only requires decidable equality for the
+interpretation of each type; this formulation requiring uniqueness is much stronger
+and is the main difference between our results and normalization theorems for,
+say, simply-typed lambda calculus, where a type \(A \to B\) may contain many
+distinct normal forms.
+In order to prove coherence, we begin by
 saying how to translate coercions into normal form and back:
 \begin{align*}
   \evalname &: A \subty B \to A \nsubty B \\
@@ -489,7 +524,7 @@ By exhibiting a left inverse, we show that \(\evalname\) is injective up to
 equivalence. This implies coherence, since we know \(\eval{c_1} = \eval{c_2}\)
 from the uniqueness theorem for normal coercions.
 
-\paragraph{Comparison to Reynolds' method}
+\paragraph{Comparison to Reynolds' Method}
 The coherence problem was studied as early as 1980 by
 Reynolds~\cite{reynolds80}, who outlined an algebraic approach to coherence of
 elaboration that complements our own. It was Reynolds who recognized that
@@ -506,7 +541,7 @@ place. Reynolds goes beyond our results with a proof of full subtyping
 coherence, although the 1980 paper only treats a first-order language.
 
 
-\section{Defining and justifying the equational theory}
+\section{Defining and Justifying the Equational Theory}
 The first order of business in establishing coherence is to decide on a
 reasonable definition of equivalence for coercions. As mentioned above, we take
 an algebraic approach and define an equivalence using a short list of axioms.
@@ -545,7 +580,7 @@ interacts with \(\cfmap{}\), since \(\cfmap \cdot \cfmap\) is, in general, only
 equal to itself. The special fmap law implies the last pair of ambiguous derivations shown
 in Section~\ref{sec:overview} is coherent.
 
-\subsection{Compiling coercions correctly}
+\subsection{Compiling Coercions Correctly}
 We provide a translation from coercions to simply typed lambda calculus in order
 to show that our coercions are realizable and their equational theory is
 accurate. The target lambda calculus includes a type of booleans \texttt{bool}
@@ -581,7 +616,7 @@ terms.\\
   By induction on \(c_1 \coeeq c_2\). Function extensionality appears necessary in the case for the special fmap law due to it relating composite terms of function type.
 \end{proof}
 
-\section{Algorithmic judgment and normal coercions}
+\section{Algorithmic Judgment and Normal Coercions}
 Using the equational theory, we now design the algorithmic system. The idea is
 to remove the \textsc{Refl} and \textsc{Trans} rules and instead devise a system
 where they are admissible. We also need to address the overlap between the fmap
@@ -602,7 +637,7 @@ optimization pass after the fact in order to keep coercions as simple as
 possible, or rely on a different algorithmic system that produces more efficient
 proof terms.
 
-\subsection{Uniqueness of normal coercions}
+\subsection{Uniqueness of Normal Coercions}
 It is not immediately clear that normal coercions have \(n_1 = n_2\) for any
 \(n_1, n_2 : A \nsubty B\).  The proof of this ought to look like an induction
 on one paired with some inversion lemmas on the other, but there are issues in
@@ -670,7 +705,7 @@ We are also, by virtue of working with a monomorphic combinator calculus,
 dealing with a simpler system than normalization by evaluation is typically
 applied to.
 
-\subsection{Reification and evaluation}
+\subsection{Reification and Evaluation}
 Normal coercions are immediately interpretable as coercions, as exhibited by the
 following straightforward definition of \(\reify\).
 Note that the reification of \(\nfmap{\na}\) puts \(\cfmap\) after the
@@ -775,7 +810,7 @@ declarative subtyping. This permits us to conclude evaluation respects equivalen
   uniqueness of normal coercions at a given type (Proposition ~\ref{thm:uniqueness}).
 \end{proof}
 
-\subsection{Reification inverts evaluation}
+\subsection{Reification Inverts Evaluation}
 Following the path blazed by normalization by evaluation, we will now prove that
 \(\reify\) is a left inverse to \(\mathsf{eval}\). This makes \(\evalname\)
 injective up to equivalence and will allow us to lift uniqueness for normal
@@ -902,7 +937,7 @@ reify-eval (c-fmap {a} {b}) =
 
 
 
-\section{Perspectives and future work}
+\section{Perspectives and Future Work}
 We have shown that coercive subtyping for functors is coherent. In the future,
 we are hoping to extend these results to simplify programming with richer
 abstractions, like applicative functors and monads.  These would permit more
@@ -966,7 +1001,7 @@ system. This is an unusual requirement, to say the least, and will require
 further research.
 
 
-\paragraph{Polymorphism leads to incoherence}
+\paragraph{Polymorphism Leads to Incoherence}
 We have not defined an algorithmic type inference and elaboration judgment using
 our system of coercions or proved it coherent. We expect this to be
 straightforward for a monomorphic calculus with just fmap, but there are
@@ -985,7 +1020,7 @@ lifts a function that does not need lifting, but a naive declarative system will
 always permit it. We are interested in finding restricted forms of elaboration
 that can be coherent even in the presence of polymorphic functions.
 
-\section{Related work}
+\section{Related Work}
 Promoting fmap to a coercion has some similarity with work on effect systems,
 where programs are permitted to run in an effect bounded below by the effects
 they actually require. Effect systems may exhibit incoherence if liftings
@@ -1036,6 +1071,9 @@ in the face of this potentially intrusive and nondeterministic procedure, we
 proved coherence of subtyping derivations using a new approach we call
 \emph{coherence by evaluation}.  All our definitions and proofs were checked
 in Agda.
+
+%\section{Acknowledgements}
+%TODO
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{paper.bib}
