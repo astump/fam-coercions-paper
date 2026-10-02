@@ -34,17 +34,23 @@ j≡j-k+k j k
 
 ≤-add-cancel : {j k : ℤ} (l : ℤ) →
  j ≤ℤ k ≡ j +ℤ l ≤ℤ k +ℤ l
-≤-add-cancel l = {!!}
+≤-add-cancel {j} {k} l
+  rewrite ≤ℤ-+2 {j} {k} l
+        | +ℤ-comm {k} {l}
+        | +ℤ-comm {j} {l}
+        = refl
 
 ≤-add-cancel-fwd : {j k : ℤ} (l : ℤ) →
  j ≤ℤ k ≡ tt →
  j +ℤ l ≤ℤ k +ℤ l ≡ tt
-≤-add-cancel-fwd l pf = {!!}
+≤-add-cancel-fwd {j} {k} l pf
+  rewrite ≤-add-cancel {j} {k} l = pf
 
 ≤-add-cancel-bwd : {j k : ℤ} (l : ℤ) →
  j +ℤ l ≤ℤ k +ℤ l ≡ tt →
  j ≤ℤ k ≡ tt
-≤-add-cancel-bwd l pf = {!!}
+≤-add-cancel-bwd {j} {k} l pf
+  rewrite ≤-add-cancel {j} {k} l = pf
 
 sound : {k j : ℤ} {a b : Tp!} →
   k ≤ℤ j ≡ tt →
@@ -80,7 +86,8 @@ complete-fun-helper {n} {mm} {m} {j} {k} {j'} {k'} pj pk pf =
 ≤ℤ-swap : {j k : ℤ} →
   k ≤ℤ j ≡ tt →
   negℤ j ≤ℤ negℤ k ≡ tt
-≤ℤ-swap pkj = {!!}
+≤ℤ-swap {j} {k} pkj
+  rewrite negℤ-≤ℤ {k} {j} = pkj
 
 complete : {j : ℤ} {a b : Tp!} →
   a < j ] b →
