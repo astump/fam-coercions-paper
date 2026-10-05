@@ -113,3 +113,13 @@ complete {mm} {n ! a ⇒ b} {m ! u ⇒ v} (Fun {n'} {m'} {j'} {k'} pj0 pnkm pua 
       (≤ℤ-trans {j'} {negℤ (negℤ j')} {negℤ k}
         (≡-to-≤ℤ (sym (negℤ-invol{j'})))
         (≤ℤ-swap {negℤ j'} {k} pk)))
+
+algo-uniq : {a b : Tp!} {j k : ℤ} →
+  a <[ j ] b →
+  a <[ k ] b →
+  j ≡ k
+algo-uniq {a} {b} {j} {k} s-nat s-nat = refl
+algo-uniq {n ! a ⇒ b} {m ! u ⇒ v} {j} {k}
+  (s-fun pua pbv pk pjk)
+  (s-fun pua' pbv' pk' pjk')
+  rewrite algo-uniq pbv pbv' = refl
