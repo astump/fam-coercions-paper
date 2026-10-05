@@ -114,12 +114,39 @@ complete {mm} {n ! a ⇒ b} {m ! u ⇒ v} (Fun {n'} {m'} {j'} {k'} pj0 pnkm pua 
         (≡-to-≤ℤ (sym (negℤ-invol{j'})))
         (≤ℤ-swap {negℤ j'} {k} pk)))
 
+infix 5 _<[_]'_
+data _<[_]'_ : Tp! → ℤ → Tp! → Set where
+  s-nat : ∀ {n m : ℕ} →
+    n !N <[ toℤ n -ℤ toℤ m ]' m !N
+  s-fun : ∀ {n m : ℕ} {j k i : ℤ} {a b u v : Tp!} →
+    u <[ j ]' a →
+    b <[ k ]' v →
+    k ≤ℤ 0ℤ ≡ tt →
+    j ≤ℤ negℤ k ≡ tt →
+    i ≡ k +ℤ toℤ n -ℤ toℤ m →
+    n ! a ⇒ b <[ i ]' m ! u ⇒ v
+
 algo-uniq : {a b : Tp!} {j k : ℤ} →
-  a <[ j ] b →
-  a <[ k ] b →
+  a <[ j ]' b →
+  a <[ k ]' b →
   j ≡ k
 algo-uniq {a} {b} {j} {k} s-nat s-nat = refl
 algo-uniq {n ! a ⇒ b} {m ! u ⇒ v} {j} {k}
-  (s-fun pua pbv pk pjk)
-  (s-fun pua' pbv' pk' pjk')
+  (s-fun pua pbv pk pjk refl)
+  (s-fun pua' pbv' pk' pjk' refl)
   rewrite algo-uniq pbv pbv' = refl
+
+algo-uniq' : {a b : Tp!} {k : ℤ} →
+  (c : a <[ k ]' b) →
+  (d : a <[ k ]' b) →
+  c ≡ d
+algo-uniq' {x !N} {x₁ !N} {k} s-nat s-nat = refl
+algo-uniq' {x !N} {x₁ ! b ⇒ b₁} {k} () d
+algo-uniq' {x ! a ⇒ a₁} {x₁ !N} {k} () d
+algo-uniq' {n ! a ⇒ b} {m ! u ⇒ v} {k}
+  (s-fun c d pk pjk pi)
+  (s-fun c' d' pk' pjk' pi')
+  with algo-uniq c c' | algo-uniq d d'
+... | refl | refl
+  with algo-uniq' c c' | algo-uniq' d d'
+... | refl | refl = {!!} -- done modulo UIP
