@@ -55,7 +55,7 @@ Clem7 {suc n} {x ! T ⇒ T₁} {y ! T' ⇒ T''} e rewrite iter-add{n}{y}{f = L_}
 Clem7 {suc n} {_ ! T ⇒ T₁} {y ! T' ⇒ T''} e | refl , e2 , e3 rewrite ⟦⟧inj{T''}{T₁} e3 | ⟦⟧inj{T'}{T} e2 =
   Fun{j = 0ℤ} refl h (refl-decproc refl) (refl-decproc refl)
   where h : 0ℤ ≥ℤ mkℤ (suc (n + y)) tt -ℤ mkℤ (suc (suc n)) tt -ℤ toℤ y ≡ tt
-        h rewrite sym (suc+ℤ{n}{y}) | diffℤ-+suc{n}{y} rewrite Clem7a{y} = refl
+        h rewrite diffℤ-+suc{n}{y} rewrite Clem7a{y} = refl
 
 Clem8 : ∀{x y : ℕ}{T1 T2 T1' T2' : Tp!} →
         x ! T1 ⇒ T2 < 0ℤ ] y ! T1' ⇒ T2' →
