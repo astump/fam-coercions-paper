@@ -49,6 +49,8 @@ size Pure = 0
 size (Cov d) = 1 + size d
 size (Trans d d') = 1 + size d + size d'
 
+{- there are different ways to prove this, that give you different
+   coercions -}
 ≤iterL : ∀{n m : ℕ} → n ≤ m ≡ tt →
          iter n L_ N <: iter m L_ N
 ≤iterL {zero} {zero} d = NatRefl

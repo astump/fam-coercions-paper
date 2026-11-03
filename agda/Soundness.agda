@@ -99,3 +99,15 @@ Soundness
 
 Soundness (Fun {j = mkℤ (suc j) ff} nz jb x y) | p1 | p2 with nz
 Soundness (Fun {j = mkℤ (suc j) ff} nz jb x y) | p1 | p2 | ()
+
+test1 : (1 !N) < -1ℤ ] (2 !N)
+test1 = NatRefl{1}{2}{ -1ℤ} refl
+
+test1' : ⊨ (1 !N) < -1ℤ ] (2 !N)
+test1' = Soundness test1
+
+test2 : (1 !N) < 0ℤ ] (2 !N)
+test2 = NatRefl{1}{2}{ 0ℤ} refl
+
+test2' : ⊨ (1 !N) < 0ℤ ] (2 !N)
+test2' = Soundness test2
