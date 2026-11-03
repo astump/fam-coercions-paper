@@ -414,3 +414,6 @@ toℤ-ℤ : ∀{a b c : ℕ} →
 toℤ-ℤ {a} {zero} {c} u rewrite 0∸{c} = ≤0 a
 toℤ-ℤ {suc a} {suc b} {zero} u rewrite +ℤ0{toℤ (suc b)} = u
 toℤ-ℤ {a} {suc b} {suc c} u rewrite suc-ℤsuc{b}{c} = toℤ-ℤ {a} {b} {c} u
+
+≡-to-≤ℤ : ∀ {a b : ℤ} → a ≡ b → a ≤ℤ b ≡ tt
+≡-to-≤ℤ {a} {a} refl = ≤ℤ-refl {a}
