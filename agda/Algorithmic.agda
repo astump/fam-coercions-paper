@@ -14,11 +14,6 @@ data _<[_]_ : Tp! → ℤ → Tp! → Set where
     j ≤ℤ negℤ k ≡ tt →
     n ! a ⇒ b <[ k +ℤ toℤ n -ℤ toℤ m ] m ! u ⇒ v
 
-≡-to-≤ℤ : {j k : ℤ} →
-  j ≡ k →
-  j ≤ℤ k ≡ tt
-≡-to-≤ℤ {j} refl = (≤ℤ-refl {j})
-
 j≡j+k-k : ∀ (j k : ℤ) → j ≡ j +ℤ k -ℤ k
 j≡j+k-k j k
   rewrite +ℤ-assoc {j} {k} {negℤ k}
@@ -52,6 +47,26 @@ j≡j-k+k j k
 ≤-add-cancel-bwd {j} {k} l pf
   rewrite ≤-add-cancel {j} {k} l = pf
 
+
+arith-knmkk : {k n m kk : ℤ} →
+  k +ℤ n -ℤ m ≤ℤ kk ≡ tt →
+  negℤ k ≥ℤ n -ℤ kk -ℤ m ≡ tt
+arith-knmkk {k} {n} {m} {kk} pf
+  rewrite negℤ-≤ℤ {k +ℤ n -ℤ m} {kk}
+        | negℤ-+ {k +ℤ n} {negℤ m}
+        | negℤ-+ {k} {n}
+        | negℤ-invol {m}
+        | ≤ℤ-+ {negℤ kk} {negℤ k +ℤ negℤ n +ℤ m} (negℤ m)
+        | +ℤ-assoc {negℤ k +ℤ negℤ n} {m} {negℤ m}
+        | +ℤ-cancel {m}
+        | +ℤ0 {negℤ k +ℤ negℤ n}
+        | +ℤ-comm {negℤ k} {negℤ n}
+        | ≤ℤ-+2 {negℤ kk +ℤ negℤ m} {negℤ n +ℤ negℤ k} n
+        | sym (+ℤ-assoc {n} {negℤ n} {negℤ k})
+        | +ℤ-cancel {n}
+        | +ℤ-assoc {n} {negℤ kk} {negℤ m}
+  = pf
+
 sound : {k j : ℤ} {a b : Tp!} →
   k ≤ℤ j ≡ tt →
   a <[ k ] b →
@@ -66,7 +81,23 @@ sound {jj} {kk} {n ! a ⇒ b} {m ! u ⇒ v} kj
   (s-fun {n} {m} {j} {k} pua pbv kbd jbd) =
   let ua' = sound jbd pua in
   let bv' = sound (≡-to-≤ℤ (sym (negℤ-invol{k}))) pbv in
-  Fun {-j = negℤ k-} (trans (sym (negℤ-≤ℤ {k} {0ℤ})) kbd) {!!} ua' bv'
+  let pf = arith-knmkk {k} {toℤ n} {toℤ m} {kk} kj in
+  Fun (trans (sym (negℤ-≤ℤ {k} {0ℤ})) kbd) pf ua' bv'
+
+useful-swap : ∀ {n mm m j'} →
+  n +ℤ negℤ mm +ℤ m ≤ℤ j' ≡ tt →
+  negℤ j' +ℤ (n +ℤ m) ≤ℤ mm ≡ tt
+useful-swap {n} {mm} {m} {j'} pf
+  rewrite +ℤ-comm {n} {negℤ mm}
+        | +ℤ-assoc {negℤ mm} {n} {m}
+        | ≤ℤ-+2 {negℤ mm +ℤ (n +ℤ m)} {j'} mm
+        | sym (+ℤ-assoc {mm} {negℤ mm} {n +ℤ m})
+        | +ℤ-cancel {mm}
+        | ≤ℤ-+2 {negℤ j' +ℤ (n +ℤ m)} {mm} j'
+        | sym (+ℤ-assoc {j'} {negℤ j'} {n +ℤ m})
+        | +ℤ-cancel {j'}
+        | +ℤ-comm {j'} {mm}
+  = pf
 
 complete-fun-helper : {n mm m j k j' k' : ℤ} →
   j ≤ℤ j' ≡ tt →
@@ -74,14 +105,20 @@ complete-fun-helper : {n mm m j k j' k' : ℤ} →
   n +ℤ negℤ mm +ℤ negℤ m ≤ℤ j' ≡ tt →
   k +ℤ n -ℤ m ≤ℤ mm ≡ tt
 complete-fun-helper {n} {mm} {m} {j} {k} {j'} {k'} pj pk pf =
-  let pf' = ≤-add-cancel-fwd {n +ℤ negℤ mm +ℤ negℤ m} {j'} (mm -ℤ j') pf in
-  let cc = (cong2 {_} {_} {_} {_} {_} {_}
-          {k +ℤ n -ℤ m}
-          { n +ℤ negℤ mm +ℤ negℤ m +ℤ (mm -ℤ j')}
-          {mm}
-          { j' +ℤ (mm -ℤ j')}
-          (λ x y → x ≤ℤ y) {!!} {!!}) in
-  trans cc pf'
+  ≤ℤ-trans
+    {k +ℤ n -ℤ m}
+    {k +ℤ (n -ℤ m)}
+    {mm}
+    (≡-to-≤ℤ
+      {k +ℤ n -ℤ m}
+      {k +ℤ (n -ℤ m)}
+      (+ℤ-assoc {k} {n} {negℤ m}))
+    (≤ℤ-trans
+        {k +ℤ (n -ℤ m)}
+        {negℤ j' +ℤ (n -ℤ m)}
+        {mm}
+        (≤ℤ-+1 {k} {negℤ j'} {n -ℤ m} pk)
+        (useful-swap {n} {mm} {negℤ m} {j'} pf))
 
 ≤ℤ-swap : {j k : ℤ} →
   k ≤ℤ j ≡ tt →
@@ -136,6 +173,12 @@ algo-uniq {n ! a ⇒ b} {m ! u ⇒ v} {j} {k}
   (s-fun pua' pbv' pk' pjk' refl)
   rewrite algo-uniq pbv pbv' = refl
 
+leq-uniq : ∀ {a b} →
+  (p : a ≤ℤ b ≡ tt) →
+  (q : a ≤ℤ b ≡ tt) →
+  p ≡ q
+leq-uniq p q rewrite p | q = refl
+
 algo-uniq' : {a b : Tp!} {k : ℤ} →
   (c : a <[ k ]' b) →
   (d : a <[ k ]' b) →
@@ -144,9 +187,13 @@ algo-uniq' {x !N} {x₁ !N} {k} s-nat s-nat = refl
 algo-uniq' {x !N} {x₁ ! b ⇒ b₁} {k} () d
 algo-uniq' {x ! a ⇒ a₁} {x₁ !N} {k} () d
 algo-uniq' {n ! a ⇒ b} {m ! u ⇒ v} {k}
-  (s-fun c d pk pjk pi)
-  (s-fun c' d' pk' pjk' pi')
+  (s-fun {n1} {m1} {j1} {k1} c d pk pjk pi)
+  (s-fun {n2} {m2} {j2} {k2}  c' d' pk' pjk' pi')
   with algo-uniq c c' | algo-uniq d d'
 ... | refl | refl
   with algo-uniq' c c' | algo-uniq' d d'
-... | refl | refl = {!!} -- done modulo UIP
+... | refl | refl
+  rewrite pi' | pi =
+  cong2 (λ p q → s-fun c d p q refl)
+    (leq-uniq {k1} {mkℤ 0 triv} pk pk')
+    (leq-uniq {j1} {negℤ k1} pjk pjk')
