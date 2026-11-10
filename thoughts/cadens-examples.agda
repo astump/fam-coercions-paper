@@ -2,8 +2,8 @@ All pairs of distinct coercions with the same type, to depth 4, are reducible
 through rewriting to one of the following cases, or some combination of them
 (verified by brute-force enumeration):
 
-1. fmap pure : X -> F (F X)
-   pure : X -> F (F X)
+1. fmap pure : F X -> F (F X)
+   pure : F X -> F (F X)
 
 2. pure . fun (pure . c1) c2 . ap : F (X -> Y) -> F (W -> Z)
    fmap (fun c1 (c2 . pure)) : F (X -> Y) -> F (W -> Z)
