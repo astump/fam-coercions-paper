@@ -163,6 +163,14 @@ data _<[_]'_ : Tp! → ℤ → Tp! → Set where
     i ≡ k +ℤ toℤ n -ℤ toℤ m →
     n ! a ⇒ b <[ i ]' m ! u ⇒ v
 
+<[]'→<[] : {a b : Tp!} {i : ℤ} → a <[ i ]' b → a <[ i ] b
+<[]'→<[] s-nat = s-nat
+<[]'→<[] (s-fun u<[j]'a b<[k]'v kk jj ieq) rewrite ieq = s-fun (<[]'→<[] u<[j]'a) (<[]'→<[] b<[k]'v) kk jj
+
+<[]→<[]' : {a b : Tp!} {i : ℤ} → a <[ i ] b → a <[ i ]' b
+<[]→<[]' s-nat = s-nat
+<[]→<[]' (s-fun u<[j]a b<[k]v kk jj) = s-fun (<[]→<[]' u<[j]a) (<[]→<[]' b<[k]v) kk jj refl
+
 algo-uniq : {a b : Tp!} {j k : ℤ} →
   a <[ j ]' b →
   a <[ k ]' b →
@@ -197,3 +205,49 @@ algo-uniq' {n ! a ⇒ b} {m ! u ⇒ v} {k}
   cong2 (λ p q → s-fun c d p q refl)
     (leq-uniq {k1} {mkℤ 0 triv} pk pk')
     (leq-uniq {j1} {negℤ k1} pjk pjk')
+
+------------------------------------------------------------
+
+Dec : Set → Set
+Dec P = P ⊎ ¬ P
+
+algo-dec : (a b : Tp!) → Dec (Σ[ k ∈ ℤ ] a <[ k ] b)
+algo-dec (x !N) (y !N) = inj₁ ((toℤ x -ℤ toℤ y) , s-nat)
+algo-dec (_ !N) (_ ! _ ⇒ _) = inj₂ (λ { (_ , ()) })
+algo-dec (_ ! _ ⇒ _) (_ !N) = inj₂ (λ { (_ , ()) })
+algo-dec (n ! a ⇒ b) (m ! u ⇒ v) with algo-dec u a | algo-dec b v
+... | inj₂ ¬u<a | _ = inj₂ (λ { (_ , s-fun {j = j} u<a _ _ _) → ¬u<a (j , u<a) })
+... | inj₁ _ | inj₂ ¬b<v = inj₂ (λ { (_ , s-fun {k = k} _ b<v _ _) → ¬b<v (k , b<v) })
+... | inj₁ (j , u<[j]a) | inj₁ (k , b<[k]v) with k ≤ℤ 0ℤ in eqk | j ≤ℤ negℤ k in eqj
+... | ff | _ = inj₂ (λ { (_ , s-fun _ b<[k]v' k≤0 _) → lem₁ b<[k]v b<[k]v' eqk k≤0 })
+  where
+    lem₁ : {k k₁ : ℤ} → b <[ k ] v → b <[ k₁ ] v → k ≤ℤ 0ℤ ≡ ff → k₁ ≤ℤ 0ℤ ≡ tt → ⊥
+    lem₁ b<[k]v b<[k₁]v ¬k≤0 k₁≤0
+      rewrite algo-uniq (<[]→<[]' b<[k]v) (<[]→<[]' b<[k₁]v)
+      rewrite k₁≤0
+      with ¬k≤0
+    ... | ()
+... | tt | ff = inj₂ (λ { (_ , s-fun u<[j₁]a b<[k₁]v  _ j₁≤-k₁) → lem₂ u<[j]a b<[k]v u<[j₁]a b<[k₁]v eqj j₁≤-k₁ })
+  where
+    lem₂ : {j k j₁ k₁ : ℤ} → u <[ j ] a → b <[ k ] v → u <[ j₁ ] a → b <[ k₁ ] v → j ≤ℤ negℤ k ≡ ff → j₁ ≤ℤ negℤ k₁ ≡ tt → ⊥
+    lem₂ u<[j]a b<[k]v u<[j₁]a b<[k₁]v ¬j≤-k j₁≤-k₁
+      rewrite algo-uniq (<[]→<[]' u<[j]a) (<[]→<[]' u<[j₁]a)
+      rewrite algo-uniq (<[]→<[]' b<[k]v) (<[]→<[]' b<[k₁]v)
+      rewrite j₁≤-k₁
+      with ¬j≤-k
+    ... | ()
+... | tt | tt = inj₁ (k +ℤ toℤ n -ℤ toℤ m , s-fun u<[j]a b<[k]v eqk eqj)
+
+algo-dec' : (a b : Tp!) → (k : ℤ) → Dec (a <[ k ] b)
+algo-dec' a b k with algo-dec a b
+... | inj₂ no = inj₂ (λ a<[k]b → no (k , a<[k]b))
+... | inj₁ (j , a<[j]b) with j =ℤ k in j≡k
+... | tt rewrite (=ℤ-to-≡ {j} j≡k) = inj₁ a<[j]b
+... | ff = inj₂ λ a<[k]b → lem a<[k]b
+  where
+    lem : a <[ k ] b → ⊥
+    lem a<[k]b with algo-uniq (<[]→<[]' a<[j]b) (<[]→<[]' a<[k]b)
+    ... | refl with =ℤ-refl j
+    ... | eq with (trans (sym eq) j≡k)
+    ... | ()
+    -- Not sure why rewrite doesn't work here
