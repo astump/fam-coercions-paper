@@ -211,6 +211,22 @@ algo-uniq' {n ! a ⇒ b} {m ! u ⇒ v} {k}
 Dec : Set → Set
 Dec P = P ⊎ ¬ P
 
+-- Algorithmic subtyping is decidable, that is, given any two types a, b it is decidable
+-- whether there exists some integer k such that  a <[ k ] b.  The proof is by induction on
+-- the structure of the types a and b.
+--
+--   - If a = F^x N and b = F^y N, then a <[ x - y ] b  (via the s-nat rule).
+--   - If a is a base type and b an arrow type, there is evidently no way to derive a <[ k ] b.
+--   - Otherwise, suppose the first type is p = F^n (a ⇒ b) and the second is q = F^m (u ⇒ v).  By the
+--     induction hypothesis, we can decide whether u < a  and whether  b < v.
+--       - If there is no j such that u <[ j ] a, then clearly there is no way to derive p < q, since any
+--         derivation of p < q would have to end with the s-fun rule and contain a derivation of u < a.
+--       - Likewise, if there is no k such that b <[ k ] v, then we cannot derive p < q.
+--       - So suppose u <[ j ] a  and  b <[ k ] v.
+--           - If k <= 0 and j <= -k, then p <[ k + n - m ] q  via the s-fun rule.
+--           - Otherwise, there is no possible derivation, since by algo-uniq we know that j and k are unique:
+--             any derivations of u < a  and  b < v  can only use those specific values.
+
 algo-dec : (a b : Tp!) → Dec (Σ[ k ∈ ℤ ] a <[ k ] b)
 algo-dec (x !N) (y !N) = inj₁ ((toℤ x -ℤ toℤ y) , s-nat)
 algo-dec (_ !N) (_ ! _ ⇒ _) = inj₂ (λ { (_ , ()) })
